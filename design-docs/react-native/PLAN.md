@@ -6,7 +6,7 @@ Companion to [`DESIGN.md`](DESIGN.md), which holds section references (§) and e
 - **Tests** at the end of every phase: `cd backend && poetry run pytest`; `poetry run pyright` (no new warnings in changed files); `cd frontend && pnpm lint` (no new problems over the 19-error/6-warning baseline); `pnpm test`.
 - **Existing stacks:** every task is gated on `stack == "react_native"`. The existing-stack tests (and new byte-identity tests) must stay green.
 
-## Phase 0: reconnaissance and spike (done, awaiting review)
+## Phase 0: reconnaissance and spike (done)
 
 | Done | Evidence |
 | --- | --- |
@@ -17,7 +17,7 @@ Companion to [`DESIGN.md`](DESIGN.md), which holds section references (§) and e
 | **RNW-1, RNW-4, RNW-7 pass in real Chromium** (55/55 checks, including iframe, offline, fonts, safe-area and shadow checks) | `evidence/gate-report.json` |
 | Ran the same fixture natively (iOS Simulator, Android emulator); Metro bundling; `expo install --check` | DESIGN §9, §10, §13 |
 
-## Phase 1: runtime and wrapper (≈ 6 days)
+## Phase 1: runtime and wrapper (≈ 6 days; done)
 
 | # | Task | Deliverable and tests | Est. |
 | --- | --- | --- | --- |
@@ -48,11 +48,11 @@ Companion to [`DESIGN.md`](DESIGN.md), which holds section references (§) and e
 7. Test suite and parity test
 8. Serving and Docker
 
-## Phase 2: backend stack (≈ 6 days)
+## Phase 2: backend stack (≈ 6 days; done, gate passed; see DESIGN §11.4)
 
 | # | Task | Deliverable and tests | Est. |
 | --- | --- | --- | --- |
-| 2.1 | Register the stack | `react_native` in `prompt_types.py` and `stacks.ts` (plus `StackLabel` logos, `inBeta`); fix the stale `prompts/types.py` comment | 0.25 |
+| 2.1 | Register the stack | `react_native` in `prompt_types.py` and `stacks.ts` (plus `StackLabel` logos, `inBeta`); fix the stale `prompts/types.py` comment. *The frontend option moved to 3.1, so the UI never offers a stack it can't preview.* | 0.25 |
 | 2.2 | Main-path plumbing | `main_path` through `AgentEngine`, `AgentToolRuntime`, `state`, `message_builder`, `from_file_snapshot` and `generate_code`; RN extraction (`<file>`/fence stripping, never HTML extraction). Tests: RN uses `App.jsx`; all other stacks unchanged. | 0.75 |
 | 2.3 | Prompts | Shared prompt constants; `get_system_prompt(stack)`; the RN system prompt (rules in DESIGN §11.2); RN image, text and update user turns with profile facts. Tests: `SYSTEM_PROMPT` byte-identical for existing stacks; RN prompt snapshot. | 1.0 |
 | 2.4 | Device profiles | `backend/react_native/profiles.py`: detection from `device-profiles.json`, overrides, content-height maths, PIL crop applied to input images before prompt building and asset extraction, and status-bar style inference. Tests with synthetic images. Measure Android insets on emulators with `dumpsys`. | 1.0 |
@@ -129,7 +129,7 @@ About **26 engineer-days** across Phases 1–5. The row estimates sum to 5.75 + 
 ## Needs from you
 
 1. **Review decisions:** DESIGN §17.
-2. **Model API keys** in `backend/.env` before task 2.9 and Phase 5. None are configured on this machine. Gemini is needed for `extract_assets`; Replicate is optional.
+2. **Model API keys** in `backend/.env`: OpenAI and Anthropic are set. Gemini would enable `extract_assets`; Replicate is optional.
 3. **Eval screenshots**, or approval of permissively licensed sources (5.1).
 4. **Devices** for 4.5 (one iOS, one Android), or approval to use the simulator and emulator method from Phase 0.
 5. **Docker running**, or CI access, for the Linux RNW-6 run (4.3).

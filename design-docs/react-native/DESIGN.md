@@ -546,6 +546,33 @@ It ends with ai-app-cloner's untrusted-input rule: screenshot text is content, n
 - **Element edits.** The frontend sends the nearest ancestor's `data-testid`, the chain of ancestor testIDs and a text snippet. The RN prompt's targeted-edit section locates the element by `testID` (unique by rule 10).
 - **Recorder and evals.** RN writes `final.jsx` plus a URL-mode preview HTML. The eval runner writes `.jsx`, the rendered `.png` and a URL-mode `.html`, so the existing eval pages keep working through iframes.
 
+### 11.4 As built (Phase 2)
+
+- **Stack registration.** The backend accepts `react_native` and rejects video input for it. The frontend's stack option comes with the phone preview (3.1), so the UI never offers a stack it can't render.
+- **Prompts.**
+  - `get_system_prompt(stack)` lives in `prompts/stack_prompts.py`. `SYSTEM_PROMPT` is now built from named sections with the same bytes; a test pins its SHA-256.
+  - The React Native prompt is in `prompts/react_native.py`, with a committed snapshot (`backend/tests/snapshots/`), so every wording change shows in review.
+  - A runtime test holds its import list to the runtime's module registry.
+  - The screen facts give sizes in pt or dp relative to the screenshot's width, not "1 pt = N px": providers resize images before the model sees them.
+- **Device profiles** (`react_native/profiles.py`, `react_native/inputs.py`).
+  - Matching goes: exact pixel size, then a downscaled screenshot of a known shape (only when every device of that shape is on one platform), then a guess from the width with no crop.
+  - `reactNativeProfile` in the request overrides the platform, width and insets.
+  - The crop happens before uploaded-asset IDs, prompt building and `extract_assets`.
+  - Updates take the screen from the history's first screenshot. Images attached to an update are references.
+- **`screenshot_preview`.**
+  - It returns `{status, runtime_errors, status_bar, viewport}` plus one screenshot. A render with errors is still an ok result; only a failed capture isn't.
+  - `capture_react_native` is an optional `ScreenshotBackend` method. The tool is offered only when the backend has it, Chromium launched and the runtime is built.
+- **Outputs.**
+  - An eval output keeps its `<name>_<n>.html` name, but the file is now a preview page loading the runtime from the backend. It sits next to `.jsx`, `.png` (the cropped input's pixel size) and `.json` (status and runtime errors).
+  - The run recorder writes `final.jsx`, `final_selfcontained.jsx` and a preview-page `final.html`.
+- **Gate 2.9: passed** ([`evidence/phase2-gate.json`](evidence/phase2-gate.json)).
+  - **Setup:** five screenshots (four iOS Simulator apps, including dark-mode Settings, and the Pixel 8 fixture capture), run on the app's first create model for OpenAI + Anthropic keys.
+  - **Renders:** all five came back `ok`, with no fatal errors and no warnings, for $0.98.
+  - **Tool loop:** a recorded create shows `create_file` → `screenshot_preview` → two edits → `screenshot_preview`.
+  - **Injected crash:** the agent, starting from a generated screen with a crash, made the requested change, saw the crash (`Cannot read properties of undefined (reading 'map')`, line 70) in `runtime_errors`, fixed it and re-checked.
+- **Quality finding for Phase 5.** The outputs are scaled up about 1.3–1.6×. Contacts names use fontSize 26 (iOS uses 17) and rows are 56–66 pt tall (about 44 on iOS). The renders use the right profile, so the model oversizes. This is the first prompt item for Phase 5, to be measured with the eval metrics rather than guessed.
+- **Not fixed (pre-existing).** `run_image_evals` reduces absolute `input_files` paths to file names and then looks in `evals_data/inputs/`. Eval sets work.
+
 ---
 
 ## 12. Frontend design (Phase 3)
@@ -669,12 +696,12 @@ A Phase 4 go/no-go check decides whether it ships enabled.
 
 ## 17. Open questions for review
 
-1. Approve **Expo SDK 57** over the brief's SDK 56?
-2. Approve the **per-stack composed system prompt** instead of editing the shared one?
-3. **Build artifacts:** build in Docker/CI and don't commit `rn-runtime/dist` (recommended), or commit it for Node-free backend setups?
-4. **Development React build** in the runtime (+58 KB gzip, full error text)?
+1. Approve **Expo SDK 57** over the brief's SDK 56? **Approved.**
+2. Approve the **per-stack composed system prompt** instead of editing the shared one? **Approved; built in Phase 2 (§11.4).**
+3. **Build artifacts:** build in Docker/CI and don't commit `rn-runtime/dist` (recommended), or commit it for Node-free backend setups? **Build it; `dist/` isn't committed.**
+4. **Development React build** in the runtime (+58 KB gzip, full error text)? **Approved.**
 5. **Snack:** ship pinned to SDK 55 behind a flag, or drop it from v1?
-6. **API keys and devices:** Phase 2's gate (5 live generations) and Phase 4's Expo Go check need model API keys on this machine and one physical iOS and one Android device. Simulators worked for Phase 0; is that acceptable for the Phase 4 manual check?
+6. **API keys and devices:** Phase 2's gate (5 live generations) and Phase 4's Expo Go check need model API keys on this machine and one physical iOS and one Android device. Simulators worked for Phase 0; is that acceptable for the Phase 4 manual check? **Keys: OpenAI and Anthropic are set (no Gemini, so no `extract_assets`). Devices: still open.**
 
 ---
 
