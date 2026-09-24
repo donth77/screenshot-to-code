@@ -11,30 +11,19 @@ installed, or Chromium is missing.
 """
 
 import asyncio
-import os
-import signal
-import socket
-import subprocess
-import threading
-import time
-import urllib.request
-from pathlib import Path
 from typing import Any, AsyncIterator, Iterator, cast
 
 import pytest
-import uvicorn
 from fastapi import FastAPI
 from playwright.async_api import Browser, Response, Route
 
 from preview_screenshot.playwright_backend import PlaywrightBackend
 from react_native.runtime_files import load_runtime
 from react_native.serving import IMMUTABLE, configure_runtime_routes
+from tests.dev_servers import READY_TIMEOUT_S, ROOT, VITE, serve_app, vite_dev_server
 
-ROOT = Path(__file__).resolve().parents[2]
-VITE = ROOT / "frontend" / "node_modules" / ".bin" / "vite"
 IPHONE: dict[str, Any] = {"platform": "ios", "width": 390, "height": 751, "scale": 3, "insets": {"top": 0, "right": 0, "bottom": 0, "left": 0}}
 PIXEL_PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
-READY_TIMEOUT_S = 60  # the first start pre-bundles the frontend's dependencies
 
 pytestmark = [
     pytest.mark.skipif(load_runtime() is None, reason="rn-runtime is not built (cd rn-runtime && pnpm build)"),
@@ -42,58 +31,18 @@ pytestmark = [
 ]
 
 
-def free_port() -> int:
-    with socket.socket() as sock:
-        sock.bind(("127.0.0.1", 0))
-        return cast(int, sock.getsockname()[1])
-
-
-def wait_for(url: str, process: "subprocess.Popen[bytes] | None" = None) -> None:
-    deadline = time.monotonic() + READY_TIMEOUT_S
-    while time.monotonic() < deadline:
-        if process is not None and process.poll() is not None:
-            raise RuntimeError(f"{url}: the server exited with {process.returncode}")
-        try:
-            with urllib.request.urlopen(url, timeout=2):
-                return
-        except OSError:
-            time.sleep(0.2)
-    raise TimeoutError(f"{url} did not come up within {READY_TIMEOUT_S} s")
-
-
 @pytest.fixture(scope="module")
 def backend_url() -> Iterator[str]:
     app = FastAPI()
     configure_runtime_routes(app)
-    port = free_port()
-    server = uvicorn.Server(uvicorn.Config(app, host="127.0.0.1", port=port, log_level="warning", ws="none"))
-    thread = threading.Thread(target=server.run, daemon=True)
-    thread.start()
-    url = f"http://127.0.0.1:{port}"
-    wait_for(f"{url}/rn-runtime/manifest.json")
-    yield url
-    server.should_exit = True
-    thread.join(timeout=5)
+    with serve_app(app, "/rn-runtime/manifest.json") as url:
+        yield url
 
 
 @pytest.fixture(scope="module")
 def vite_url(backend_url: str) -> Iterator[str]:
-    port = free_port()
-    process = subprocess.Popen(
-        [str(VITE), "--host", "127.0.0.1", "--port", str(port), "--strictPort"],
-        cwd=ROOT / "frontend",
-        env={**os.environ, "PROXY_CODEGEN_BACKEND": backend_url},
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        start_new_session=True,  # its own process group, so teardown stops esbuild and the type checker too
-    )
-    url = f"http://127.0.0.1:{port}"
-    try:
-        wait_for(f"{url}/dev/rn-preview-harness.html", process)
+    with vite_dev_server(backend_url, "/dev/rn-preview-harness.html") as url:
         yield url
-    finally:
-        os.killpg(process.pid, signal.SIGTERM)
-        process.wait(timeout=10)
 
 
 @pytest.fixture(scope="module")
