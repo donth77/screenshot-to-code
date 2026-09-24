@@ -14,6 +14,7 @@ Supported stacks:
 - Vue + Tailwind
 - Bootstrap
 - Ionic + Tailwind
+- React Native (Expo), beta: one phone screen as `App.jsx` (see [React Native](#react-native-expo))
 
 Default AI models:
 
@@ -91,6 +92,28 @@ pnpm dev
 Open http://localhost:5173 to use the app.
 
 If you prefer to run the backend on a different port, update `VITE_WS_BACKEND_URL` in `frontend/.env.local`.
+
+## React Native (Expo)
+
+The React Native stack turns one phone screenshot into an Expo `App.jsx`, previewed on a phone in the app. It needs the preview runtime, built with Node and pnpm (the Docker image builds it for you):
+
+```bash
+cd rn-runtime
+pnpm install
+pnpm build   # restart the backend afterwards
+```
+
+Then pick **React Native (Expo)** as the stack. The stack menu marks it unavailable until the runtime is built.
+
+- **Input.** One screenshot, no video. The app detects the phone from the screenshot's size. You can correct the platform, phone, width and the status-bar and home-indicator crop before generating.
+- **Export menu** (the download button above the preview):
+  - **Download Expo project:** a zip pinned to the Expo SDK in `rn-runtime/expo-sdk.json`. Run `npm install && npx expo start` in it and scan the QR code with Expo Go. Images `App.jsx` shows are embedded in `assets.js`.
+  - **Download preview HTML:** one file that renders the screen offline in a browser.
+  - **Open in Snack:** only with `VITE_SNACK_EXPORT=true` in `frontend/.env.local`. Snack runs an older Expo SDK (the one in `expo-sdk.json`'s `snack` entry) and can't load local images.
+- **Native bundling check.** `cd backend && poetry run python -m react_native.bundle_check path/to/App.jsx` bundles a screen for iOS and Android with Expo's Metro, catching imports and syntax the web preview accepts but a phone wouldn't. It installs an Expo workspace once (about 400 MB, under `~/.cache/screenshot-to-code`, or `RN_BUNDLE_WORKSPACE`). With `RN_BUNDLE_CHECK=1`, React Native evals record the result for each output.
+- **Updating the Expo SDK.** See [rn-runtime/README.md](rn-runtime/README.md#bumping-the-expo-sdk).
+
+Design notes and status: [design-docs/react-native](design-docs/react-native/DESIGN.md).
 
 ## Docker
 

@@ -60,7 +60,18 @@ past 1,900 KB raw / 700 KB gzip.
 2. Update `expo-sdk.json`, then `package.json` to the same versions
    (`@react-native/assets-registry` follows `react-native`).
 3. `pnpm install && pnpm build`. The build refuses mismatched versions.
-4. Run the backend suite (`cd backend && poetry run pytest tests/test_rn_runtime.py`) and check
-   the Snack SDK in `expo-sdk.json` against Snack's newest supported version.
-5. Re-measure the text calibration on the new SDK's Expo Go ([calibration/README.md](calibration/README.md)):
+4. Run the backend suite (`cd backend && poetry run pytest tests/test_rn_runtime.py
+   tests/test_rn_runtime_contract.py tests/test_rn_expo_export.py`). The Expo export's
+   `package.json` is generated from `expo-sdk.json`, so the template follows the bump.
+5. Compare the export with Expo's own template for the new SDK (`npm pack
+   expo-template-blank@sdk-<N>`), for `package.json` scripts, `app.json` and `index.js`
+   (`backend/react_native/expo_project.py`).
+6. Check that an export installs and bundles with the new pins. Run
+   `RN_BUNDLE_CHECK=1 poetry run pytest tests/test_rn_bundle_check.py`, and run
+   `npx expo install --check` in an unzipped export; it should report that dependencies are up to date.
+7. Check the Snack SDK in `expo-sdk.json` (`snack.sdkVersion`) against Snack's newest supported
+   version.
+8. Re-measure the text calibration on the new SDK's Expo Go ([calibration/README.md](calibration/README.md)):
    React Native's text layout rules can change between versions, and `fit.py` checks them.
+9. Open an export in Expo Go on both platforms (`scripts/expo-go-check.sh` automates it on a
+   simulator or emulator).
