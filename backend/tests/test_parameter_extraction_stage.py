@@ -109,3 +109,27 @@ async def test_extracts_design_system_from_request() -> None:
     )
 
     assert extracted.design_system == "Reuse .mockup-frame"
+
+
+@pytest.mark.asyncio
+async def test_accepts_the_react_native_stack() -> None:
+    stage = ParameterExtractionStage(AsyncMock())
+
+    extracted = await stage.extract_and_validate(
+        {"generatedCodeConfig": "react_native", "inputMode": "image", "prompt": {"text": "", "images": []}}
+    )
+
+    assert extracted.stack == "react_native"
+
+
+@pytest.mark.asyncio
+async def test_rejects_video_input_for_react_native() -> None:
+    throw_error = AsyncMock()
+    stage = ParameterExtractionStage(throw_error)
+
+    with pytest.raises(ValueError, match="video"):
+        await stage.extract_and_validate(
+            {"generatedCodeConfig": "react_native", "inputMode": "video", "prompt": {"text": "", "videos": []}}
+        )
+
+    throw_error.assert_awaited_once()

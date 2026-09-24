@@ -38,6 +38,7 @@ Stack = Literal[
     "bootstrap",
     "ionic_tailwind",
     "vue_tailwind",
+    "react_native",
 ]
 
 

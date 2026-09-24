@@ -298,6 +298,9 @@ class ParameterExtractionStage:
             await self.throw_error(f"Invalid input mode: {input_mode}")
             raise ValueError(f"Invalid input mode: {input_mode}")
         validated_input_mode = cast(InputMode, input_mode)
+        if validated_stack == "react_native" and validated_input_mode == "video":
+            await self.throw_error("React Native generation doesn't support video input.")
+            raise ValueError("React Native generation doesn't support video input.")
 
         openai_api_key = self._get_from_settings_dialog_or_env(
             params, "openAiApiKey", OPENAI_API_KEY

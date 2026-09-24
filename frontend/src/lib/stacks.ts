@@ -1,4 +1,5 @@
-// Keep in sync with backend (prompts/types.py)
+// Keep in sync with backend (prompts/prompt_types.py). The backend also accepts
+// react_native, which appears here once the app can preview React Native.
 // Order here determines order in dropdown
 export enum Stack {
   HTML_TAILWIND = "html_tailwind",
