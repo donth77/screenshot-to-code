@@ -3,15 +3,19 @@
 ``<name>_<n>.html`` is a preview page that loads the runtime from the backend,
 so the eval pages keep working through iframes. Next to it: the App.jsx
 (``.jsx``), its render at the input's device profile (``.png``), and the
-render's status and runtime errors (``.json``).
+render's status and runtime errors (``.json``). With RN_BUNDLE_CHECK on, the
+report also says whether the output bundles for iOS and Android (RNW-6).
 """
 
+import asyncio
 import json
 import os
 from typing import Any, Mapping
 
+import config
 from config import LOCAL_ASSET_BASE_URL
 from preview_screenshot import capture_react_native_preview
+from react_native.bundle_check import check_bundle
 from react_native.render import preview_page
 from react_native.runtime_files import load_runtime
 
@@ -36,6 +40,9 @@ async def write_react_native_outputs(html_path: str, source: str, profile: Mappi
         "ready_ms": render.ready_ms,
         "profile": dict(profile),
     }
+    if config.RN_BUNDLE_CHECK:
+        # Assets don't affect bundling: URLs are strings to Metro.
+        report["native_bundle"] = (await asyncio.to_thread(check_bundle, {"App.jsx": source})).as_json()
     with open(base + ".json", "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2)
     return report

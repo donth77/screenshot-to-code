@@ -32,6 +32,11 @@ LOCAL_ASSET_DIR = os.environ.get(
 # infers this per-request; the evals path has no request, so it uses this.
 LOCAL_ASSET_BASE_URL = os.environ.get("LOCAL_ASSET_BASE_URL", "http://127.0.0.1:7001")
 
+# React Native evals also bundle each output for iOS and Android with Expo
+# (gate RNW-6, react_native/bundle_check.py). Off by default: it needs Node
+# and npm, installs about 400 MB once, and takes about 40 s per output.
+RN_BUNDLE_CHECK = os.environ.get("RN_BUNDLE_CHECK", "").strip().lower() in {"1", "true", "yes", "on"}
+
 # Built React Native preview runtime (`pnpm build` in rn-runtime/). The React
 # Native stack's preview needs it; without it the preview reports unavailable.
 RN_RUNTIME_DIST = os.environ.get(

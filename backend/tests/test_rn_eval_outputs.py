@@ -95,3 +95,24 @@ def test_an_eval_input_renders_at_its_screenshots_profile() -> None:
 
     assert (profile["platform"], profile["width"], profile["height"]) == ("android", 412, 841)
     assert (default["platform"], default["width"], default["height"]) == ("ios", 390, 763)
+
+
+@needs_runtime
+async def test_an_eval_report_says_whether_the_output_bundles_when_asked(
+    tmp_path: Path, backend: PlaywrightBackend, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from react_native.bundle_check import BundleResult
+
+    bundled: list[dict[str, str]] = []
+
+    def fake_check(files: dict[str, str]) -> BundleResult:
+        bundled.append(files)
+        return BundleResult(ok=True, seconds=41.2)
+
+    monkeypatch.setattr("config.RN_BUNDLE_CHECK", True)
+    monkeypatch.setattr("evals.react_native_outputs.check_bundle", fake_check)
+    report = await write_react_native_outputs(str(tmp_path / "inbox_0.html"), APP, PROFILE)
+
+    assert bundled == [{"App.jsx": APP}]
+    assert report["native_bundle"] == {"ok": True, "seconds": 41.2, "errors": []}
+    assert json.loads((tmp_path / "inbox_0.json").read_text())["native_bundle"]["ok"] is True
