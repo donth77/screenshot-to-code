@@ -23,6 +23,10 @@ import { downloadCode } from "./download";
 import { SelectAndEditToolbarButton } from "../select-and-edit/SelectAndEditControls";
 import { normalizeBabelCdn } from "../../lib/babelCdn";
 import ImageScanningPreview from "./ImageScanningPreview";
+import { isReactNativeStack } from "../../lib/stacks";
+import { previewModeFor } from "../../lib/react-native/previewMode";
+import { RUNTIME_UNAVAILABLE_MESSAGE } from "../../lib/react-native/appRuntime";
+import PhonePreview from "./react-native/PhonePreview";
 
 function prepareHtmlForNewTab(code: string) {
   const html = normalizeBabelCdn(code);
@@ -45,9 +49,16 @@ interface Props {
 }
 
 function PreviewPane({ settings, onOpenVersions }: Props) {
-  const { appState } = useAppStore();
+  const { appState, previewRefreshNonce, refreshPreviews } = useAppStore();
   const { inputMode, head, commits, setHead } = useProjectStore();
-  const [activeTab, setActiveTab] = useState("desktop");
+  // React Native renders App.jsx on one phone instead of desktop and mobile pages.
+  const isReactNative = isReactNativeStack(settings.generatedCodeConfig);
+  const [selectedTab, setActiveTab] = useState(isReactNative ? "phone" : "desktop");
+  // The stack setting can land a render after the project does (zustand
+  // updates render first), so map the tab onto the stack's own tabs.
+  const activeTab = isReactNative
+    ? selectedTab === "code" ? "code" : "phone"
+    : selectedTab === "phone" ? "desktop" : selectedTab;
   const [desktopScale, setDesktopScale] = useState(1);
   const [desktopViewMode, setDesktopViewMode] = useState<"fit" | "actual">("fit");
 
@@ -63,9 +74,11 @@ function PreviewPane({ settings, onOpenVersions }: Props) {
   const canGoNext = currentVersionIndex < totalVersions - 1;
 
   const currentCommit = head && commits[head] ? commits[head] : "";
-  const currentCode = currentCommit
-    ? currentCommit.variants[currentCommit.selectedVariantIndex].code
-    : "";
+  const selectedVariant = currentCommit
+    ? currentCommit.variants[currentCommit.selectedVariantIndex]
+    : undefined;
+  const currentCode = selectedVariant ? selectedVariant.code : "";
+  const reactNativeDevice = currentCommit ? currentCommit.reactNative?.device : undefined;
 
   const isSelectedVariantComplete =
     head &&
@@ -99,12 +112,21 @@ function PreviewPane({ settings, onOpenVersions }: Props) {
         <div className="relative flex items-center justify-between px-4 py-2 shrink-0 border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
           <div className="flex items-center gap-2">
             <TabsList>
-              <TabsTrigger value="desktop" title="Desktop" data-testid="tab-desktop">
-                <FaDesktop />
-              </TabsTrigger>
-              <TabsTrigger value="mobile" title="Mobile" data-testid="tab-mobile">
-                <FaMobile />
-              </TabsTrigger>
+              {isReactNative ? (
+                <TabsTrigger value="phone" title="Phone" data-testid="tab-phone" className="gap-2">
+                  <FaMobile />
+                  Phone
+                </TabsTrigger>
+              ) : (
+                <>
+                  <TabsTrigger value="desktop" title="Desktop" data-testid="tab-desktop">
+                    <FaDesktop />
+                  </TabsTrigger>
+                  <TabsTrigger value="mobile" title="Mobile" data-testid="tab-mobile">
+                    <FaMobile />
+                  </TabsTrigger>
+                </>
+              )}
               <TabsTrigger value="code" title="Code" data-testid="tab-code" className="gap-2">
                 <FaCode />
                 Code
@@ -203,7 +225,7 @@ function PreviewPane({ settings, onOpenVersions }: Props) {
               (activeTab === "desktop" || activeTab === "mobile") && (
                 <SelectAndEditToolbarButton />
               )}
-            {(appState === AppState.CODE_READY || isSelectedVariantComplete) && (
+            {(appState === AppState.CODE_READY || isSelectedVariantComplete) && !isReactNative && (
               <Button
                 onClick={() => downloadCode(previewCode)}
                 variant="ghost"
@@ -217,6 +239,11 @@ function PreviewPane({ settings, onOpenVersions }: Props) {
             )}
             <Button
               onClick={() => {
+                if (isReactNative) {
+                  // Rebuild each preview document with its current App.jsx.
+                  refreshPreviews();
+                  return;
+                }
                 const iframes = document.querySelectorAll("iframe");
                 iframes.forEach((iframe) => {
                   if (iframe.srcdoc) {
@@ -235,6 +262,24 @@ function PreviewPane({ settings, onOpenVersions }: Props) {
             </Button>
           </div>
         </div>
+        {isReactNative && (
+          <TabsContent value="phone" className="flex-1 min-h-0 mt-0 data-[state=active]:flex data-[state=active]:flex-col">
+            {showImageScanningPreview ? (
+              <ImageScanningPreview imageUrl={sourceImage} />
+            ) : reactNativeDevice ? (
+              <PhonePreview
+                code={previewCode}
+                device={reactNativeDevice}
+                mode={previewModeFor(selectedVariant)}
+                refreshNonce={previewRefreshNonce}
+              />
+            ) : (
+              <div className="flex flex-1 items-center justify-center p-8 text-center text-sm text-gray-500 dark:text-zinc-400">
+                {RUNTIME_UNAVAILABLE_MESSAGE}
+              </div>
+            )}
+          </TabsContent>
+        )}
         <TabsContent value="desktop" className="flex-1 min-h-0 mt-0 data-[state=active]:flex data-[state=active]:flex-col">
           {showImageScanningPreview ? (
             <ImageScanningPreview imageUrl={sourceImage} />

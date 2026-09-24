@@ -21,6 +21,10 @@ interface AppStore {
   selectedElement: HTMLElement | null;
   setSelectedElement: (element: HTMLElement | null) => void;
   clearSelectedElement: () => void;
+
+  // React Native previews rebuild their documents when this changes.
+  previewRefreshNonce: number;
+  refreshPreviews: () => void;
 }
 
 export const useAppStore = create<AppStore>((set) => ({
@@ -53,4 +57,8 @@ export const useAppStore = create<AppStore>((set) => ({
   setSelectedElement: (element: HTMLElement | null) =>
     set({ selectedElement: element }),
   clearSelectedElement: () => set({ selectedElement: null }),
+
+  previewRefreshNonce: 0,
+  refreshPreviews: () =>
+    set((state) => ({ previewRefreshNonce: state.previewRefreshNonce + 1 })),
 }));

@@ -6,10 +6,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { Stack } from "../../lib/stacks";
-
-// Not offered until the app can preview it on a phone (Phase 3, task 3.3).
-const UNOFFERED_STACKS = new Set<Stack>([Stack.REACT_NATIVE]);
+import { isReactNativeStack, Stack } from "../../lib/stacks";
+import { useCapabilities } from "../../lib/capabilities";
 import StackLabel from "../core/StackLabel";
 import DesignSystemSelector, {
   DesignSystemSelectorProps,
@@ -32,6 +30,10 @@ function OutputSettingsSection({
   designSystem,
   inline = false,
 }: Props) {
+  // React Native needs the preview runtime (rn-runtime/dist) on the backend.
+  const capabilities = useCapabilities();
+  const reactNativeUnavailable = capabilities?.react_native_preview === false;
+
   const stackSelect = (
     <Select
       value={stack ?? ""}
@@ -47,13 +49,28 @@ function OutputSettingsSection({
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          {Object.values(Stack).filter((option) => !UNOFFERED_STACKS.has(option)).map((stack) => (
-            <SelectItem key={stack} value={stack}>
-              <div className="flex items-center">
-                <StackLabel stack={stack} />
-              </div>
-            </SelectItem>
-          ))}
+          {Object.values(Stack).map((stack) => {
+            const unavailable = isReactNativeStack(stack) && reactNativeUnavailable;
+            return (
+              <SelectItem
+                key={stack}
+                value={stack}
+                disabled={unavailable}
+                title={
+                  unavailable
+                    ? "Needs the preview runtime: cd rn-runtime && pnpm build, then restart the backend"
+                    : undefined
+                }
+              >
+                <div className="flex items-center">
+                  <StackLabel stack={stack} />
+                  {unavailable && (
+                    <span className="ml-2 text-[11px] text-gray-400">runtime not built</span>
+                  )}
+                </div>
+              </SelectItem>
+            );
+          })}
         </SelectGroup>
       </SelectContent>
     </Select>

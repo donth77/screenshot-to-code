@@ -84,6 +84,12 @@ export function contentHeight(device: ReactNativeDevice): number {
   );
 }
 
+// "iPhone 14 Pro, 15, 15 Pro, 16", or a generic name for a guessed size.
+export function deviceLabel(device: ReactNativeDevice): string {
+  const name = device.name ?? (device.platform === "ios" ? "iPhone" : "Android phone");
+  return device.match === "guessed" ? `${name} (size guessed)` : name;
+}
+
 // The profile the preview renders: the content area at the screenshot's scale.
 export function previewProfile(device: ReactNativeDevice): DeviceProfile {
   return {
