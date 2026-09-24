@@ -64,8 +64,10 @@ def extract_jsx_content(text: str) -> str:
     )
     if fence_match:
         return fence_match.group(1).strip()
-    if file_match or re.search(r"^\s*(import|export)\b", text, re.MULTILINE):
+    if file_match:
         return text.strip()
+    if re.search(r"^\s*(import|export)\b", text, re.MULTILINE):
+        return text  # plain code, exactly as written
     return ""
 
 
