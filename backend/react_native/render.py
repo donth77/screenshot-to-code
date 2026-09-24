@@ -75,7 +75,7 @@ def normalize_runtime_errors(
             return
         seen.add((kind, message))
         item: dict[str, Any] = {"kind": kind, "message": message, "fatal": bool(entry.get("fatal"))}
-        for key in ("line", "column", "name"):
+        for key in ("line", "column", "name", "rule"):
             if entry.get(key) is not None:
                 item[key] = entry[key]
         if entry.get("componentStack"):

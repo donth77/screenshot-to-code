@@ -19,6 +19,7 @@ import * as React from 'react';
 import { AppRegistry, ScrollView, Text, View } from 'react-native-web';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { FONT_FACES } from 'virtual:fonts';
+import { lintNativeCompat } from './lint.js';
 
 const FILENAME = 'App.jsx';
 // new Function() prepends "function anonymous(require,module,exports,React\n) {\n".
@@ -316,6 +317,25 @@ function mount(element) {
   currentRoot = AppRegistry.runApplication('App', { rootTag: document.getElementById('root') });
 }
 
+function mountErrorPanel(id) {
+  mount(
+    React.createElement(
+      React.Fragment,
+      null,
+      React.createElement(ErrorPanel, { errors: errorList().filter((e) => e.fatal) }),
+      React.createElement(SettleSignal, { id, streaming: false })
+    )
+  );
+}
+
+function lint(source) {
+  try {
+    return lintNativeCompat(window.Babel, source, FILENAME);
+  } catch (error) {
+    return []; // the transform already accepted this source; never block on the lint itself
+  }
+}
+
 let badge = null;
 function setStreamingBadge(visible) {
   if (!visible) {
@@ -354,7 +374,16 @@ function render(config) {
   let App;
   const t0 = performance.now();
   try {
-    App = evaluate(transform(config.source));
+    const code = transform(config.source);
+    meta.transformMs = Math.round(performance.now() - t0);
+    if (!streaming) {
+      // Only finished files: a half-written one would raise false alarms.
+      const findings = lint(config.source);
+      meta.lintMs = Math.round(performance.now() - t0) - meta.transformMs;
+      findings.forEach(reportError);
+      if (findings.some((finding) => finding.fatal)) return mountErrorPanel(id);
+    }
+    App = evaluate(code);
   } catch (error) {
     if (streaming) {
       // The file is still being written: keep the last render (or a blank screen).
@@ -374,17 +403,9 @@ function render(config) {
         line: location && location.line,
       });
     }
-    mount(
-      React.createElement(
-        React.Fragment,
-        null,
-        React.createElement(ErrorPanel, { errors: errorList().filter((e) => e.fatal) }),
-        React.createElement(SettleSignal, { id, streaming: false })
-      )
-    );
+    mountErrorPanel(id);
     return;
   }
-  meta.transformMs = Math.round(performance.now() - t0);
   meta.app = App;
 
   const insets = Object.assign({ top: 0, right: 0, bottom: 0, left: 0 }, profile.insets);

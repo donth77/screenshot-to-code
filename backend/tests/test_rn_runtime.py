@@ -35,7 +35,7 @@ PIXEL: dict[str, Any] = {"platform": "android", "width": 412, "height": 868, "sc
 
 MAIN_TEST_IDS = [
     "screen", "settings-list", "avatar", "greeting", "bell-button", "search-input", "chips", "chip-all",
-    "card-boxshadow", "card-legacy-shadow", "progress-ring", "settings-row-profile", "settings-row-about",
+    "card-boxshadow", "card-bordered", "progress-ring", "settings-row-profile", "settings-row-about",
 ]
 
 PROBE_JS = """() => {
@@ -252,11 +252,15 @@ async def test_safe_area_view_uses_the_profile_insets(browser: Browser) -> None:
     assert render.extra["safeArea"] == {"top": "59px", "bottom": "34px"}
 
 
-async def test_box_shadow_and_legacy_shadow_both_render(main_render: PreviewRender) -> None:
-    shadows = main_render.extra["shadows"]
+async def test_box_shadow_and_legacy_shadow_both_render_on_web(browser: Browser) -> None:
+    render = await render_preview(browser, bundle(), fixture("shadows"), IPHONE, inspect=probe)
+    shadows = render.extra["shadows"]
     assert shadows["modern"] and shadows["modern"] != "none"
     assert shadows["legacy"] and shadows["legacy"] != "none"
-    assert any('"shadow*" style props are deprecated' in warning for warning in main_render.console_warnings)
+    assert any('"shadow*" style props are deprecated' in warning for warning in render.console_warnings)
+    # The lint steers the model to boxShadow, which renders the same on iOS and Android.
+    assert render.status == "degraded"
+    assert {error["rule"] for error in render.runtime_errors} == {"legacy-shadow"}
 
 
 # ---------------------------------------------------------------- RNW-3 (library level)
@@ -427,3 +431,39 @@ async def test_parent_window_drives_updates_and_receives_status(browser: Browser
     assert [status["renderId"] for status in statuses] == [1, 2]
     assert all(status["status"] == "ok" and status["errors"] == [] for status in statuses)
     assert title == "Screen B"
+
+
+# ---------------------------------------------------------------- native-compatibility lint (1.5)
+
+
+async def test_dom_elements_and_onclick_are_fatal(browser: Browser) -> None:
+    render = await render_preview(browser, bundle(), fixture("lint-dom"), IPHONE, inspect=probe)
+    found = {(error["rule"], error["fatal"], error.get("line")) for error in render.runtime_errors}
+    assert render.status == "error"
+    assert ("host-element", True, 7) in found
+    assert ("on-click", True, 7) in found
+    assert ("class-name", False, 7) in found
+    assert "rn-preview-error" in render.extra["testIds"]
+
+
+async def test_web_only_styles_are_warnings_with_source_lines(browser: Browser) -> None:
+    render = await render_preview(browser, bundle(), fixture("lint-web-styles"), IPHONE, inspect=probe)
+    lint = [error for error in render.runtime_errors if error["kind"] == "native_compat"]
+    found = sorted((str(error["rule"]), int(error["line"])) for error in lint)
+    assert render.status == "degraded"  # it still renders
+    assert "web-styles" in render.extra["testIds"]
+    assert all(error["fatal"] is False for error in render.runtime_errors)
+    # react-native-web's own style validation agrees about the shorthand.
+    assert any("only single values are supported" in error["message"] for error in render.runtime_errors)
+    assert found == sorted([
+        ("platform-branch", 5),
+        ("unit-string", 9),
+        ("web-style", 9),        # cursor
+        ("css-shorthand", 17),   # padding: '8px 16px'
+        ("web-style", 18),       # display: 'grid'
+        ("web-style", 18),       # gridTemplateColumns
+        ("web-style", 18),       # position: 'sticky'
+        ("css-shorthand", 19),   # border
+        ("legacy-shadow", 19),   # shadowColor
+        ("legacy-shadow", 19),   # elevation
+    ])

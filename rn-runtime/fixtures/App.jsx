@@ -114,9 +114,9 @@ function Header({ query, onQueryChange }) {
           <ProgressRing progress={0.68} />
           <Text style={styles.cardLabel}>boxShadow</Text>
         </View>
-        <View testID="card-legacy-shadow" style={[styles.card, styles.cardLegacyShadow]}>
+        <View testID="card-bordered" style={[styles.card, styles.cardBordered]}>
           <ProgressRing progress={0.32} />
-          <Text style={styles.cardLabel}>shadow* + elevation</Text>
+          <Text style={styles.cardLabel}>border</Text>
         </View>
       </View>
       <Text style={styles.sectionTitle}>Settings</Text>
@@ -174,13 +174,7 @@ const styles = StyleSheet.create({
   cards: { flexDirection: 'row', gap: tokens.spacing.md },
   card: { flex: 1, backgroundColor: tokens.colors.card, borderRadius: tokens.radii.lg, padding: tokens.spacing.lg, alignItems: 'center', gap: tokens.spacing.sm },
   cardBoxShadow: { boxShadow: '0px 4px 12px rgba(17, 24, 39, 0.12)' },
-  cardLegacyShadow: {
-    shadowColor: '#111827',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 4,
-  },
+  cardBordered: { borderWidth: 1, borderColor: tokens.colors.border },
   cardLabel: { fontSize: tokens.fontSize.caption, color: tokens.colors.muted, fontWeight: '500' },
   sectionTitle: { marginTop: tokens.spacing.xl, marginBottom: tokens.spacing.sm, fontSize: 13, fontWeight: '600', color: tokens.colors.muted, textTransform: 'uppercase', letterSpacing: 0.6 },
   row: { flexDirection: 'row', alignItems: 'center', gap: tokens.spacing.md, backgroundColor: tokens.colors.card, paddingHorizontal: tokens.spacing.md, paddingVertical: tokens.spacing.md, borderRadius: tokens.radii.md },
