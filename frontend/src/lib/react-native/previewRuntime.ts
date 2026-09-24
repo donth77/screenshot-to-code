@@ -120,16 +120,17 @@ function inlineScripts(runtime: PreviewRuntime): Promise<string> {
 }
 
 // A self-contained preview page: everything inlined, so it opens from file://
-// with no network (gate RNW-3).
+// with no network (gate RNW-3). `extraHead` goes before the scripts.
 export async function inlinePreviewDocument(
   runtime: PreviewRuntime,
   source: string,
-  profile: DeviceProfile
+  profile: DeviceProfile,
+  extraHead = ""
 ): Promise<string> {
   return renderPreviewHtml(
     runtime.template,
     previewConfigJson(source, profile, "final"),
-    await inlineScripts(runtime)
+    extraHead + (await inlineScripts(runtime))
   );
 }
 

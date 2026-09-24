@@ -95,7 +95,8 @@ describe("previewRuntime", () => {
     expect(html).not.toContain("<script src");
     expect(html).toContain("<script>window.Babel = {};</script>\n<script>window.runtime = '\\x3C/script>';</script>");
     // Fetched once, then cached.
-    await inlinePreviewDocument(runtime, "export default () => 1;", PROFILE);
+    const framed = await inlinePreviewDocument(runtime, "export default () => 1;", PROFILE, "<style>x</style>\n");
+    expect(framed).toContain("<style>x</style>\n<script>window.Babel = {};</script>");
     const scriptFetches = fetchedPaths().filter((url) => url.endsWith(".js"));
     expect(scriptFetches).toHaveLength(2);
   });
