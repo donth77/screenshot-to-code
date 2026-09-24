@@ -1,6 +1,6 @@
 # React Native (Expo) output stack: design
 
-Status: **Phase 0 complete, awaiting review.** No product code has changed.
+Status: **Phases 0–3 complete; Phase 3 (frontend) awaiting review.** Phase 3 is described in §12.1.
 Date: 2026-09-24. Branch: `react-native-stack`.
 Companion documents: [`PLAN.md`](PLAN.md) (ordered tasks and estimates), `EVALS.md` (created in Phase 5).
 
@@ -319,7 +319,11 @@ Artifacts:
 - **Recommendation:** don't commit `dist/` (4.7 MB of minified JS per change). Build with Node (already required for the frontend) and add a Node stage to `backend/Dockerfile`.
 - **As built.** `backend/Dockerfile` builds `rn-runtime` in a `node:22.22.1-bookworm-slim` stage (pnpm 10.32.1, frozen lockfile), copying only the build's inputs. `docker-compose.yml` passes `rn-runtime/` as the named build context `rn-runtime`, and the image sets `RN_RUNTIME_DIST`.
   - The stage's steps, replayed in a clean directory, give a byte-identical bundle.
-  - **The image build itself is untested:** the Docker daemon wasn't available.
+  - **The `rn-runtime` stage builds (Verified, Phase 3, Linux, Docker 29.3.1):** `docker build --target rn-runtime-build` produced a `dist/` byte-identical to the host build (same `rn-runtime.20452ffe797c.js`).
+  - **The full image is untested.** Its build got through `poetry install` and then stopped at `playwright install --with-deps chromium`: the sandbox's network policy answers `deb.debian.org` and Playwright's CDN with 403.
+    - Docker Hub rate-limited anonymous pulls (429), so the two base images came from `mirror.gcr.io` under the same tags.
+    - The sandbox's TLS-intercepting proxy CA was added to local copies of those base images.
+    - The committed Dockerfile is unchanged.
 - If `dist/` is missing, `/api/capabilities` reports `react_native_preview: false` and the stack is disabled with a clear message.
 
 Pluggable screenshot backends:
@@ -426,7 +430,11 @@ That meets the targets of median width ≤ 1.5% and line height ≤ 0.5 pt. `tes
 
 **Untested:**
 
-- Linux Chromium, where the Docker backend renders. The numbers above come from Chromium on macOS.
+- Linux Chromium, where the Docker backend renders: **measured in Phase 3.**
+  - Chromium 141 on Linux fails the width limits on both platforms (iOS grid max 3.46%, Android grid median 1.28% and max 6.06%); every height passes.
+  - With `--font-render-hinting=none` every category passes, and the iOS figures equal the macOS ones. The cause is font hinting, not the Chromium version.
+  - The image's own Chromium 149 is untested.
+  - Whether the backend should pass that flag is an open question (§17). Figures: `rn-runtime/calibration/README.md` and `evidence/phase3-gate.json`.
 - Real phones and OEM fonts (Samsung's One UI doesn't use Roboto).
 - Font scaling other than 100%.
 - Densities other than 3× and 2.625.
@@ -585,6 +593,55 @@ It ends with ai-app-cloner's untrusted-input rule: screenshot text is content, n
 - **Agent activity.** The screenshot card gets an RN branch (one phone image and a `runtime_errors` list), and the `create_file` preview is highlighted as `jsx`.
 - **Export menu.** "Download Expo project" (zip from the backend), "Open in Snack" (flagged, §13.4) and "Download preview HTML" (inline mode).
 
+### 12.1 As built (Phase 3)
+
+Every change is gated on the stack: `isReactNativeStack(settings.generatedCodeConfig)` (the stack only changes on the start screen), passed as a prop where settings don't reach. Other stacks take the code paths they took before.
+
+- **Stack option.**
+  - "React Native (Expo)" (React and Expo logos, beta) is disabled with a build hint when `/api/capabilities` reports `react_native_preview: false`.
+  - The upload tab takes one screenshot (a new drop replaces it), refuses video and hides the screen recorder.
+- **The target phone** (`lib/react-native/devices.ts`, `appRuntime.ts`).
+  - `devices.ts` ports `react_native/profiles.py` to TypeScript, including Python's half-to-even rounding. `rn-runtime/test-vectors/device-detection.json` holds Python's decisions for 35 cases, and both suites run them.
+  - A create resolves the phone first, from the device table and the screenshot's pixel size, or the platform's default phone in text mode. The commit keeps `reactNative: {device, overrides}`; edits and retries reuse it.
+  - Requests send only the user's overrides as `reactNativeProfile`. The backend then picks the same phone by construction.
+  - Checked in the browser: `screenshot_preview`'s viewport equals the preview's size for an iPhone 13 screenshot overridden to an iPhone 15, a Pixel 8 screenshot, and Android text mode (`evidence/phase3-gate.json`).
+  - Display only: `withChosenName` names the phone the user picked. The backend ignores names.
+- **Device controls** (`ReactNativeDeviceControls`). The uploaded screenshot shows its crop: the status bar and home indicator strips, with draggable handles. Beside it: platform, phone (auto or a table row), logical width, and how the phone was found. Text mode offers the platform only, because the backend's default phone can't take a width override without changing its content height.
+- **Phone preview** (`PhonePreview`, `ReactNativeFrame`, `HotSwapChannel`).
+  - One Phone tab replaces Desktop and Mobile; "Open in new tab" and the desktop scale controls are hidden.
+  - The phone frame draws the cropped status bar and home indicator as blank system bands (a notch, Dynamic Island or punch hole by platform and inset) and scales to fit the pane.
+  - A status line gives the device, the content size and the render status. Its expandable list shows `runtime_errors` with `App.jsx` line numbers.
+  - The frame loads the runtime once and posts `rn-preview:update` for every change.
+  - The channel (unit-tested) waits for the frame's first status and keeps one update in flight, always sending the newest. It treats `renderId` 1 as a freshly booted document, so reloads by anyone recover. It resends after a lost status once 10 s pass.
+  - **Streaming mode** applies only while a `create_file` event is running, or before any code arrives. Between tool calls the file is complete, so real errors show.
+  - Refresh rebuilds each document with its current code: an app-store nonce, since copying `srcdoc` would replay stale code.
+- **Thumbnails.** They use the same frame: lazy (IntersectionObserver), showing the top of the screen. Code is throttled to 300 ms for the selected option and 2 s for the others. A thumbnail whose code hasn't caught up renders in streaming mode, so a half-written file never flashes an error. Until a file is complete, a thumbnail stays blank.
+- **Code view.** `@codemirror/lang-javascript` 6.2.5 with `jsx: true`, pinned to the version `lang-html` already resolved. An `App.jsx` label replaces Open in CodePen.
+- **Selection.**
+  - Select-and-edit walks up to the nearest `[data-testid]`.
+  - The rings, sidebar and history name it `testID="…"`, stored as the display-only `selectedElementLabel`.
+  - The instruction gives the testID, the testID path from the screen down, and the rendered text (`innerText`, so sibling `Text` blocks stay apart).
+  - PreviewComponent's select wiring moved unchanged into `useSelectAndEditFrame`, which takes a target resolver and a ring label.
+- **Agent activity and evals.**
+  - `screenshot_preview` shows one phone screenshot with its size, status and `runtime_errors`, in the sidebar and in recorded runs.
+  - `create_file` previews of `.jsx` are highlighted as JavaScript.
+  - Preview pages detected by their `rn-preview-config` (eval outputs, recorded runs) show at the phone's size in Best of N, Agent Runs and Compare.
+- **Download preview HTML** (the only React Native download until Phase 4's menu).
+  - Babel and the runtime are inlined. Each quoted URL in `App.jsx` whose response is an image becomes a `data:` URI; other URLs stay, and a toast names images that couldn't be embedded.
+  - Image fetches use `cache: "no-store"`. The preview's `<img>` loaded the same URL without an `Origin` header, the backend sends no `Vary: Origin`, and the cached response then fails the fetch's CORS check.
+  - In a window wider than the phone, the page frames itself at the phone's size.
+- **Gates RNW-2 and RNW-3: passed** (`backend/tests/test_rn_frontend_gates.py`; `evidence/phase3-gate.json`, `phase3-*.png`).
+  - **Setup.** The real app runs on the Vite dev server against a backend where only the model is scripted (`tests/rn_ui_harness.py`, which also runs as a manual-testing backend).
+  - **What it checks.** The phone preview and its parity with `screenshot_preview`; the document booting once and hot-swapping from streaming to final; four thumbnails; the code view; the offline download with zero network requests; a targeted edit by testID.
+  - **Stability.** 3/3 tests passed in 4 consecutive runs of about 25 s.
+  - **Browser.** The sandbox's Chromium 141 (Playwright 1.61 pins 149, whose download is blocked here).
+- **Not done or untested.**
+  - The export menu (Phase 4) and "Open in new tab" for React Native.
+  - Dark mode was only glanced at.
+  - A JPEG screenshot with an EXIF rotation would decode rotated in the browser and not in PIL (**Assumed**, not tested).
+  - A hanging `App.jsx` would freeze the app too, as for every stack: the preview iframe is same-origin (R7).
+  - Pre-existing and unrelated: in the default same-origin setup the Vite proxy doesn't forward `/agent-runs` or `/evals`, so those pages need `VITE_HTTP_BACKEND_URL`.
+
 ---
 
 ## 13. Export design (Phase 4)
@@ -681,10 +738,10 @@ A Phase 4 go/no-go check decides whether it ships enabled.
 | R2 | Expo SDK cadence (56 → 57 in 6 weeks; 58 in RC with React 19.3): store Expo Go drops old SDKs | High | Medium | Pins in one manifest; RNW-5 parity test; documented bump procedure (runtime + template + table); CI check against `expo install --check` | 1, 4 |
 | R3 | Snack lags (max SDK 55) and can't reach local assets | Certain | Low | Flagged, labelled SDK 55, go/no-go check; the zip is the primary export | 4 |
 | R4 | Web-only code slips through (DOM tags, unit strings, CSS shorthands, `Platform.OS`) and passes the web preview | High | High | Babel native-compat lint (fatal for host tags); prompt rules; RNW-6 Metro gate catches imports only | 1, 2 |
-| R5 | Performance: four variants plus the main preview, each parsing about 4.6 MB of JS on every streamed update | High | Medium | `postMessage` hot-swap with the iframe loaded once; placeholder while streaming; lazy thumbnails | 1, 3 |
+| R5 | Performance: four variants plus the main preview, each parsing about 4.6 MB of JS on every streamed update | High | Medium | `postMessage` hot-swap with the iframe loaded once; placeholder while streaming; lazy thumbnails. **Built in Phase 3** (§12.1): each frame boots once, and streamed updates are coalesced to one in flight | 1, 3 |
 | R6 | Hosted or external screenshot backends can't render RN | Medium | Medium | Optional `capture_react_native` capability; the tool is not offered without it; hosted-branch support scoped separately | 2 |
 | R7 | Generated code runs same-origin in the app iframe (keys live in `localStorage`) | Pre-existing | Medium | Unchanged from existing stacks; a future option is a sandbox without `allow-same-origin` plus `postMessage` selection | Later |
-| R8 | Wrong insets or platform detection for unknown or Android devices | Medium | Medium | Known-device table, user-adjustable crop overlay, fallbacks; measure Android insets with `dumpsys` | 2, 3 |
+| R8 | Wrong insets or platform detection for unknown or Android devices | Medium | Medium | Known-device table, user-adjustable crop overlay, fallbacks; measure Android insets with `dumpsys`. **The crop overlay was built in Phase 3** (§12.1), and its detection runs on vectors shared with the backend | 2, 3 |
 | R9 | Non-Latin or emoji glyph fallback differs by host | Medium | Low | Noto fonts in the Docker image; the eval set notes locale | 1 |
 | R10 | Bundle growth past budget (lucide, fonts) | Low | Low | Build-time budget; fonts as separate files if needed | 1 |
 | R11 | pnpm resolution of the `react-native` npm alias differs from npm (the spike used npm) | Medium | Low | Phase 1 ports to pnpm; esbuild alias plus one-copy assertion; fall back to a committed `package-lock.json` | 1 |
@@ -702,6 +759,11 @@ A Phase 4 go/no-go check decides whether it ships enabled.
 4. **Development React build** in the runtime (+58 KB gzip, full error text)? **Approved.**
 5. **Snack:** ship pinned to SDK 55 behind a flag, or drop it from v1?
 6. **API keys and devices:** Phase 2's gate (5 live generations) and Phase 4's Expo Go check need model API keys on this machine and one physical iOS and one Android device. Simulators worked for Phase 0; is that acceptable for the Phase 4 manual check? **Keys: OpenAI and Anthropic are set (no Gemini, so no `extract_assets`). Devices: still open.**
+7. **Linux text rendering (new in Phase 3).** Chromium on Linux fails the text-width calibration unless it runs with `--font-render-hinting=none` (§8.3). Options:
+   - Launch the backend's Chromium with that flag. It changes every stack's screenshots slightly.
+   - Launch a second browser for React Native captures only.
+
+   Either way, re-run the calibration in the Docker image, whose Chromium 149 is untested.
 
 ---
 
@@ -738,3 +800,8 @@ Evidence in [`evidence/`](evidence/):
 | `shadows-web-vs-native.png` | RNW-8 shadow comparison |
 | `broken-syntax.png` | the error panel as it appears in screenshots |
 | `broken-icon.png` | the unknown-icon placeholder |
+| `phase2-gate.json` | the Phase 2 gate: five live generations and the injected-crash fix (§11.4) |
+| `phase3-gate.json` | the Phase 3 gates RNW-2 and RNW-3, device parity checks, and the Linux text calibration numbers (§12.1, §8.3) |
+| `phase3-phone-preview.png` | the phone preview after a scripted generation: four option thumbnails and a testID selection |
+| `phase3-device-controls.png` | the upload tab's crop overlay and device controls |
+| `phase3-download-offline.png` | the downloaded preview HTML opened from `file://` offline, framed in a wide window |

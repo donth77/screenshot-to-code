@@ -1,0 +1,103 @@
+{
+  "gate": "Phase 3 (task 3.10): RNW-2, a React Native generation previews in the app on the Vite dev server (scripted backend); RNW-3, the downloaded preview HTML renders from file:// offline",
+  "date": "2026-09-24",
+  "result": "pass: backend/tests/test_rn_frontend_gates.py, 3 of 3 tests, 4 consecutive runs of about 25 s each",
+  "environment": {
+    "os": "Linux (cloud sandbox), Python 3.11.15, Node 22, pnpm 10.32.1",
+    "browser": "Chromium 141.0.7390.37 (Playwright build 1194, preinstalled) driven by the pinned Playwright 1.61.0 through PLAYWRIGHT_BROWSERS_PATH. The pinned build 1228 (Chromium 149) could not be downloaded: the network policy blocks Playwright's CDN.",
+    "frontend": "Vite dev server (vite.config.ts proxies /api, /generate-code, /local-assets and /rn-runtime)",
+    "model": "scripted (tests/rn_ui_harness.py): create streams rn-runtime/fixtures/App.jsx in through 12 create_file deltas with one greeting per option, then screenshot_preview; an update asking to change the greeting uses edit_file. Everything else is real."
+  },
+  "input": {
+    "screenshot": "synthetic 1170 x 2532 PNG (iPhone 13 size) with a status bar strip and a home indicator",
+    "detected": "iPhone 12, 12 Pro, 13, 13 Pro, 14, 17e (exact size match): 390 x 763 pt content at 3x"
+  },
+  "rnw2_checks": [
+    "request: generatedCodeConfig react_native, inputMode image, one screenshot, reactNativeProfile {}",
+    "the Phone tab replaces Desktop and Mobile; the status line names the detected iPhone",
+    "App.jsx renders in the app's iframe: greeting 'Option N', testIDs screen, settings-list, avatar, progress-ring, settings-row-about; the /local-assets avatar loads (4 px wide)",
+    "the iframe is 390 x 763 px, and every screenshot_preview viewport the backend reported is {ios, 390, 763, 3.0}",
+    "hot swap: the phone's document booted once (renderId 1 exactly once), rendered in streaming mode first, then swapped in the finished file (renderId >= 2, last status ok)",
+    "all four option thumbnails render their own App.jsx (Option 1 to Option 4)",
+    "the code view shows App.jsx (JSX highlighting) and no Open in CodePen"
+  ],
+  "rnw3_checks": [
+    "the download is one HTML file (App-preview.html, about 4.6 MB) with no <script src> and the avatar embedded as a data: URI",
+    "opened from file:// in an offline browser context whose every non-file request is recorded and aborted: __RN_PREVIEW_STATUS__ ok, __RN_PREVIEW_ERRORS__ [], avatar image complete (4 px wide, data: URI), zero network requests",
+    "in a 1280 px window the page frames itself at 390 x 763 (checked by hand, screenshot phase3-download-offline.png)"
+  ],
+  "targeted_edit_checks": [
+    "select-and-edit on the Notifications row selects testID settings-row-notifications (the nearest element with a testID)",
+    "the update request has generationType update, fileState.path App.jsx, reactNativeProfile {}, selectedElementLabel testID=\"settings-row-notifications\", and a fullText naming the testID, the path screen > settings-list > settings-row-notifications and the text 'Notifications Push, email, SMS'",
+    "the edited greeting ('Hello, Grace') appears in the phone preview"
+  ],
+  "device_parity_checks_by_hand": [
+    {
+      "case": "iPhone 13 screenshot, overridden in the device controls to the iPhone 14 Pro, 15, 15 Pro, 16 row",
+      "request": {"platform": "ios", "logicalWidth": 393, "insetTop": 59, "insetBottom": 34},
+      "backend_viewport": {"platform": "ios", "width": 393, "height": 757, "scale": 2.9770992366412212},
+      "frontend_frame": [393, 757]
+    },
+    {
+      "case": "Pixel 8 screenshot (1080 x 2400), detected",
+      "backend_viewport": {"platform": "android", "width": 412, "height": 841, "scale": 2.621359223300971},
+      "frontend_frame": [412, 841]
+    },
+    {
+      "case": "text mode with Android chosen",
+      "backend_viewport": {"platform": "android", "width": 412, "height": 841, "scale": 2.621359223300971},
+      "frontend_frame": [412, 841]
+    }
+  ],
+  "screenshots": {
+    "phase3-phone-preview.png": "after a scripted generation: four option thumbnails, the phone preview, and a testID selection",
+    "phase3-device-controls.png": "the upload tab with React Native: crop overlay and device controls for the iPhone 13 screenshot",
+    "phase3-download-offline.png": "the downloaded preview HTML opened from file:// offline in a 1280 x 900 window"
+  },
+  "linux_text_calibration": {
+    "test": "backend/tests/test_rn_runtime.py::test_text_lays_out_like_the_device (limits unchanged)",
+    "browser": "Chromium 141.0.7390.37 on Linux, launched as the backend launches it (no extra flags)",
+    "result": "fail on both platforms: widths drift; every height stays within its limit",
+    "measured": {
+      "ios": {
+        "grid": {"width_median_pct": 0.85, "width_max_pct": 3.46, "height_max": 0.25},
+        "sizes": {"width_median_pct": 0.77, "width_max_pct": 1.87, "height_max": 0.3},
+        "weights": {"width_median_pct": 0.98, "width_max_pct": 2.19, "height_max": 0.12},
+        "letterSpacing": {"width_median_pct": 0.33, "width_max_pct": 2.03, "height_max": 0.15},
+        "lineHeight": {"width_median_pct": 0.57, "width_max_pct": 2.18, "height_max": 0.17},
+        "paragraphs": {"width_median_pct": 0.11, "width_max_pct": 2.03, "height_max": 0.3},
+        "default": {"width_median_pct": 0.75, "width_max_pct": 0.75, "height_max": 0.3}
+      },
+      "android": {
+        "grid": {"width_median_pct": 1.28, "width_max_pct": 6.06, "height_max": 0.02},
+        "sizes": {"width_median_pct": 0.53, "width_max_pct": 2.68, "height_max": 0.02},
+        "weights": {"width_median_pct": 2.03, "width_max_pct": 3.17, "height_max": 0.02},
+        "letterSpacing": {"width_median_pct": 1.31, "width_max_pct": 7.66, "height_max": 0.02},
+        "lineHeight": {"width_median_pct": 0.57, "width_max_pct": 2.04, "height_max": 0.01},
+        "paragraphs": {"width_median_pct": 0.07, "width_max_pct": 6.69, "height_max": 0.03},
+        "default": {"width_median_pct": 0.32, "width_max_pct": 0.32, "height_max": 0.02}
+      }
+    },
+    "with_font_render_hinting_none": {
+      "note": "Same browser launched with --font-render-hinting=none (a measurement only; the backend doesn't pass this flag). Every category passes, and the iOS figures equal the macOS table in rn-runtime/calibration/README.md, so the Linux gap is hinting snapping glyph advances, not the Chromium version.",
+      "ios": {
+        "grid": {"width_median_pct": 0.63, "width_max_pct": 1.31, "height_max": 0.25},
+        "sizes": {"width_median_pct": 0.73, "width_max_pct": 1.53, "height_max": 0.3},
+        "weights": {"width_median_pct": 0.99, "width_max_pct": 1.67, "height_max": 0.12},
+        "letterSpacing": {"width_median_pct": 0.57, "width_max_pct": 1.82, "height_max": 0.15},
+        "lineHeight": {"width_median_pct": 0.67, "width_max_pct": 1.3, "height_max": 0.17},
+        "paragraphs": {"width_median_pct": 0.58, "width_max_pct": 0.99, "height_max": 0.3},
+        "default": {"width_median_pct": 0.42, "width_max_pct": 0.42, "height_max": 0.3}
+      },
+      "android": {
+        "grid": {"width_median_pct": 0.16, "width_max_pct": 0.44, "height_max": 0.02},
+        "sizes": {"width_median_pct": 0.14, "width_max_pct": 0.34, "height_max": 0.02},
+        "weights": {"width_median_pct": 0.17, "width_max_pct": 0.21, "height_max": 0.02},
+        "letterSpacing": {"width_median_pct": 0.27, "width_max_pct": 1.33, "height_max": 0.02},
+        "lineHeight": {"width_median_pct": 0.18, "width_max_pct": 0.6, "height_max": 0.01},
+        "paragraphs": {"width_median_pct": 0.18, "width_max_pct": 0.8, "height_max": 0.03},
+        "default": {"width_median_pct": 0.45, "width_max_pct": 0.45, "height_max": 0.02}
+      }
+    }
+  }
+}

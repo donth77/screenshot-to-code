@@ -4,6 +4,7 @@ Companion to [`DESIGN.md`](DESIGN.md), which holds section references (§) and e
 
 - **Estimates** are focused engineer-days. They exclude model run time and time spent waiting for the inputs listed in "Needs from you".
 - **Tests** at the end of every phase: `cd backend && poetry run pytest`; `poetry run pyright` (no new warnings in changed files); `cd frontend && pnpm lint` (no new problems over the 19-error/6-warning baseline); `pnpm test`.
+  - The browser tests (`test_rn_runtime.py`, `test_rn_vite_preview.py`, `test_rn_frontend_gates.py`) skip without Chromium, the built runtime or the frontend's `node_modules`.
 - **Existing stacks:** every task is gated on `stack == "react_native"`. The existing-stack tests (and new byte-identity tests) must stay green.
 
 ## Phase 0: reconnaissance and spike (done)
@@ -74,7 +75,7 @@ Companion to [`DESIGN.md`](DESIGN.md), which holds section references (§) and e
 8. Integration tests
 9. Eval output
 
-## Phase 3: frontend (≈ 6 days)
+## Phase 3: frontend (≈ 6 days; done, gates passed; see DESIGN §12.1)
 
 | # | Task | Deliverable and tests | Est. |
 | --- | --- | --- | --- |
@@ -89,7 +90,25 @@ Companion to [`DESIGN.md`](DESIGN.md), which holds section references (§) and e
 | 3.9 | Download preview HTML | Inline mode with assets as data URIs | 0.25 |
 | 3.10 | **Gates** | **RNW-2**: Playwright test against the Vite dev server running a real RN generation (scripted backend). **RNW-3**: the downloaded file renders from `file://` offline. | 0.75 |
 
-**Commits.** One per row.
+**Gates: passed.** `backend/tests/test_rn_frontend_gates.py` runs the app on the Vite dev server against a backend where only the model is scripted (`tests/rn_ui_harness.py`). 3/3 tests passed in 4 consecutive runs. See `evidence/phase3-gate.json`.
+
+- **RNW-2 checks:**
+  - the phone preview matches the viewport `screenshot_preview` used;
+  - the preview boots once and hot-swaps from streaming to final;
+  - four thumbnails render;
+  - the code view shows `App.jsx`.
+- **RNW-3:** the downloaded file renders from `file://` in an offline context with zero network requests.
+- **Targeted edit:** a testID edit is checked end to end too.
+- **Caveat:** the gates ran on Linux with the sandbox's Chromium 141, not the Chromium 149 that Playwright 1.61 pins.
+
+**Also done in Phase 3:**
+
+- Device detection ported to TypeScript, with vectors shared with the backend (`rn-runtime/test-vectors/device-detection.json`).
+- Evidence screenshots in `evidence/phase3-*.png`.
+- The Linux text-calibration measurement (DESIGN §8.3; open question §17.7).
+- The `rn-runtime` Docker stage built (DESIGN §6).
+
+**Commits.** One per row, plus the device-detection port and the scripted UI harness. 3.2 came first, because 3.1 needs the device table.
 
 ## Phase 4: export (≈ 4 days)
 

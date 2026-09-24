@@ -57,9 +57,22 @@ Measured on 2026-09-24 with Expo Go 57.0.9 (Expo SDK 57, React Native 0.86.3):
 
 Both platforms reproduced the earlier grid run exactly (48 of 48 samples identical).
 
-**Not verified:**
+**Linux Chromium (measured in Phase 3; the limits are unchanged).** Production renders in the backend's Docker image (Linux). On Linux, Chromium 141.0.7390.37 launched as the backend launches it fails the test on widths, on both platforms. Every height stays within its limit. The worst categories (width median / max, %):
 
-- **Linux Chromium.** Production renders in the backend's Docker image (Linux); the numbers above are from Playwright's Chromium on macOS. Run the test in the image.
+| | Linux, default | Linux, `--font-render-hinting=none` | Limit |
+| --- | --- | --- | --- |
+| iOS grid | 0.85 / 3.46 | 0.63 / 1.31 | 1.25 / 2.5 |
+| Android grid | 1.28 / 6.06 | 0.16 / 0.44 | 0.75 / 1.5 |
+| Android weights | 2.03 / 3.17 | 0.17 / 0.21 | 0.75 / 1.5 |
+| Android `letterSpacing` | 1.31 / 7.66 | 0.27 / 1.33 | 0.75 / 1.5 |
+
+With `--font-render-hinting=none`, every category passes and the iOS figures equal the macOS table above. So the gap is font hinting snapping glyph advances to pixels, not the Chromium version. All categories are in [`design-docs/react-native/evidence/phase3-gate.json`](../../design-docs/react-native/evidence/phase3-gate.json).
+
+- **Verified:** the numbers above, on the sandbox's preinstalled Chromium 141 driven by Playwright 1.61.
+- **Untested:** the image's own Chromium. Playwright 1.61 pins Chromium 149 (build 1228), which couldn't be downloaded there, so the image itself hasn't been run.
+- **Open decision:** whether the backend should launch Chromium with `--font-render-hinting=none`. A browser flag applies to every stack's screenshots, or React Native captures could use a browser of their own.
+
+**Not verified:**
 - **Real phones and OEM fonts.** Samsung's One UI, for example, doesn't use Roboto.
 - **Font scaling.** Dynamic Type and Android font size other than 100%.
 - **Other densities.** The rules take the density from the profile, but only 3× and 2.625 were measured.
