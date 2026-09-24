@@ -3,7 +3,7 @@ from typing import Any, List
 
 from openai.types.chat import ChatCompletionMessageParam
 
-from codegen.utils import extract_html_content
+from codegen.utils import extract_file_content
 
 
 @dataclass
@@ -42,7 +42,7 @@ def seed_file_state_from_messages(
         raw_text = extract_text_content(message)
         if not raw_text:
             continue
-        extracted = extract_html_content(raw_text)
+        extracted = extract_file_content(raw_text, file_state.path)
         file_state.content = extracted or raw_text
         if not file_state.path:
             file_state.path = "index.html"
@@ -63,7 +63,7 @@ def seed_file_state_from_messages(
         if marker not in system_text:
             continue
         raw_text = system_text.split(marker, 1)[1].strip()
-        extracted = extract_html_content(raw_text)
+        extracted = extract_file_content(raw_text, file_state.path)
         file_state.content = extracted or raw_text
         if not file_state.path:
             file_state.path = "index.html"

@@ -9,6 +9,7 @@ from fastapi import APIRouter, WebSocket
 import openai
 from starlette.websockets import WebSocketDisconnect
 from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
+from codegen.utils import main_file_path
 from config import (
     ANTHROPIC_API_KEY,
     GEMINI_API_KEY,
@@ -355,7 +356,7 @@ class ParameterExtractionStage:
         if isinstance(raw_file_state, dict):
             content = raw_file_state.get("content")
             if isinstance(content, str) and content.strip():
-                path = raw_file_state.get("path") or "index.html"
+                path = raw_file_state.get("path") or main_file_path(validated_stack)
                 file_state = {"path": path, "content": content}
 
         raw_option_codes = params.get("optionCodes")
@@ -657,6 +658,7 @@ class AgenticGenerationStage:
                 initial_file_state=self.file_state,
                 option_codes=self.option_codes,
                 recorder=recorder,
+                main_path=main_file_path(self.stack),
             )
             completion = await runner.run(model, prompt_messages)
             if completion:

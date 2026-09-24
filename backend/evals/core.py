@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 
+from codegen.utils import main_file_path
 from config import (
     ANTHROPIC_API_KEY,
     GEMINI_API_KEY,
@@ -75,6 +76,7 @@ async def _run_eval_agent(
         initial_file_state=None,
         option_codes=None,
         recorder=recorder,
+        main_path=main_file_path(stack),
     )
     return await runner.run(model, prompt_messages)
 

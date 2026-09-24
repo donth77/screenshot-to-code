@@ -3,7 +3,7 @@ import asyncio
 import difflib
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
-from codegen.utils import extract_html_content
+from codegen.utils import HTML_MAIN_PATH, REACT_NATIVE_MAIN_PATH, extract_file_content
 from config import REPLICATE_API_KEY
 from agent.tools.extract_assets import run_extract_assets
 from agent.tools.local_assets import guess_image_mime, local_asset_url_to_data_url
@@ -38,8 +38,10 @@ class AgentToolRuntime:
         asset_base_url: str = "",
         user_id: Optional[str] = None,
         option_codes: Optional[List[str]] = None,
+        main_path: str = HTML_MAIN_PATH,
     ):
         self.file_state = file_state
+        self.main_path = main_path
         self.should_generate_images = should_generate_images
         self.openai_api_key = openai_api_key
         self.openai_base_url = openai_base_url
@@ -49,6 +51,13 @@ class AgentToolRuntime:
         self.asset_base_url = asset_base_url
         self.user_id = user_id
         self.option_codes = option_codes or []
+
+    def create_file_path(self, requested: Any) -> str:
+        """Where create_file writes. A React Native app is exactly one App.jsx,
+        whatever path the model names; web stacks keep the model's path."""
+        if self.main_path == REACT_NATIVE_MAIN_PATH:
+            return self.main_path
+        return ensure_str(requested or self.file_state.path or self.main_path)
 
     def _effective_replicate_api_key(self) -> str | None:
         return self.replicate_api_key or REPLICATE_API_KEY
@@ -99,7 +108,7 @@ class AgentToolRuntime:
         )
 
     def _create_file(self, args: Dict[str, Any]) -> ToolExecutionResult:
-        path = ensure_str(args.get("path") or self.file_state.path or "index.html")
+        path = self.create_file_path(args.get("path"))
         content = ensure_str(args.get("content"))
         if not content:
             return ToolExecutionResult(
@@ -108,7 +117,7 @@ class AgentToolRuntime:
                 summary={"error": "Missing content"},
             )
 
-        extracted = extract_html_content(content)
+        extracted = extract_file_content(content, path)
         self.file_state.path = path
         self.file_state.content = extracted or content
 
@@ -233,7 +242,7 @@ class AgentToolRuntime:
             )
 
         self.file_state.content = content
-        path = self.file_state.path or "index.html"
+        path = self.file_state.path or self.main_path
         diff_info = self._generate_diff(original_content, content, path)
         summary = {
             "path": path,

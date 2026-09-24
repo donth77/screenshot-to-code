@@ -14,7 +14,9 @@ def _wrap_assistant_file_content(content: str, path: str = "index.html") -> str:
     return f'<file path="{path}">\n{stripped}\n</file>'
 
 
-def build_history_message(item: PromptHistoryMessage) -> ChatCompletionMessageParam:
+def build_history_message(
+    item: PromptHistoryMessage, main_path: str = "index.html"
+) -> ChatCompletionMessageParam:
     role = item["role"]
     image_urls = item.get("images", [])
     video_urls = item.get("videos", [])
@@ -51,7 +53,7 @@ def build_history_message(item: PromptHistoryMessage) -> ChatCompletionMessagePa
         {
             "role": role,
             "content": (
-                _wrap_assistant_file_content(item.get("text", ""))
+                _wrap_assistant_file_content(item.get("text", ""), main_path)
                 if role == "assistant"
                 else item.get("text", "")
             ),

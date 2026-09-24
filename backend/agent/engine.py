@@ -5,7 +5,7 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional, cast
 
 from openai.types.chat import ChatCompletionMessageParam
 
-from codegen.utils import extract_html_content
+from codegen.utils import HTML_MAIN_PATH, extract_file_content
 from llm import Llm
 
 from agent.providers.base import ExecutedToolCall, ProviderSession, StreamEvent
@@ -67,8 +67,11 @@ class AgentEngine:
         initial_file_state: Optional[Dict[str, str]] = None,
         option_codes: Optional[List[str]] = None,
         recorder: Optional[AgentRunRecorder] = None,
+        main_path: str = HTML_MAIN_PATH,
     ):
         self.send_message = send_message
+        # The one file this run writes: index.html, or App.jsx for React Native.
+        self.main_path = main_path
         self.variant_index = variant_index
         self.recorder = recorder
         self.openai_api_key = openai_api_key
@@ -79,9 +82,9 @@ class AgentEngine:
         self.should_generate_images = should_generate_images
         self.should_extract_assets = should_extract_assets
 
-        self.file_state = AgentFileState()
+        self.file_state = AgentFileState(path=main_path)
         if initial_file_state and initial_file_state.get("content"):
-            self.file_state.path = initial_file_state.get("path") or "index.html"
+            self.file_state.path = initial_file_state.get("path") or main_path
             self.file_state.content = initial_file_state["content"]
 
         self.tool_runtime = AgentToolRuntime(
@@ -93,6 +96,7 @@ class AgentEngine:
             replicate_api_key=replicate_api_key,
             asset_base_url=asset_base_url,
             option_codes=option_codes,
+            main_path=main_path,
         )
         self._tool_preview_lengths: Dict[str, int] = {}
 
@@ -186,10 +190,8 @@ class AgentEngine:
 
         tool_event_id = event.tool_call_id
         if tool_event_id not in started_tool_ids:
-            path = (
+            path = self.tool_runtime.create_file_path(
                 extract_path_from_args(event.tool_arguments)
-                or self.file_state.path
-                or "index.html"
             )
             await self._send(
                 "toolStart",
@@ -279,12 +281,14 @@ class AgentEngine:
             for tool_call in turn.tool_calls:
                 tool_event_id = tool_call.id or self._next_event_id("tool")
                 if tool_event_id not in started_tool_ids:
+                    tool_input = summarize_tool_input(tool_call, self.file_state)
+                    if tool_call.name == "create_file":
+                        tool_input["path"] = self.tool_runtime.create_file_path(
+                            tool_call.arguments.get("path")
+                        )
                     await self._send(
                         "toolStart",
-                        data={
-                            "name": tool_call.name,
-                            "input": summarize_tool_input(tool_call, self.file_state),
-                        },
+                        data={"name": tool_call.name, "input": tool_input},
                         event_id=tool_event_id,
                     )
 
@@ -376,11 +380,11 @@ class AgentEngine:
         if self.file_state.content:
             return self.file_state.content
 
-        html = extract_html_content(assistant_text)
-        if html:
-            self.file_state.content = html
-            await self._send("setCode", html)
+        code = extract_file_content(assistant_text, self.file_state.path)
+        if code:
+            self.file_state.content = code
+            await self._send("setCode", code)
             if self.recorder is not None:
-                self.recorder.record_set_code(len(html), "finalize")
+                self.recorder.record_set_code(len(code), "finalize")
 
         return self.file_state.content

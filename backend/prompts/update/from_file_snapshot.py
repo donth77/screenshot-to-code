@@ -5,6 +5,7 @@ from openai.types.chat import ChatCompletionMessageParam
 from prompts import system_prompt
 from prompts.design_system import build_design_system_prompt_block
 from prompts.policies import build_selected_stack_policy, build_user_image_policy
+from codegen.utils import main_file_path
 from prompts.prompt_types import Stack, UserTurnInput
 from prompts.message_builder import Prompt, build_history_message
 
@@ -16,7 +17,7 @@ def build_update_prompt_from_file_snapshot(
     image_generation_enabled: bool,
     design_system: str | None = None,
 ) -> Prompt:
-    path = file_state.get("path", "index.html")
+    path = file_state.get("path", main_file_path(stack))
     # full_text carries the complete model-facing instruction (e.g. with the
     # selected-element reference); text is the user-typed display string.
     request_text = (
