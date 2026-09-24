@@ -3,9 +3,11 @@
 // from `${baseUrl}/rn-runtime/`; with an empty baseUrl that's the page's own
 // origin, which the Vite dev server proxies to the backend. A srcdoc iframe
 // resolves those URLs against its parent page.
+import type { DeviceTable } from "./devices";
 import {
   DeviceProfile,
   PreviewMode,
+  inlineScript,
   previewConfigJson,
   renderPreviewHtml,
   scriptTags,
@@ -15,6 +17,7 @@ export interface RuntimeManifest {
   runtime: string;
   babel: string;
   template: string;
+  deviceProfiles: string;
   expoSdkVersion: string;
   versions: Record<string, string>;
 }
@@ -44,6 +47,8 @@ export interface PreviewStatus {
 }
 
 const runtimes = new Map<string, Promise<PreviewRuntime>>();
+const deviceTables = new Map<string, Promise<DeviceTable>>();
+const inlineScriptSets = new Map<string, Promise<string>>();
 
 async function fetchOk(url: string): Promise<Response> {
   const response = await fetch(url);
@@ -53,20 +58,38 @@ async function fetchOk(url: string): Promise<Response> {
   return response;
 }
 
-export function loadPreviewRuntime(baseUrl = ""): Promise<PreviewRuntime> {
-  const base = baseUrl.replace(/\/+$/, "");
-  let runtime = runtimes.get(base);
-  if (!runtime) {
-    runtime = (async () => {
-      const manifest = (await (await fetchOk(`${base}/rn-runtime/manifest.json`)).json()) as RuntimeManifest;
-      const template = await (await fetchOk(`${base}/rn-runtime/${manifest.template}`)).text();
-      return { baseUrl: base, manifest, template };
-    })();
-    // A failed load (backend down, runtime not built) is retried next time.
-    runtime.catch(() => runtimes.delete(base));
-    runtimes.set(base, runtime);
+// One promise per key, shared by every caller. A failed load (backend down,
+// runtime not built) is dropped, so the next call retries.
+function cached<T>(cache: Map<string, Promise<T>>, key: string, load: () => Promise<T>): Promise<T> {
+  let value = cache.get(key);
+  if (!value) {
+    value = load();
+    value.catch(() => cache.delete(key));
+    cache.set(key, value);
   }
-  return runtime;
+  return value;
+}
+
+function normalizeBase(baseUrl: string): string {
+  return baseUrl.replace(/\/+$/, "");
+}
+
+export function loadPreviewRuntime(baseUrl = ""): Promise<PreviewRuntime> {
+  const base = normalizeBase(baseUrl);
+  return cached(runtimes, base, async () => {
+    const manifest = (await (await fetchOk(`${base}/rn-runtime/manifest.json`)).json()) as RuntimeManifest;
+    const template = await (await fetchOk(`${base}/rn-runtime/${manifest.template}`)).text();
+    return { baseUrl: base, manifest, template };
+  });
+}
+
+// rn-runtime/device-profiles.json: the known phones (DESIGN.md §7.2).
+export function loadDeviceTable(baseUrl = ""): Promise<DeviceTable> {
+  const base = normalizeBase(baseUrl);
+  return cached(deviceTables, base, async () => {
+    const { manifest } = await loadPreviewRuntime(base);
+    return (await (await fetchOk(`${base}/rn-runtime/${manifest.deviceProfiles}`)).json()) as DeviceTable;
+  });
 }
 
 export function previewDocument(
@@ -80,6 +103,33 @@ export function previewDocument(
     template,
     previewConfigJson(source, profile, mode),
     scriptTags(baseUrl, manifest.runtime, manifest.babel)
+  );
+}
+
+// Babel and the runtime as inline <script>s, fetched once (about 4.7 MB).
+function inlineScripts(runtime: PreviewRuntime): Promise<string> {
+  const { baseUrl, manifest } = runtime;
+  return cached(inlineScriptSets, `${baseUrl}|${manifest.runtime}|${manifest.babel}`, async () => {
+    const [babel, runtimeJs] = await Promise.all(
+      [manifest.babel, manifest.runtime].map(async (name) =>
+        (await fetchOk(`${baseUrl}/rn-runtime/${name}`)).text()
+      )
+    );
+    return `${inlineScript(babel)}\n${inlineScript(runtimeJs)}`;
+  });
+}
+
+// A self-contained preview page: everything inlined, so it opens from file://
+// with no network (gate RNW-3).
+export async function inlinePreviewDocument(
+  runtime: PreviewRuntime,
+  source: string,
+  profile: DeviceProfile
+): Promise<string> {
+  return renderPreviewHtml(
+    runtime.template,
+    previewConfigJson(source, profile, "final"),
+    await inlineScripts(runtime)
   );
 }
 
