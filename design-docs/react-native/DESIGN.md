@@ -1,6 +1,6 @@
 # React Native (Expo) output stack: design
 
-Status: **Phases 0–3 complete; Phase 3 (frontend) awaiting review.** Phase 3 is described in §12.1.
+Status: **Phases 0–3 complete. Phase 4 (export) is built, but its gate is only partly passed; it awaits review.** Phase 3 is in §12.1 and Phase 4 in §13.5.
 Date: 2026-09-24. Branch: `react-native-stack`.
 Companion documents: [`PLAN.md`](PLAN.md) (ordered tasks and estimates), `EVALS.md` (created in Phase 5).
 
@@ -671,7 +671,7 @@ This keeps `App.jsx` readable while `{ uri: … }` still works on both platforms
 
 ### 13.3 Native bundling gate (RNW-6)
 
-`npx expo export --platform ios --platform android` against the zip, run in a cached template workspace. On macOS it is **Verified** at about 22 s per project. On **Linux** it is **Untested**: the Docker daemon wasn't running. Phase 4 runs it in Docker or CI, since it is the eval pipeline's native gate.
+`npx expo export --platform ios --platform android` against the zip, run in a cached template workspace. On macOS it is **Verified** at about 22 s per project. On **Linux** it is **Verified in Phase 4** (§13.5); Docker wasn't needed, only Node and npm.
 
 ### 13.4 Snack
 
@@ -693,6 +693,39 @@ Known limits:
 - Store Expo Go runs SDK 57, so Snack's "My device" won't open SDK 55 on iOS; the web and Appetize players still work.
 
 A Phase 4 go/no-go check decides whether it ships enabled.
+
+---
+
+### 13.5 As built (Phase 4)
+
+- **The zip** (`POST /api/export/expo`, `react_native/expo_project.py`).
+  - It is modelled on Expo's own `expo-template-blank@sdk-57` (fetched from npm): `main: index.js`, the same scripts, and `app.json` without the template's icons (Expo falls back to defaults).
+  - `package.json` takes its dependencies from `expo-sdk.json`, the runtime's source of truth, so RNW-5 now covers the export too. `react-native-web` is pinned exactly to 0.21.2, the runtime's version, which satisfies SDK 57's `~0.21.0`.
+  - `index.js` wraps `App` in `SafeAreaProvider`. The files sit under one `screenshot-to-code-app/` folder.
+- **Assets** (`react_native/export_assets.py`, §13.2 as planned).
+  - Each quoted URL literal that turns out to be a raster image (checked with PIL; `Image` can't show SVG natively) becomes `ASSETS.asset_<sha256 prefix>` in `assets.js`. `App.jsx` imports it after its last import.
+  - `/local-assets/` files are read from disk, with a path-traversal guard.
+  - Remote URLs are fetched only when they look like images or come from `replicate.delivery`, through the HTML export's fetcher, which refuses private addresses.
+  - A literal that is a JSX attribute string gets braces.
+  - The README lists what wasn't embedded.
+- **RNW-6** (`react_native/bundle_check.py`).
+  - Setup: one workspace per set of pins (under `~/.cache/screenshot-to-code`, or `RN_BUNDLE_WORKSPACE`), `npm install` once (402 MB, 34 s), and a file lock so one bundle runs at a time.
+  - Timing: a cold bundle takes about 60 s; warm runs about 10 s.
+  - Output: failures come back as Metro's error lines.
+  - Commands: `python -m react_native.bundle_check` takes `.jsx` files or export zips. With `RN_BUNDLE_CHECK=1`, eval reports gain `native_bundle`.
+  - **Verified on Linux** without Docker. The fixture bundles to 2,573 and 2,571 modules, as on macOS.
+  - Over all 14 fixtures, only the unresolvable import and the syntax error fail. Unknown icons, DOM elements, throws and hangs all bundle. So RNW-6 complements the preview's runtime checks; it doesn't replace them (`evidence/phase4-gate.json`).
+- **Export menu.**
+  - The React Native download button opens a menu: Expo project, preview HTML, and Open in Snack when `VITE_SNACK_EXPORT=true`.
+  - Snack (§13.4): `App.js` (the provider) plus `Screen.js`, with the SDK from `expo-sdk.json`'s `snack.sdkVersion`. Over 60,000 URL characters the app sends users to the zip instead.
+  - **Assumed, not verified:** the URL format. `snack.expo.dev` is unreachable from the sandbox.
+- **Tests.**
+  - The gate tests now download the Expo zip through the app. With `RN_BUNDLE_CHECK=1`, that zip bundles for iOS and Android: passed.
+  - They also check the Snack URL the app builds.
+- **Not done here.**
+  - RNW-6 on live-model eval outputs: `api.openai.com` is blocked by the sandbox's network policy, and the Phase 2 outputs aren't in the repo.
+  - The Expo Go check: no simulator, emulator or KVM. `scripts/expo-go-check.sh` automates it for a machine that has one (untested).
+  - The Snack go/no-go.
 
 ---
 
@@ -746,7 +779,7 @@ A Phase 4 go/no-go check decides whether it ships enabled.
 | R10 | Bundle growth past budget (lucide, fonts) | Low | Low | Build-time budget; fonts as separate files if needed | 1 |
 | R11 | pnpm resolution of the `react-native` npm alias differs from npm (the spike used npm) | Medium | Low | Phase 1 ports to pnpm; esbuild alias plus one-copy assertion; fall back to a committed `package-lock.json` | 1 |
 | R12 | Live-model gates need API keys and manual Expo Go checks need devices | Certain | Blocks gates | Needs the user (keys; iOS and Android devices). The scripted-provider harness covers non-LLM legs meanwhile | 2, 4, 5 |
-| R13 | Linux Metro bundling untested | Medium | Medium | Run RNW-6 in Docker or CI in Phase 4 | 4 |
+| R13 | Linux Metro bundling untested | Medium | Medium | Run RNW-6 in Docker or CI in Phase 4. **Verified on Linux in Phase 4** (§13.5) | 4 |
 | R14 | Runtime errors in event handlers only surface on interaction | Medium | Low | Out of v1 scope (static screen); flows are Phase 6 | 6 |
 
 ---
@@ -804,4 +837,5 @@ Evidence in [`evidence/`](evidence/):
 | `phase3-gate.json` | the Phase 3 gates RNW-2 and RNW-3, device parity checks, and the Linux text calibration numbers (§12.1, §8.3) |
 | `phase3-phone-preview.png` | the phone preview after a scripted generation: four option thumbnails and a testID selection |
 | `phase3-device-controls.png` | the upload tab's crop overlay and device controls |
+| `phase4-gate.json` | the Phase 4 gate status: RNW-6 on the fixtures and on an export downloaded through the app; what couldn't run here (§13.5) |
 | `phase3-download-offline.png` | the downloaded preview HTML opened from `file://` offline, framed in a wide window |

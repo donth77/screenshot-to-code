@@ -1,0 +1,52 @@
+{
+  "gate": "Phase 4: RNW-6 (npx expo export --platform ios --platform android) passes on every eval output, and the manual Expo Go check passes",
+  "date": "2026-09-24",
+  "result": "partial: RNW-6 runs and passes on Linux for the fixtures and for an export downloaded through the app, but not yet on live-model eval outputs; the Expo Go check has not run",
+  "environment": {
+    "os": "Linux sandbox, x86_64, no KVM",
+    "node": "22.22.2, npm 10.9.7",
+    "expo": "expo ~57.0.24 (resolved by npm), react-native 0.86.3, Hermes",
+    "workspace": "npm install of the export's package.json: 503 packages, 402 MB, 34 s"
+  },
+  "rnw6_fixtures": {
+    "command": "python -m react_native.bundle_check rn-runtime/fixtures/*.jsx rn-runtime/calibration/TextGrid.jsx",
+    "result": "12 of 14 bundle; the 2 failures are the ones the check exists to catch",
+    "cold_run": "fixtures/App.jsx: iOS 2,573 modules in 42 s, Android 2,571 modules in 61 s (as on macOS in Phase 0), Hermes bytecode 3.7 MB each",
+    "warm_run_seconds": "about 10 per screen once Metro's cache is warm; about 40 when App.jsx pulls in new modules (lucide)",
+    "outputs": {
+      "App.jsx": "pass",
+      "shadows.jsx": "pass",
+      "no-react-import.jsx": "pass",
+      "TextGrid.jsx": "pass",
+      "broken-import.jsx": "FAIL: Unable to resolve module @expo/vector-icons (not in the export's dependencies)",
+      "broken-syntax.jsx": "FAIL: SyntaxError: Unterminated JSX contents. (8:11)",
+      "broken-icon.jsx": "pass (an unknown lucide icon is undefined at runtime, not a bundling error)",
+      "broken-runtime.jsx": "pass (throws at runtime)",
+      "broken-no-default.jsx": "pass (fails at runtime)",
+      "broken-unknown-export.jsx": "pass",
+      "broken-hang.jsx": "pass (hangs at runtime)",
+      "broken-image.jsx": "pass",
+      "lint-dom.jsx": "pass (<div> and onClick crash only at runtime on a device)",
+      "lint-web-styles.jsx": "pass"
+    },
+    "conclusion": "RNW-6 catches imports that don't resolve natively and syntax Metro rejects. Runtime failures (unknown icons, DOM elements, throws, hangs) need the preview's runtime_errors and the native-compat lint; bundling doesn't see them."
+  },
+  "rnw6_through_the_app": {
+    "test": "backend/tests/test_rn_frontend_gates.py::test_the_expo_project_download_embeds_images_and_bundles with RN_BUNDLE_CHECK=1",
+    "result": "pass: the Expo zip downloaded from the export menu after a scripted generation (App.jsx with its /local-assets avatar embedded in assets.js) bundles for iOS and Android"
+  },
+  "rnw6_live_eval_outputs": {
+    "result": "not run",
+    "reason": "the sandbox's network policy blocks api.openai.com (a 3-screen live eval run failed with connection errors before any spend) and no Anthropic or Gemini app key is set; the Phase 2 outputs are on the developer's machine, not in the repo",
+    "how_to_run": "cd backend && poetry run python -m react_native.bundle_check evals_data/results/<run>/*.jsx, or rerun the evals with RN_BUNDLE_CHECK=1"
+  },
+  "expo_go": {
+    "result": "not run",
+    "reason": "no iOS Simulator (Linux), no Android emulator (no KVM, Android SDK downloads blocked)",
+    "how_to_run": "scripts/expo-go-check.sh <export.zip> ios|android on a machine with a booted simulator or emulator (untested), or open the export with Expo Go on a phone"
+  },
+  "snack": {
+    "result": "built behind VITE_SNACK_EXPORT, off by default; go/no-go not decided",
+    "reason": "snack.expo.dev is unreachable from the sandbox, so no Snack has been opened; the gate test only checks the URL the app builds"
+  }
+}

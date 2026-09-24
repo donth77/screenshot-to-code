@@ -110,7 +110,7 @@ Companion to [`DESIGN.md`](DESIGN.md), which holds section references (§) and e
 
 **Commits.** One per row, plus the device-detection port and the scripted UI harness. 3.2 came first, because 3.1 needs the device table.
 
-## Phase 4: export (≈ 4 days)
+## Phase 4: export (≈ 4 days; built, gate partly passed; see DESIGN §13.5)
 
 | # | Task | Deliverable and tests | Est. |
 | --- | --- | --- | --- |
@@ -122,6 +122,22 @@ Companion to [`DESIGN.md`](DESIGN.md), which holds section references (§) and e
 | 4.6 | README section | Running the RN stack locally, rebuilding the runtime, and the SDK bump procedure (runtime pins, template pins, parity test) | 0.25 |
 
 **Gate.** RNW-6 passes on every eval output, and the manual Expo Go check passes.
+
+**Status (`evidence/phase4-gate.json`).**
+
+- **RNW-6 runs and passes on Linux** for the fixtures, and for an Expo zip downloaded through the app after a scripted generation. It correctly fails the unresolvable-import and syntax-error fixtures.
+- **Still open** (it needs a machine that can reach the model APIs and has the eval outputs):
+  - RNW-6 on live-model eval outputs;
+  - the Expo Go check, which needs devices or a simulator and emulator (`scripts/expo-go-check.sh`);
+  - the Snack go/no-go.
+
+**Commits.**
+
+1. Zip and assets (4.1 and 4.2 share the route).
+2. The bundling check.
+3. The export menu and Snack.
+4. README and the Expo Go script.
+5. Docs.
 
 ## Phase 5: evals and prompt iteration (≈ 5 days plus model time)
 
