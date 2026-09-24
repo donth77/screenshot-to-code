@@ -94,13 +94,24 @@ def normalize_runtime_errors(
     return merged
 
 
-def preview_html_for(bundle: RuntimeBundle, source: str, profile: Mapping[str, Any], mode: PreviewMode = "final") -> str:
-    """The template, filled for a Playwright render (runtime via route interception)."""
+def preview_page(
+    bundle: RuntimeBundle,
+    source: str,
+    profile: Mapping[str, Any],
+    base_url: str,
+    mode: PreviewMode = "final",
+) -> str:
+    """The template, filled to load the runtime from ``{base_url}/rn-runtime/``."""
     return render_preview_html(
         bundle.template,
         preview_config_json(source, profile, mode),
-        script_tags(ROUTE_ORIGIN, bundle.runtime_file, bundle.babel_file),
+        script_tags(base_url, bundle.runtime_file, bundle.babel_file),
     )
+
+
+def preview_html_for(bundle: RuntimeBundle, source: str, profile: Mapping[str, Any], mode: PreviewMode = "final") -> str:
+    """The template, filled for a Playwright render (runtime via route interception)."""
+    return preview_page(bundle, source, profile, ROUTE_ORIGIN, mode)
 
 
 async def render_preview(

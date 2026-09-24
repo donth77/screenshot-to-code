@@ -99,6 +99,13 @@ def _react_native_create_prompt(
     return messages, screen.device.preview_profile()
 
 
+def react_native_eval_profile(image_url: str | None) -> dict[str, Any]:
+    """The device profile an eval input's React Native screen renders at."""
+    prompt: UserTurnInput = {"text": "", "images": [image_url] if image_url else [], "videos": []}
+    _, _, screen = prepare_react_native_inputs(prompt, [], load_device_table())
+    return screen.device.preview_profile()
+
+
 async def generate_code_for_image(
     image_url: str,
     stack: Stack,

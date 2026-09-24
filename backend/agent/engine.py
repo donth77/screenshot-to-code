@@ -364,7 +364,13 @@ class AgentEngine:
             if not result:
                 raise EmptyOutputError()
             if self.recorder is not None:
-                await self.recorder.record_run_end("completed", final_html=result)
+                await self.recorder.record_run_end(
+                    "completed",
+                    final_html=result,
+                    preview_profile=(
+                        dict(self.react_native_profile) if self.react_native_profile else None
+                    ),
+                )
             return result
         # BaseException so cancellation (client disconnect) still finalizes
         # the run record instead of leaving it stuck at "running".

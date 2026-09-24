@@ -8,7 +8,8 @@ from llm import Llm
 from config import LOCAL_ASSET_BASE_URL
 from prompts.prompt_types import Stack
 from agent.engine import BudgetExceededError
-from .core import generate_code_for_image, generate_code_for_text
+from .core import generate_code_for_image, generate_code_for_text, react_native_eval_profile
+from .react_native_outputs import write_react_native_outputs
 from .sets import get_set_inputs_dir, get_set_kind, list_set_briefs
 from .utils import image_to_data_url
 from .config import EVALS_DIR
@@ -243,6 +244,8 @@ async def run_image_evals(
         ]
     ] = []
     skipped_existing_tasks = 0
+    # React Native outputs render at their input's device profile.
+    react_native_profiles: dict[str, dict[str, Any]] = {}
     for original_filename in evals:
         # Handle both full paths and relative filenames
         if os.path.isabs(original_filename):
@@ -269,6 +272,8 @@ async def run_image_evals(
 
             if not is_text_set and data_url is None:
                 data_url = await image_to_data_url(filepath)
+            if stack == "react_native" and original_filename not in react_native_profiles:
+                react_native_profiles[original_filename] = react_native_eval_profile(data_url)
             current_model_for_task = (
                 selected_model if n_idx == 0 else Llm.GPT_5_5_LOW
             )
@@ -345,8 +350,15 @@ async def run_image_evals(
                 )
             elif generated_content is not None and time_taken is not None:
                 try:
-                    with open(output_html_filepath, "w") as file:
-                        file.write(normalize_local_asset_urls(generated_content))
+                    if stack == "react_native":
+                        await write_react_native_outputs(
+                            output_html_filepath,
+                            normalize_local_asset_urls(generated_content),
+                            react_native_profiles[task_orig_fn],
+                        )
+                    else:
+                        with open(output_html_filepath, "w") as file:
+                            file.write(normalize_local_asset_urls(generated_content))
                     timing_data.append(
                         f"{final_output_html_filename}: {time_taken:.2f} seconds"
                     )

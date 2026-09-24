@@ -14,6 +14,9 @@ Layout under ``{LOGS_PATH}/run_logs/agent_runs``:
     {run_id}/run.json                summary written at finalize
     {run_id}/final.html              final output, verbatim
     {run_id}/final_selfcontained.html  asset refs rewritten to assets/...
+                                     (React Native: final.jsx and
+                                     final_selfcontained.jsx, plus final.html,
+                                     a preview page that loads the runtime)
     {run_id}/assets/                 copied local assets + downloaded remote images
     {run_id}/assets_manifest.json    original URL -> capture status
     index.db                         SQLite index (runs + llm_calls)
@@ -38,11 +41,13 @@ from urllib.parse import unquote, urlparse
 
 from openai.types.chat import ChatCompletionMessageParam
 
-from config import LOCAL_ASSET_DIR, PROMPT_REPORTS_ENABLED
+from config import LOCAL_ASSET_BASE_URL, LOCAL_ASSET_DIR, PROMPT_REPORTS_ENABLED
 from llm import MODEL_PROVIDER, Llm
 from costs.pricing import MODEL_PRICING
 from costs.token_usage import TokenUsage
 from fs_logging.prompt_reports import get_run_logs_directory, to_serializable
+from react_native.render import preview_page
+from react_native.runtime_files import load_runtime
 
 if TYPE_CHECKING:
     from agent.providers.base import StreamEvent
@@ -728,6 +733,7 @@ class AgentRunRecorder:
         status: str,
         error: Optional[str] = None,
         final_html: Optional[str] = None,
+        preview_profile: Optional[dict[str, Any]] = None,
     ) -> None:
         if not self.enabled or self._ended:
             return
@@ -742,7 +748,7 @@ class AgentRunRecorder:
                     *self._tool_asset_tasks, return_exceptions=True
                 )
             if final_html:
-                await self._snapshot_output(final_html)
+                await self._snapshot_output(final_html, preview_profile)
             self._append_event(
                 "run_end",
                 {
@@ -839,8 +845,11 @@ class AgentRunRecorder:
 
     # --------------------------------------------------------- output capture
 
-    async def _snapshot_output(self, final_html: str) -> None:
+    async def _snapshot_output(self, final_html: str, preview_profile: Optional[dict[str, Any]] = None) -> None:
         """Save final.html plus every asset it references.
+
+        A React Native run saves its App.jsx as final.jsx and writes final.html
+        as a preview page for it, so the run viewer can show the screen.
 
         Local ``/local-assets/`` files are copied from ``LOCAL_ASSET_DIR``;
         remote image URLs are downloaded (generated-image hosts expire their
@@ -849,10 +858,16 @@ class AgentRunRecorder:
         """
         assets_dir = os.path.join(self.run_dir, "assets")
         os.makedirs(assets_dir, exist_ok=True)
+        extension = "jsx" if self.stack == "react_native" else "html"
         with open(
-            os.path.join(self.run_dir, "final.html"), "w", encoding="utf-8"
+            os.path.join(self.run_dir, f"final.{extension}"), "w", encoding="utf-8"
         ) as f:
             f.write(final_html)
+        if self.stack == "react_native":
+            bundle = load_runtime()
+            if bundle is not None:
+                with open(os.path.join(self.run_dir, "final.html"), "w", encoding="utf-8") as f:
+                    f.write(preview_page(bundle, final_html, preview_profile or {}, LOCAL_ASSET_BASE_URL))
 
         manifest: list[dict[str, Any]] = []
         replacements: dict[str, str] = {}
@@ -957,7 +972,7 @@ class AgentRunRecorder:
         for url in sorted(replacements, key=len, reverse=True):
             self_contained = self_contained.replace(url, replacements[url])
         with open(
-            os.path.join(self.run_dir, "final_selfcontained.html"),
+            os.path.join(self.run_dir, f"final_selfcontained.{extension}"),
             "w",
             encoding="utf-8",
         ) as f:
