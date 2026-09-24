@@ -14,6 +14,7 @@ from routes import (
     home,
     evals,
     export,
+    expo_export,
     design_systems,
     prompt_reports,
     agent_runs,
@@ -57,6 +58,7 @@ app.include_router(home.router)
 app.include_router(capabilities.router)
 app.include_router(evals.router)
 app.include_router(export.router)
+app.include_router(expo_export.router)
 app.include_router(design_systems.router)
 app.include_router(prompt_reports.router)
 app.include_router(agent_runs.router)
