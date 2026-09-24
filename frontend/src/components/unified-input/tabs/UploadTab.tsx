@@ -5,8 +5,9 @@ import { Cross2Icon, ImageIcon } from "@radix-ui/react-icons";
 import { ScreenRecorderState } from "../../../types";
 import ScreenRecorder from "../../recording/ScreenRecorder";
 import { DesignSystemSelectorProps } from "../../settings/DesignSystemSelector";
-import { Stack } from "../../../lib/stacks";
+import { isReactNativeStack, Stack } from "../../../lib/stacks";
 import ScreenshotToCodeControls from "../ScreenshotToCodeControls";
+import type { DeviceOverrides } from "../../../lib/react-native/devices";
 
 function fileToDataURL(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -37,6 +38,9 @@ type FileWithPreview = {
 
 const MAX_FILES = 5;
 
+const REACT_NATIVE_VIDEO_MESSAGE =
+  "React Native builds a screen from one screenshot. Upload a PNG or JPG instead of a video.";
+
 const isVideoFile = (file: File) =>
   file.type.startsWith("video/") ||
   [".mp4", ".mov", ".webm"].some((ext) =>
@@ -48,7 +52,8 @@ interface Props {
     referenceImages: string[],
     inputMode: "image" | "video",
     textPrompt?: string,
-    isAssetExtractionEnabled?: boolean
+    isAssetExtractionEnabled?: boolean,
+    reactNativeOverrides?: DeviceOverrides
   ) => void;
   stack: Stack;
   setStack: (stack: Stack) => void;
@@ -69,22 +74,39 @@ function UploadTab({ doCreate, stack, setStack, designSystem }: Props) {
   const [screenRecorderState, setScreenRecorderState] =
     useState<ScreenRecorderState>(ScreenRecorderState.INITIAL);
 
+  // React Native builds one screen from one phone screenshot.
+  const isReactNative = isReactNativeStack(stack);
+  const maxFiles = isReactNative ? 1 : MAX_FILES;
   const hasUploadedFile = uploadedDataUrls.length > 0;
-  const remainingSlots = Math.max(0, MAX_FILES - files.length);
+  const remainingSlots = Math.max(0, maxFiles - files.length);
   const isAtLimit = remainingSlots === 0;
 
   const handleGenerate = useCallback(() => {
-    if (uploadedDataUrls.length > 0) {
+    if (uploadedDataUrls.length === 0) return;
+    if (isReactNative) {
+      if (uploadedInputMode === "video") {
+        toast.error(REACT_NATIVE_VIDEO_MESSAGE);
+        return;
+      }
       doCreate(
-        uploadedDataUrls,
-        uploadedInputMode,
+        [uploadedDataUrls[selectedIndex] ?? uploadedDataUrls[0]],
+        "image",
         textPrompt,
         isAssetExtractionEnabled
       );
+      return;
     }
+    doCreate(
+      uploadedDataUrls,
+      uploadedInputMode,
+      textPrompt,
+      isAssetExtractionEnabled
+    );
   }, [
     uploadedDataUrls,
     uploadedInputMode,
+    selectedIndex,
+    isReactNative,
     textPrompt,
     isAssetExtractionEnabled,
     doCreate,
@@ -121,9 +143,40 @@ function UploadTab({ doCreate, stack, setStack, designSystem }: Props) {
     }
   };
 
+  // React Native: the newest screenshot replaces the current one.
+  const replaceWithScreenshot = useCallback(
+    async (acceptedFiles: File[]) => {
+      if (acceptedFiles.some(isVideoFile)) {
+        toast.error(REACT_NATIVE_VIDEO_MESSAGE);
+        return;
+      }
+      if (acceptedFiles.length > 1) {
+        toast("React Native uses one screenshot, so only the first was added.");
+      }
+      const file = acceptedFiles[0];
+      try {
+        const dataUrl = await fileToDataURL(file);
+        files.forEach((existing) => URL.revokeObjectURL(existing.preview));
+        setFiles([Object.assign(file, { preview: URL.createObjectURL(file) }) as FileWithPreview]);
+        setUploadedDataUrls([dataUrl]);
+        setUploadedInputMode("image");
+        setSelectedIndex(0);
+        setTimeout(() => textInputRef.current?.focus(), 100);
+      } catch (error) {
+        toast.error("Error reading files.");
+        console.error("Error reading files:", error);
+      }
+    },
+    [files]
+  );
+
   const handleAddFiles = useCallback(
     async (acceptedFiles: File[]) => {
       if (acceptedFiles.length === 0) return;
+      if (isReactNative) {
+        await replaceWithScreenshot(acceptedFiles);
+        return;
+      }
 
       const incomingHasVideo = acceptedFiles.some(isVideoFile);
       const hasExistingImages = files.length > 0 && uploadedInputMode === "image";
@@ -190,7 +243,7 @@ function UploadTab({ doCreate, stack, setStack, designSystem }: Props) {
         console.error("Error reading files:", error);
       }
     },
-    [files, uploadedInputMode]
+    [files, uploadedInputMode, isReactNative, replaceWithScreenshot]
   );
 
   const {
@@ -202,7 +255,7 @@ function UploadTab({ doCreate, stack, setStack, designSystem }: Props) {
     isDragActive,
     open,
   } = useDropzone({
-    maxFiles: MAX_FILES,
+    maxFiles,
     maxSize: 1024 * 1024 * 20,
     noClick: true,
     accept: {
@@ -232,7 +285,11 @@ function UploadTab({ doCreate, stack, setStack, designSystem }: Props) {
       }
 
       if (firstError.code === "too-many-files") {
-        toast.error(`You can upload up to ${MAX_FILES} screenshots.`);
+        toast.error(
+          isReactNative
+            ? "React Native uses one screenshot. Drop a single image."
+            : `You can upload up to ${MAX_FILES} screenshots.`
+        );
         return;
       }
 
@@ -320,11 +377,15 @@ function UploadTab({ doCreate, stack, setStack, designSystem }: Props) {
             </div>
             <div className="text-center">
               <p className="text-gray-700 dark:text-zinc-200 font-medium">
-                Drop up to {MAX_FILES} screenshots or a single video
+                {isReactNative
+                  ? "Drop a phone screenshot"
+                  : `Drop up to ${MAX_FILES} screenshots or a single video`}
               </p>
             </div>
             <p className="text-xs text-gray-400 dark:text-zinc-500 mt-2">
-              Supports PNG, JPG, MP4, MOV, WebM (max 20MB each, 30s video)
+              {isReactNative
+                ? "One PNG or JPG of a single screen (max 20MB)"
+                : "Supports PNG, JPG, MP4, MOV, WebM (max 20MB each, 30s video)"}
             </p>
             <button
               type="button"
@@ -347,6 +408,11 @@ function UploadTab({ doCreate, stack, setStack, designSystem }: Props) {
                   className="w-full h-auto max-h-[400px] object-contain rounded-md border border-gray-100 dark:border-zinc-700"
                   controls
                 />
+                {isReactNative && (
+                  <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+                    {REACT_NATIVE_VIDEO_MESSAGE}
+                  </p>
+                )}
                 <button
                   onClick={handleClear}
                   className="absolute top-2 right-2 bg-white dark:bg-zinc-800 rounded-full p-1.5 shadow-md hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
@@ -365,7 +431,7 @@ function UploadTab({ doCreate, stack, setStack, designSystem }: Props) {
               >
                 <input {...getInputProps()} />
                 <div className="flex items-center justify-between text-xs uppercase tracking-wide text-gray-400 dark:text-zinc-500">
-                  <span>{`Uploaded Screenshots (${files.length}/${MAX_FILES})`}</span>
+                  <span>{`Uploaded Screenshots (${files.length}/${maxFiles})`}</span>
                   <button
                     type="button"
                     onClick={handleClear}
@@ -442,7 +508,11 @@ function UploadTab({ doCreate, stack, setStack, designSystem }: Props) {
                   </button>
                 </div>
                 <div className="mt-2 text-xs text-gray-400 dark:text-zinc-500">
-                  Drag and drop to add more screenshots
+                  {isReactNative
+                    ? files.length > 1
+                      ? "React Native uses one screenshot: the selected one."
+                      : "Drop another screenshot to replace this one"
+                    : "Drag and drop to add more screenshots"}
                 </div>
                 {isDragActive && (
                   <div className="absolute inset-0 bg-blue-50/80 dark:bg-blue-950/80 border-2 border-dashed border-blue-300 dark:border-blue-700 rounded-lg flex items-center justify-center pointer-events-none">
@@ -469,7 +539,8 @@ function UploadTab({ doCreate, stack, setStack, designSystem }: Props) {
         </div>
       )}
 
-      {!hasUploadedFile && (
+      {/* Screen recordings are video input, which React Native doesn't take. */}
+      {!hasUploadedFile && !isReactNative && (
         <div className="flex flex-col items-center gap-3">
           {screenRecorderState === ScreenRecorderState.INITIAL && (
             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-zinc-400">

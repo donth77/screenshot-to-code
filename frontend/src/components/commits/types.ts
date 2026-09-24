@@ -1,4 +1,5 @@
 import { PromptContent, PromptMessageRole } from "../../types";
+import type { ReactNativeTarget } from "../../lib/react-native/devices";
 
 export type CommitHash = string;
 
@@ -47,6 +48,8 @@ export type BaseCommit = {
   isCommitted: boolean;
   variants: Variant[];
   selectedVariantIndex: number;
+  // React Native projects only: the phone every variant previews on.
+  reactNative?: ReactNativeTarget;
 };
 
 export type CommitType = "ai_create" | "ai_edit" | "code_create";

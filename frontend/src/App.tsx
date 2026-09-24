@@ -9,8 +9,16 @@ import TermsOfServiceDialog from "./components/TermsOfServiceDialog";
 import { USER_CLOSE_WEB_SOCKET_CODE } from "./constants";
 import toast from "react-hot-toast";
 import { nanoid } from "nanoid";
-import { Stack } from "./lib/stacks";
+import { isReactNativeStack, mainFilePath, Stack } from "./lib/stacks";
 import { CodeGenerationModel } from "./lib/models";
+import {
+  DeviceOverrides,
+  ReactNativeTarget,
+} from "./lib/react-native/devices";
+import {
+  describeTargetError,
+  resolveTarget,
+} from "./lib/react-native/appRuntime";
 import useBrowserTabIndicator from "./hooks/useBrowserTabIndicator";
 import { LuChevronLeft } from "react-icons/lu";
 import {
@@ -108,6 +116,8 @@ function App() {
     AppTheme.SYSTEM,
     "app-theme"
   );
+  // The stack only changes on the start screen, so it holds for the project.
+  const isReactNative = isReactNativeStack(settings.generatedCodeConfig);
 
   const wsRef = useRef<WebSocket>(null);
   const lastThinkingEventIdRef = useRef<Record<number, string>>({});
@@ -279,11 +289,12 @@ function App() {
       return;
     }
 
-    // Re-run the initial create request.
+    // Re-run the initial create request (on the same phone, for React Native).
+    const reactNativeOverrides = currentCommit.reactNative?.overrides;
     if (inputMode === "image" || inputMode === "video") {
-      doCreate(referenceImages, inputMode);
+      doCreate(referenceImages, inputMode, "", true, reactNativeOverrides);
     } else {
-      doCreateFromText(initialPrompt);
+      doCreateFromText(initialPrompt, reactNativeOverrides);
     }
   };
 
@@ -315,7 +326,9 @@ function App() {
 
   function doGenerateCode(
     params: GenerationRequest,
-    generationParentHash: string | null = head
+    generationParentHash: string | null = head,
+    // React Native only: the phone this generation targets.
+    reactNative?: ReactNativeTarget
   ) {
     // Reset the execution console
     resetExecutionConsoles();
@@ -333,6 +346,7 @@ function App() {
     const updatedParams = {
       ...settings,
       ...requestParams,
+      ...(reactNative ? { reactNativeProfile: reactNative.overrides } : {}),
       designSystem: selectedDesignSystem?.content ?? null,
     };
 
@@ -356,12 +370,14 @@ function App() {
             type: "ai_create" as const,
             parentHash: null,
             inputs: requestParams.prompt,
+            ...(reactNative ? { reactNative } : {}),
           }
         : {
             ...baseCommitObject,
             type: "ai_edit" as const,
             parentHash: generationParentHash,
             inputs: requestParams.prompt,
+            ...(reactNative ? { reactNative } : {}),
           };
 
     // Create a new commit and set it as the head
@@ -572,7 +588,36 @@ function App() {
     referenceImages: string[],
     inputMode: "image" | "video",
     textPrompt: string = "",
-    isAssetExtractionEnabled = true
+    isAssetExtractionEnabled = true,
+    reactNativeOverrides?: DeviceOverrides
+  ) {
+    if (!isReactNative) {
+      startCreate(referenceImages, inputMode, textPrompt, isAssetExtractionEnabled);
+      return;
+    }
+    // A React Native screen comes from one phone screenshot; find its phone
+    // first, so the preview and the backend agree on it.
+    if (inputMode !== "image" || referenceImages.length === 0) {
+      toast.error("React Native builds a screen from one screenshot, not a video.");
+      return;
+    }
+    const screenshot = referenceImages[0];
+    resolveTarget(screenshot, reactNativeOverrides).then(
+      (target) =>
+        startCreate([screenshot], "image", textPrompt, isAssetExtractionEnabled, target),
+      (error: unknown) => {
+        console.error("Could not resolve the React Native device", error);
+        toast.error(describeTargetError(error));
+      }
+    );
+  }
+
+  function startCreate(
+    referenceImages: string[],
+    inputMode: "image" | "video",
+    textPrompt: string,
+    isAssetExtractionEnabled: boolean,
+    reactNative?: ReactNativeTarget
   ) {
     // Reset any existing state
     reset();
@@ -622,11 +667,26 @@ function App() {
         isAssetExtractionEnabled:
           inputMode === "image" && isAssetExtractionEnabled,
         variantHistory,
-      });
+      }, null, reactNative);
     }
   }
 
-  function doCreateFromText(text: string) {
+  function doCreateFromText(text: string, reactNativeOverrides?: DeviceOverrides) {
+    if (!isReactNative) {
+      startCreateFromText(text);
+      return;
+    }
+    // Without a screenshot the backend uses the platform's default phone.
+    resolveTarget(null, reactNativeOverrides).then(
+      (target) => startCreateFromText(text, target),
+      (error: unknown) => {
+        console.error("Could not resolve the React Native device", error);
+        toast.error(describeTargetError(error));
+      }
+    );
+  }
+
+  function startCreateFromText(text: string, reactNative?: ReactNativeTarget) {
     // Reset any existing state
     reset();
 
@@ -637,7 +697,7 @@ function App() {
       inputMode: "text",
       prompt: { text, images: [], videos: [] },
       variantHistory: [buildUserHistoryMessage(text)],
-    });
+    }, null, reactNative);
   }
 
   function regenerateUpdate(commit: AiEditCommit) {
@@ -670,8 +730,10 @@ function App() {
         parentCommit,
         imageAssetIds,
         getAssetsById,
+        mainPath: mainFilePath(settings.generatedCodeConfig),
       }),
-      parentHash
+      parentHash,
+      commit.reactNative ?? parentCommit.reactNative
     );
   }
 
@@ -734,7 +796,10 @@ function App() {
         parentCommit: currentCommit,
         imageAssetIds: updateImageAssetIds,
         getAssetsById,
-      })
+        mainPath: mainFilePath(settings.generatedCodeConfig),
+      }),
+      head,
+      currentCommit.reactNative
     );
   }
 
@@ -753,6 +818,22 @@ function App() {
   }
 
   function importFromCode(code: string, stack: Stack) {
+    if (!isReactNativeStack(stack)) {
+      finishImport(code, stack);
+      return;
+    }
+    // Imported App.jsx previews on the default phone.
+    resolveTarget(null).then(
+      (target) => finishImport(code, stack, target),
+      (error: unknown) => {
+        console.error("Could not resolve the React Native device", error);
+        toast.error(describeTargetError(error));
+        finishImport(code, stack);
+      }
+    );
+  }
+
+  function finishImport(code: string, stack: Stack, reactNative?: ReactNativeTarget) {
     // Reset any existing state
     reset();
 
@@ -765,6 +846,7 @@ function App() {
       parentHash: null,
       variants: [{ code, history: [] }],
       inputs: null,
+      ...(reactNative ? { reactNative } : {}),
     });
     addCommit(commit);
     setHead(commit.hash);

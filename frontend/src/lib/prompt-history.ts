@@ -118,12 +118,15 @@ export function buildUpdateGenerationRequest({
   parentCommit,
   imageAssetIds,
   getAssetsById,
+  mainPath = "index.html",
 }: {
   inputMode: GenerationRequest["inputMode"];
   prompt: PromptContent;
   parentCommit: Commit;
   imageAssetIds: string[];
   getAssetsById: GetAssetsById;
+  // The project's single file: App.jsx for React Native.
+  mainPath?: string;
 }): GenerationRequest {
   const parentVariant =
     parentCommit.variants[parentCommit.selectedVariantIndex];
@@ -154,7 +157,7 @@ export function buildUpdateGenerationRequest({
     variantHistory,
     fileState: parentVariant.code
       ? {
-          path: "index.html",
+          path: mainPath,
           content: parentVariant.code,
         }
       : undefined,

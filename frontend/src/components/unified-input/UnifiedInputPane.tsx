@@ -7,15 +7,17 @@ import UrlTab from "./tabs/UrlTab";
 import TextTab from "./tabs/TextTab";
 import ImportTab from "./tabs/ImportTab";
 import { DesignSystemSelectorProps } from "../settings/DesignSystemSelector";
+import type { DeviceOverrides } from "../../lib/react-native/devices";
 
 interface Props {
   doCreate: (
     images: string[],
     inputMode: "image" | "video",
     textPrompt?: string,
-    isAssetExtractionEnabled?: boolean
+    isAssetExtractionEnabled?: boolean,
+    reactNativeOverrides?: DeviceOverrides
   ) => void;
-  doCreateFromText: (text: string) => void;
+  doCreateFromText: (text: string, reactNativeOverrides?: DeviceOverrides) => void;
   importFromCode: (code: string, stack: Stack) => void;
   settings: Settings;
   setSettings: React.Dispatch<React.SetStateAction<Settings>>;

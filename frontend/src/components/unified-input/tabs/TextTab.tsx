@@ -5,9 +5,10 @@ import toast from "react-hot-toast";
 import OutputSettingsSection from "../../settings/OutputSettingsSection";
 import { DesignSystemSelectorProps } from "../../settings/DesignSystemSelector";
 import { Stack } from "../../../lib/stacks";
+import type { DeviceOverrides } from "../../../lib/react-native/devices";
 
 interface Props {
-  doCreateFromText: (text: string) => void;
+  doCreateFromText: (text: string, reactNativeOverrides?: DeviceOverrides) => void;
   stack: Stack;
   setStack: (stack: Stack) => void;
   designSystem: DesignSystemSelectorProps;

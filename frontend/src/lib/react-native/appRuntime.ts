@@ -2,7 +2,7 @@
 // /rn-runtime (through the Vite proxy in development). Loaded once and cached.
 import { useEffect, useState } from "react";
 import { HTTP_BACKEND_URL } from "../../config";
-import { DeviceTable } from "./devices";
+import { DeviceOverrides, DeviceTable, ReactNativeTarget, resolveDevice } from "./devices";
 import { PreviewRuntime, loadDeviceTable, loadPreviewRuntime } from "./previewRuntime";
 
 export const RUNTIME_UNAVAILABLE_MESSAGE =
@@ -14,6 +14,37 @@ export function appPreviewRuntime(): Promise<PreviewRuntime> {
 
 export function appDeviceTable(): Promise<DeviceTable> {
   return loadDeviceTable(HTTP_BACKEND_URL);
+}
+
+class ScreenshotDecodeError extends Error {}
+
+// The pixel size PIL reads on the backend. Phone screenshots are PNGs; a
+// JPEG with an EXIF rotation would decode rotated here and not there.
+export function imageSize(url: string): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight });
+    image.onerror = () => reject(new ScreenshotDecodeError("The screenshot could not be read as an image."));
+    image.src = url;
+  });
+}
+
+// A message for a failed resolveTarget.
+export function describeTargetError(error: unknown): string {
+  return error instanceof ScreenshotDecodeError ? error.message : RUNTIME_UNAVAILABLE_MESSAGE;
+}
+
+// The phone for a screenshot (or, without one, the platform's default phone),
+// resolved exactly as the backend will resolve it.
+export async function resolveTarget(
+  screenshotUrl: string | null,
+  overrides: DeviceOverrides = {}
+): Promise<ReactNativeTarget> {
+  const [table, size] = await Promise.all([
+    appDeviceTable(),
+    screenshotUrl ? imageSize(screenshotUrl) : Promise.resolve(null),
+  ]);
+  return { device: resolveDevice(table, size, overrides), overrides };
 }
 
 interface Resource<T> {

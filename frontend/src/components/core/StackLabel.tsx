@@ -3,6 +3,7 @@ import { IconType } from "react-icons";
 import {
   SiBootstrap,
   SiCss3,
+  SiExpo,
   SiHtml5,
   SiIonic,
   SiReact,
@@ -19,6 +20,9 @@ const COMPONENT_LOGOS: { [name: string]: { icon: IconType; color: string } } = {
   Bootstrap: { icon: SiBootstrap, color: "#7952B3" },
   Vue: { icon: SiVuedotjs, color: "#4FC08D" },
   Ionic: { icon: SiIonic, color: "#3880FF" },
+  "React Native": { icon: SiReact, color: "#61DAFB" },
+  // Expo's mark is monochrome; follow the text colour so it shows in dark mode.
+  Expo: { icon: SiExpo, color: "currentColor" },
 };
 
 interface StackLabelProps {
@@ -26,7 +30,7 @@ interface StackLabelProps {
 }
 
 const StackLabel: React.FC<StackLabelProps> = ({ stack }) => {
-  const stackComponents = STACK_DESCRIPTIONS[stack].components;
+  const { components: stackComponents, label } = STACK_DESCRIPTIONS[stack];
 
   return (
     <div className="notranslate flex items-center gap-2" translate="no">
@@ -46,12 +50,16 @@ const StackLabel: React.FC<StackLabelProps> = ({ stack }) => {
         })}
       </span>
       <span>
-        {stackComponents.map((component, index) => (
-          <React.Fragment key={index}>
-            <span className="font-semibold">{component}</span>
-            {index < stackComponents.length - 1 && " + "}
-          </React.Fragment>
-        ))}
+        {label ? (
+          <span className="font-semibold">{label}</span>
+        ) : (
+          stackComponents.map((component, index) => (
+            <React.Fragment key={index}>
+              <span className="font-semibold">{component}</span>
+              {index < stackComponents.length - 1 && " + "}
+            </React.Fragment>
+          ))
+        )}
       </span>
     </div>
   );

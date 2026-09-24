@@ -49,6 +49,13 @@ export interface DeviceOverrides {
   insetBottom?: number;
 }
 
+// The phone a React Native project targets, kept on its commits: the device
+// the preview renders, and the overrides that make the backend pick it too.
+export interface ReactNativeTarget {
+  device: ReactNativeDevice;
+  overrides: DeviceOverrides;
+}
+
 // A downscaled screenshot keeps its shape: aspect ratios this close match.
 const ASPECT_TOLERANCE = 0.004;
 const IOS_LOGICAL_WIDTHS = [375, 390, 393, 402, 414, 428, 430, 440];

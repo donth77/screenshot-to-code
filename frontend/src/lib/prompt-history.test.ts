@@ -203,5 +203,31 @@ describe("prompt-history helpers", () => {
 
     expect(request.history).toEqual([]);
     expect(request.fileState?.content).toBe("<html>imported</html>");
+    expect(request.fileState?.path).toBe("index.html");
+  });
+
+  test("buildUpdateGenerationRequest names a React Native project's App.jsx", () => {
+    const appJsx = "export default function App() {\n  return null;\n}\n";
+    const parentCommit: Commit = {
+      hash: "rn",
+      parentHash: null,
+      dateCreated: new Date(),
+      isCommitted: true,
+      type: "code_create",
+      inputs: null,
+      selectedVariantIndex: 0,
+      variants: [{ code: appJsx, history: [] }],
+    };
+
+    const request = buildUpdateGenerationRequest({
+      inputMode: "image",
+      prompt: { text: "Make the title bigger", images: [], videos: [] },
+      parentCommit,
+      imageAssetIds: [],
+      getAssetsById: () => ({}),
+      mainPath: "App.jsx",
+    });
+
+    expect(request.fileState).toEqual({ path: "App.jsx", content: appJsx });
   });
 });

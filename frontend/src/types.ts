@@ -1,5 +1,6 @@
 import { Stack } from "./lib/stacks";
 import { CodeGenerationModel } from "./lib/models";
+import type { DeviceOverrides } from "./lib/react-native/devices";
 
 export enum EditorTheme {
   ESPRESSO = "espresso",
@@ -85,6 +86,9 @@ export interface CodeGenerationParams {
   };
   optionCodes?: string[];
   isAssetExtractionEnabled?: boolean;
+  // React Native only: the user's device corrections (platform, logical
+  // width, insets); the backend detects the rest from the screenshot.
+  reactNativeProfile?: DeviceOverrides;
 }
 
 export type FullGenerationSettings = CodeGenerationParams &

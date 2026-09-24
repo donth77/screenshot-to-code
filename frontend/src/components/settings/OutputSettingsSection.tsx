@@ -7,6 +7,9 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Stack } from "../../lib/stacks";
+
+// Not offered until the app can preview it on a phone (Phase 3, task 3.3).
+const UNOFFERED_STACKS = new Set<Stack>([Stack.REACT_NATIVE]);
 import StackLabel from "../core/StackLabel";
 import DesignSystemSelector, {
   DesignSystemSelectorProps,
@@ -44,7 +47,7 @@ function OutputSettingsSection({
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          {Object.values(Stack).map((stack) => (
+          {Object.values(Stack).filter((option) => !UNOFFERED_STACKS.has(option)).map((stack) => (
             <SelectItem key={stack} value={stack}>
               <div className="flex items-center">
                 <StackLabel stack={stack} />
