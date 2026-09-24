@@ -29,7 +29,7 @@ Companion to [`DESIGN.md`](DESIGN.md), which holds section references (§) and e
 | 1.6 | Font calibration | A text-grid fixture rendered in the preview and on the iOS Simulator and Android emulator. Target: median width error ≤ 1.5%, line height ≤ 0.5 pt. Record the numbers in DESIGN §8. *Done differently than planned:* the measurements ruled out `size-adjust`, so the preview applies per-platform text rules (fitted iOS tracking; Android's pixel-rounded font size, line spacing and `includeFontPadding`). See DESIGN §8.3. | 1.0 |
 | 1.7 | Fixture test suite | `backend/tests/test_rn_runtime.py`, running through the Python renderer and Playwright, skipped when `dist/` or Chromium is missing. Covers the full fixture plus the unknown-import, unknown-icon, runtime-throw, syntax-error, no-default-export and lint fixtures. | 0.75 |
 | 1.8 | Version-parity check (RNW-5) | Unit test: `manifest.json` versions equal the export template's pins | 0.25 |
-| 1.9 | Serving and packaging | `/rn-runtime` StaticFiles mount with immutable caching for hashed files; `react_native_preview` in `/api/capabilities`; a Node stage in `backend/Dockerfile`; Noto fonts in the image | 0.5 |
+| 1.9 | Serving and packaging | `/rn-runtime` StaticFiles mount with immutable caching for hashed files; `react_native_preview` in `/api/capabilities`; a Node stage in `backend/Dockerfile`. Also the `/rn-runtime` Vite proxy, pulled forward from 3.2. *Noto fonts deferred* (DESIGN §8.1). | 0.5 |
 
 **Gates.**
 

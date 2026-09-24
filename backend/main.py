@@ -19,10 +19,12 @@ from routes import (
     agent_runs,
     eval_sets,
 )
+from react_native.serving import configure_runtime_routes
 from uploaded_assets import configure_uploaded_asset_routes
 
 app = FastAPI(openapi_url=None, docs_url=None, redoc_url=None)
 configure_uploaded_asset_routes(app)
+configure_runtime_routes(app)
 
 
 @app.on_event("startup")

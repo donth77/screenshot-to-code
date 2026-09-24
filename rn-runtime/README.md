@@ -15,8 +15,13 @@ pnpm sizes          # optional: size table for build variants
 ```
 
 The backend serves `dist/` at `/rn-runtime/` (override the location with `RN_RUNTIME_DIST`).
-Without a build, the backend reports `react_native_preview: false` from `/api/capabilities`.
-Rebuild after changing anything in this directory.
+Without a build, those URLs 404 and `/api/capabilities` reports `react_native_preview: false`.
+Rebuild after changing anything in this directory. The Vite dev server proxies `/rn-runtime` to
+the backend.
+
+The backend Docker image builds the runtime itself, in a Node stage of `backend/Dockerfile`.
+`docker compose` passes this directory as the `rn-runtime` build context. With plain
+`docker build` from the repo root, add `--build-context rn-runtime=rn-runtime`.
 
 ## What's in `dist/`
 

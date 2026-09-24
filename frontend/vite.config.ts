@@ -22,6 +22,8 @@ export default ({ mode }) => {
         "/generate-code": { target: CODEGEN_BACKEND, ws: true },
         "/api": { target: CODEGEN_BACKEND },
         "/local-assets": { target: CODEGEN_BACKEND },
+        // React Native preview runtime (rn-runtime/dist, served by the backend).
+        "/rn-runtime": { target: CODEGEN_BACKEND },
       },
     },
     plugins: [

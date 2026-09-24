@@ -309,10 +309,17 @@ Backend serving:
 - Mount `rn-runtime/dist` at `/rn-runtime`, the same way `uploaded_assets` mounts `/local-assets`.
 - Hashed files get `Cache-Control: public, max-age=31536000, immutable`. `manifest.json` and `preview-template.html` get `no-cache`.
 - The frontend fetches both once and caches them in memory.
+- **As built (Phase 1).** `backend/react_native/serving.py`. Without a build the URLs 404, not 500. The Vite dev server proxies `/rn-runtime` like `/api`.
+  - `frontend/src/lib/react-native/previewRuntime.ts` loads the manifest and template once and builds `srcdoc` documents.
+  - `backend/tests/test_rn_vite_preview.py` renders the full fixture through the real Vite dev server in an iframe (RNW-2, library level). The immutable header survives the proxy.
+  - Gotcha: `vite-plugin-html`'s history fallback answers every `Accept: text/html` navigation with the app's `index.html`, so a dev page other than the app must be requested without that header.
 
 Artifacts:
 
 - **Recommendation:** don't commit `dist/` (4.7 MB of minified JS per change). Build with Node (already required for the frontend) and add a Node stage to `backend/Dockerfile`.
+- **As built.** `backend/Dockerfile` builds `rn-runtime` in a `node:22.22.1-bookworm-slim` stage (pnpm 10.32.1, frozen lockfile), copying only the build's inputs. `docker-compose.yml` passes `rn-runtime/` as the named build context `rn-runtime`, and the image sets `RN_RUNTIME_DIST`.
+  - The stage's steps, replayed in a clean directory, give a byte-identical bundle.
+  - **The image build itself is untested:** the Docker daemon wasn't available.
 - If `dist/` is missing, `/api/capabilities` reports `react_native_preview: false` and the stack is disabled with a clear message.
 
 Pluggable screenshot backends:
@@ -386,7 +393,10 @@ In RNW 0.21.2, `Text` and `TextInput` default to `font: '14px System'`. `createR
 - **The rewrite.** An esbuild `onLoad` plugin rewrites that one constant to `var(--rn-preview-system-font, <original stack>)`. User fonts other than `System` are untouched, and nested-text inheritance is preserved.
 - **Where the font comes from.** The runtime injects `@font-face` rules (data URLs, `font-display: block`) for the profile's family and sets the variable: "RNP Inter" for iOS, "RNP Roboto" for Android.
 - **Verification.** `CSS.getPlatformFontsForNode` over CDP reports `familyName: "Inter"` or `"Roboto"` with `isCustomFont: true` for the fixture title. This is the *rasterised* font, not just the computed style, so the render doesn't depend on fonts installed on the host.
-- **Weights and fallback.** Weights 300–800 are bundled, Latin subset only. Glyphs outside it fall back to host fonts; the Docker image should install Noto (core, CJK, colour emoji) so the fallback is deterministic. This is **untested**.
+- **Weights and fallback.** Weights 300–800 are bundled, Latin subset only. Glyphs outside it fall back to host fonts, which in the Docker image are fixed by the image itself.
+  - **What's already installed.** `playwright install --with-deps chromium` installs, per Playwright 1.61's Debian 12 dependency list: CJK (IPA Gothic, WenQuanYi Zen Hei), Noto Color Emoji, Thai (TLWG Loma), FreeFont, Liberation and Unifont.
+  - **Noto is deferred.** Installing `fonts-noto-*` system-wide, as planned, could change what `sans-serif` resolves to in the existing stacks' screenshots, and checking that needs a Docker run.
+  - **Status.** Untested in the image.
 
 ### 8.2 Web vs native text metrics before calibration (Verified; measured from the same fixture)
 

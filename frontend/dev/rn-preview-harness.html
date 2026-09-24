@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>React Native preview harness</title>
+  </head>
+  <body style="margin: 0">
+    <!--
+      Dev only: `vite build` bundles index.html, not this page. It renders an
+      App.jsx in the preview iframe the way the app will (library-level RNW-2);
+      backend/tests/test_rn_vite_preview.py drives it through the dev server.
+      vite-plugin-html answers browser navigations with the app's index.html,
+      so request this page without "Accept: text/html" (the test does).
+    -->
+    <iframe id="preview" title="React Native preview" style="border: 0"></iframe>
+    <script type="module">
+      import {
+        loadPreviewRuntime,
+        nextPreviewStatus,
+        previewDocument,
+      } from "/src/lib/react-native/previewRuntime.ts";
+
+      window.renderPreview = async (source, profile) => {
+        const runtime = await loadPreviewRuntime();
+        const frame = document.getElementById("preview");
+        frame.style.width = `${profile.width}px`;
+        frame.style.height = `${profile.height}px`;
+        const status = nextPreviewStatus(frame);
+        frame.srcdoc = previewDocument(runtime, source, profile);
+        return status;
+      };
+      window.harnessReady = true;
+    </script>
+  </body>
+</html>

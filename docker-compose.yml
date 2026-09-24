@@ -5,6 +5,9 @@ services:
     build: 
       context: ./backend
       dockerfile: Dockerfile
+      # The React Native preview runtime, built in the backend image.
+      additional_contexts:
+        rn-runtime: ./rn-runtime
     
     env_file:
       - .env
