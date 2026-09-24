@@ -137,7 +137,7 @@ const noLucidePlugin = {
 
 const buildInfo = {
   mode: MODE,
-  expoSdk: expoSdk.sdk,
+  expoSdkVersion: expoSdk.sdk,
   versions: Object.fromEntries(
     [...PARITY, '@react-native/assets-registry', '@babel/standalone'].map((name) => [name, version(name)])
   ),
