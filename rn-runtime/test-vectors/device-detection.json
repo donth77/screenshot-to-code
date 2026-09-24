@@ -1,0 +1,1163 @@
+{
+  "$comment": "Shared by backend/tests/test_rn_device_detection.py and frontend/src/lib/react-native/devices.test.ts. Expected values come from backend/react_native/profiles.py and rn-runtime/device-profiles.json; regenerate with: cd backend && poetry run python tests/test_rn_device_detection.py --write",
+  "cases": [
+    {
+      "name": "iPhone 13 exact",
+      "pixelWidth": 1170,
+      "pixelHeight": 2532,
+      "overrides": null,
+      "expected": {
+        "platform": "ios",
+        "name": "iPhone 12, 12 Pro, 13, 13 Pro, 14, 17e",
+        "logicalWidth": 390,
+        "scale": 3.0,
+        "insetTop": 47.0,
+        "insetBottom": 34.0,
+        "pixelWidth": 1170,
+        "pixelHeight": 2532,
+        "match": "exact",
+        "cropTopPx": 141,
+        "cropBottomPx": 102,
+        "contentHeight": 763,
+        "previewProfile": {
+          "platform": "ios",
+          "width": 390,
+          "height": 763,
+          "scale": 3.0,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "iPhone 15 exact",
+      "pixelWidth": 1179,
+      "pixelHeight": 2556,
+      "overrides": null,
+      "expected": {
+        "platform": "ios",
+        "name": "iPhone 14 Pro, 15, 15 Pro, 16",
+        "logicalWidth": 393,
+        "scale": 3.0,
+        "insetTop": 59.0,
+        "insetBottom": 34.0,
+        "pixelWidth": 1179,
+        "pixelHeight": 2556,
+        "match": "exact",
+        "cropTopPx": 177,
+        "cropBottomPx": 102,
+        "contentHeight": 759,
+        "previewProfile": {
+          "platform": "ios",
+          "width": 393,
+          "height": 759,
+          "scale": 3.0,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "iPhone 17 exact",
+      "pixelWidth": 1206,
+      "pixelHeight": 2622,
+      "overrides": null,
+      "expected": {
+        "platform": "ios",
+        "name": "iPhone 16 Pro, 17, 17 Pro",
+        "logicalWidth": 402,
+        "scale": 3.0,
+        "insetTop": 62.0,
+        "insetBottom": 34.0,
+        "pixelWidth": 1206,
+        "pixelHeight": 2622,
+        "match": "exact",
+        "cropTopPx": 186,
+        "cropBottomPx": 102,
+        "contentHeight": 778,
+        "previewProfile": {
+          "platform": "ios",
+          "width": 402,
+          "height": 778,
+          "scale": 3.0,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "iPhone 14 Plus exact",
+      "pixelWidth": 1284,
+      "pixelHeight": 2778,
+      "overrides": null,
+      "expected": {
+        "platform": "ios",
+        "name": "iPhone 12/13 Pro Max, 14 Plus",
+        "logicalWidth": 428,
+        "scale": 3.0,
+        "insetTop": 47.0,
+        "insetBottom": 34.0,
+        "pixelWidth": 1284,
+        "pixelHeight": 2778,
+        "match": "exact",
+        "cropTopPx": 141,
+        "cropBottomPx": 102,
+        "contentHeight": 845,
+        "previewProfile": {
+          "platform": "ios",
+          "width": 428,
+          "height": 845,
+          "scale": 3.0,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "iPhone 15 Pro Max exact",
+      "pixelWidth": 1290,
+      "pixelHeight": 2796,
+      "overrides": null,
+      "expected": {
+        "platform": "ios",
+        "name": "iPhone 14 Pro Max, 15 Plus, 15 Pro Max, 16 Plus",
+        "logicalWidth": 430,
+        "scale": 3.0,
+        "insetTop": 59.0,
+        "insetBottom": 34.0,
+        "pixelWidth": 1290,
+        "pixelHeight": 2796,
+        "match": "exact",
+        "cropTopPx": 177,
+        "cropBottomPx": 102,
+        "contentHeight": 839,
+        "previewProfile": {
+          "platform": "ios",
+          "width": 430,
+          "height": 839,
+          "scale": 3.0,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "iPhone 17 Pro Max exact",
+      "pixelWidth": 1320,
+      "pixelHeight": 2868,
+      "overrides": null,
+      "expected": {
+        "platform": "ios",
+        "name": "iPhone 16 Pro Max, 17 Pro Max",
+        "logicalWidth": 440,
+        "scale": 3.0,
+        "insetTop": 62.0,
+        "insetBottom": 34.0,
+        "pixelWidth": 1320,
+        "pixelHeight": 2868,
+        "match": "exact",
+        "cropTopPx": 186,
+        "cropBottomPx": 102,
+        "contentHeight": 860,
+        "previewProfile": {
+          "platform": "ios",
+          "width": 440,
+          "height": 860,
+          "scale": 3.0,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "iPhone 11 Pro exact",
+      "pixelWidth": 1125,
+      "pixelHeight": 2436,
+      "overrides": null,
+      "expected": {
+        "platform": "ios",
+        "name": "iPhone X, XS, 11 Pro",
+        "logicalWidth": 375,
+        "scale": 3.0,
+        "insetTop": 44.0,
+        "insetBottom": 34.0,
+        "pixelWidth": 1125,
+        "pixelHeight": 2436,
+        "match": "exact",
+        "cropTopPx": 132,
+        "cropBottomPx": 102,
+        "contentHeight": 734,
+        "previewProfile": {
+          "platform": "ios",
+          "width": 375,
+          "height": 734,
+          "scale": 3.0,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "iPhone 13 mini exact",
+      "pixelWidth": 1080,
+      "pixelHeight": 2340,
+      "overrides": null,
+      "expected": {
+        "platform": "ios",
+        "name": "iPhone 12 mini, 13 mini",
+        "logicalWidth": 375,
+        "scale": 2.88,
+        "insetTop": 50.0,
+        "insetBottom": 34.0,
+        "pixelWidth": 1080,
+        "pixelHeight": 2340,
+        "match": "exact",
+        "cropTopPx": 144,
+        "cropBottomPx": 98,
+        "contentHeight": 728,
+        "previewProfile": {
+          "platform": "ios",
+          "width": 375,
+          "height": 728,
+          "scale": 2.88,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "iPhone 11 exact",
+      "pixelWidth": 828,
+      "pixelHeight": 1792,
+      "overrides": null,
+      "expected": {
+        "platform": "ios",
+        "name": "iPhone XR, 11",
+        "logicalWidth": 414,
+        "scale": 2.0,
+        "insetTop": 48.0,
+        "insetBottom": 34.0,
+        "pixelWidth": 828,
+        "pixelHeight": 1792,
+        "match": "exact",
+        "cropTopPx": 96,
+        "cropBottomPx": 68,
+        "contentHeight": 814,
+        "previewProfile": {
+          "platform": "ios",
+          "width": 414,
+          "height": 814,
+          "scale": 2.0,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "iPhone SE exact",
+      "pixelWidth": 750,
+      "pixelHeight": 1334,
+      "overrides": null,
+      "expected": {
+        "platform": "ios",
+        "name": "iPhone SE (2nd/3rd gen), 6, 7, 8",
+        "logicalWidth": 375,
+        "scale": 2.0,
+        "insetTop": 20.0,
+        "insetBottom": 0.0,
+        "pixelWidth": 750,
+        "pixelHeight": 1334,
+        "match": "exact",
+        "cropTopPx": 40,
+        "cropBottomPx": 0,
+        "contentHeight": 647,
+        "previewProfile": {
+          "platform": "ios",
+          "width": 375,
+          "height": 647,
+          "scale": 2.0,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "Pixel 8 exact",
+      "pixelWidth": 1080,
+      "pixelHeight": 2400,
+      "overrides": null,
+      "expected": {
+        "platform": "android",
+        "name": "Pixel 8 and many 20:9 Androids",
+        "logicalWidth": 412,
+        "scale": 2.621359223300971,
+        "insetTop": 50.3,
+        "insetBottom": 24.0,
+        "pixelWidth": 1080,
+        "pixelHeight": 2400,
+        "match": "exact",
+        "cropTopPx": 132,
+        "cropBottomPx": 63,
+        "contentHeight": 841,
+        "previewProfile": {
+          "platform": "android",
+          "width": 412,
+          "height": 841,
+          "scale": 2.621359223300971,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "Pixel 8 Pro exact (insets unknown)",
+      "pixelWidth": 1344,
+      "pixelHeight": 2992,
+      "overrides": null,
+      "expected": {
+        "platform": "android",
+        "name": "Pixel 8 Pro",
+        "logicalWidth": 448,
+        "scale": 3.0,
+        "insetTop": 0.0,
+        "insetBottom": 0.0,
+        "pixelWidth": 1344,
+        "pixelHeight": 2992,
+        "match": "exact",
+        "cropTopPx": 0,
+        "cropBottomPx": 0,
+        "contentHeight": 997,
+        "previewProfile": {
+          "platform": "android",
+          "width": 448,
+          "height": 997,
+          "scale": 3.0,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "iPhone 15 at half size",
+      "pixelWidth": 590,
+      "pixelHeight": 1278,
+      "overrides": null,
+      "expected": {
+        "platform": "ios",
+        "name": "iPhone 12 mini, 13 mini",
+        "logicalWidth": 375,
+        "scale": 1.5733333333333333,
+        "insetTop": 50.0,
+        "insetBottom": 34.0,
+        "pixelWidth": 590,
+        "pixelHeight": 1278,
+        "match": "scaled",
+        "cropTopPx": 79,
+        "cropBottomPx": 53,
+        "contentHeight": 728,
+        "previewProfile": {
+          "platform": "ios",
+          "width": 375,
+          "height": 728,
+          "scale": 1.5733333333333333,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "iPhone 15 at 1x",
+      "pixelWidth": 393,
+      "pixelHeight": 852,
+      "overrides": null,
+      "expected": {
+        "platform": "ios",
+        "name": "iPhone 14 Pro, 15, 15 Pro, 16",
+        "logicalWidth": 393,
+        "scale": 1.0,
+        "insetTop": 59.0,
+        "insetBottom": 34.0,
+        "pixelWidth": 393,
+        "pixelHeight": 852,
+        "match": "scaled",
+        "cropTopPx": 59,
+        "cropBottomPx": 34,
+        "contentHeight": 759,
+        "previewProfile": {
+          "platform": "ios",
+          "width": 393,
+          "height": 759,
+          "scale": 1.0,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "Pixel 8 at half size",
+      "pixelWidth": 540,
+      "pixelHeight": 1200,
+      "overrides": null,
+      "expected": {
+        "platform": "android",
+        "name": "Pixel 8 and many 20:9 Androids",
+        "logicalWidth": 412,
+        "scale": 1.3106796116504855,
+        "insetTop": 50.3,
+        "insetBottom": 24.0,
+        "pixelWidth": 540,
+        "pixelHeight": 1200,
+        "match": "scaled",
+        "cropTopPx": 66,
+        "cropBottomPx": 31,
+        "contentHeight": 842,
+        "previewProfile": {
+          "platform": "android",
+          "width": 412,
+          "height": 842,
+          "scale": 1.3106796116504855,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "unknown iPhone shape (XS Max)",
+      "pixelWidth": 1242,
+      "pixelHeight": 2688,
+      "overrides": null,
+      "expected": {
+        "platform": "ios",
+        "name": "iPhone XR, 11",
+        "logicalWidth": 414,
+        "scale": 3.0,
+        "insetTop": 48.0,
+        "insetBottom": 34.0,
+        "pixelWidth": 1242,
+        "pixelHeight": 2688,
+        "match": "scaled",
+        "cropTopPx": 144,
+        "cropBottomPx": 102,
+        "contentHeight": 814,
+        "previewProfile": {
+          "platform": "ios",
+          "width": 414,
+          "height": 814,
+          "scale": 3.0,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "unknown tall Android",
+      "pixelWidth": 1000,
+      "pixelHeight": 2000,
+      "overrides": null,
+      "expected": {
+        "platform": "android",
+        "name": null,
+        "logicalWidth": 412,
+        "scale": 2.4271844660194173,
+        "insetTop": 0,
+        "insetBottom": 0,
+        "pixelWidth": 1000,
+        "pixelHeight": 2000,
+        "match": "guessed",
+        "cropTopPx": 0,
+        "cropBottomPx": 0,
+        "contentHeight": 824,
+        "previewProfile": {
+          "platform": "android",
+          "width": 412,
+          "height": 824,
+          "scale": 2.4271844660194173,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "unknown width that is an iPhone at 3x",
+      "pixelWidth": 1125,
+      "pixelHeight": 2000,
+      "overrides": null,
+      "expected": {
+        "platform": "ios",
+        "name": "iPhone SE (2nd/3rd gen), 6, 7, 8",
+        "logicalWidth": 375,
+        "scale": 3.0,
+        "insetTop": 20.0,
+        "insetBottom": 0.0,
+        "pixelWidth": 1125,
+        "pixelHeight": 2000,
+        "match": "scaled",
+        "cropTopPx": 60,
+        "cropBottomPx": 0,
+        "contentHeight": 647,
+        "previewProfile": {
+          "platform": "ios",
+          "width": 375,
+          "height": 647,
+          "scale": 3.0,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "landscape iPhone is guessed",
+      "pixelWidth": 2532,
+      "pixelHeight": 1170,
+      "overrides": null,
+      "expected": {
+        "platform": "android",
+        "name": null,
+        "logicalWidth": 412,
+        "scale": 6.145631067961165,
+        "insetTop": 0,
+        "insetBottom": 0,
+        "pixelWidth": 2532,
+        "pixelHeight": 1170,
+        "match": "guessed",
+        "cropTopPx": 0,
+        "cropBottomPx": 0,
+        "contentHeight": 190,
+        "previewProfile": {
+          "platform": "android",
+          "width": 412,
+          "height": 190,
+          "scale": 6.145631067961165,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "tiny image",
+      "pixelWidth": 40,
+      "pixelHeight": 90,
+      "overrides": null,
+      "expected": {
+        "platform": "android",
+        "name": null,
+        "logicalWidth": 412,
+        "scale": 0.0970873786407767,
+        "insetTop": 0,
+        "insetBottom": 0,
+        "pixelWidth": 40,
+        "pixelHeight": 90,
+        "match": "guessed",
+        "cropTopPx": 0,
+        "cropBottomPx": 0,
+        "contentHeight": 927,
+        "previewProfile": {
+          "platform": "android",
+          "width": 412,
+          "height": 927,
+          "scale": 0.0970873786407767,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "Pixel 8 size, told it is an iPhone",
+      "pixelWidth": 1080,
+      "pixelHeight": 2400,
+      "overrides": {
+        "platform": "ios"
+      },
+      "expected": {
+        "platform": "ios",
+        "name": null,
+        "logicalWidth": 390,
+        "scale": 2.769230769230769,
+        "insetTop": 0,
+        "insetBottom": 0,
+        "pixelWidth": 1080,
+        "pixelHeight": 2400,
+        "match": "guessed",
+        "cropTopPx": 0,
+        "cropBottomPx": 0,
+        "contentHeight": 867,
+        "previewProfile": {
+          "platform": "ios",
+          "width": 390,
+          "height": 867,
+          "scale": 2.769230769230769,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "iPhone size, told it is an Android phone",
+      "pixelWidth": 1170,
+      "pixelHeight": 2532,
+      "overrides": {
+        "platform": "android"
+      },
+      "expected": {
+        "platform": "android",
+        "name": null,
+        "logicalWidth": 412,
+        "scale": 2.8398058252427183,
+        "insetTop": 0,
+        "insetBottom": 0,
+        "pixelWidth": 1170,
+        "pixelHeight": 2532,
+        "match": "guessed",
+        "cropTopPx": 0,
+        "cropBottomPx": 0,
+        "contentHeight": 892,
+        "previewProfile": {
+          "platform": "android",
+          "width": 412,
+          "height": 892,
+          "scale": 2.8398058252427183,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "logical width override",
+      "pixelWidth": 1170,
+      "pixelHeight": 2532,
+      "overrides": {
+        "logicalWidth": 393
+      },
+      "expected": {
+        "platform": "ios",
+        "name": "iPhone 12, 12 Pro, 13, 13 Pro, 14, 17e",
+        "logicalWidth": 393,
+        "scale": 2.9770992366412212,
+        "insetTop": 47.0,
+        "insetBottom": 34.0,
+        "pixelWidth": 1170,
+        "pixelHeight": 2532,
+        "match": "override",
+        "cropTopPx": 140,
+        "cropBottomPx": 101,
+        "contentHeight": 770,
+        "previewProfile": {
+          "platform": "ios",
+          "width": 393,
+          "height": 770,
+          "scale": 2.9770992366412212,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "inset overrides",
+      "pixelWidth": 1080,
+      "pixelHeight": 2400,
+      "overrides": {
+        "insetTop": 40,
+        "insetBottom": 0
+      },
+      "expected": {
+        "platform": "android",
+        "name": "Pixel 8 and many 20:9 Androids",
+        "logicalWidth": 412,
+        "scale": 2.621359223300971,
+        "insetTop": 40.0,
+        "insetBottom": 0.0,
+        "pixelWidth": 1080,
+        "pixelHeight": 2400,
+        "match": "override",
+        "cropTopPx": 105,
+        "cropBottomPx": 0,
+        "contentHeight": 876,
+        "previewProfile": {
+          "platform": "android",
+          "width": 412,
+          "height": 876,
+          "scale": 2.621359223300971,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "fractional inset overrides",
+      "pixelWidth": 1080,
+      "pixelHeight": 2400,
+      "overrides": {
+        "insetTop": 24.5,
+        "insetBottom": 15.75
+      },
+      "expected": {
+        "platform": "android",
+        "name": "Pixel 8 and many 20:9 Androids",
+        "logicalWidth": 412,
+        "scale": 2.621359223300971,
+        "insetTop": 24.5,
+        "insetBottom": 15.75,
+        "pixelWidth": 1080,
+        "pixelHeight": 2400,
+        "match": "override",
+        "cropTopPx": 64,
+        "cropBottomPx": 41,
+        "contentHeight": 876,
+        "previewProfile": {
+          "platform": "android",
+          "width": 412,
+          "height": 876,
+          "scale": 2.621359223300971,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "all overrides",
+      "pixelWidth": 1179,
+      "pixelHeight": 2556,
+      "overrides": {
+        "platform": "ios",
+        "logicalWidth": 402,
+        "insetTop": 62,
+        "insetBottom": 34
+      },
+      "expected": {
+        "platform": "ios",
+        "name": "iPhone 14 Pro, 15, 15 Pro, 16",
+        "logicalWidth": 402,
+        "scale": 2.9328358208955225,
+        "insetTop": 62.0,
+        "insetBottom": 34.0,
+        "pixelWidth": 1179,
+        "pixelHeight": 2556,
+        "match": "override",
+        "cropTopPx": 182,
+        "cropBottomPx": 100,
+        "contentHeight": 775,
+        "previewProfile": {
+          "platform": "ios",
+          "width": 402,
+          "height": 775,
+          "scale": 2.9328358208955225,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "inset rounding half to even (2.5 px)",
+      "pixelWidth": 750,
+      "pixelHeight": 1334,
+      "overrides": {
+        "insetTop": 1.25
+      },
+      "expected": {
+        "platform": "ios",
+        "name": "iPhone SE (2nd/3rd gen), 6, 7, 8",
+        "logicalWidth": 375,
+        "scale": 2.0,
+        "insetTop": 1.25,
+        "insetBottom": 0.0,
+        "pixelWidth": 750,
+        "pixelHeight": 1334,
+        "match": "override",
+        "cropTopPx": 2,
+        "cropBottomPx": 0,
+        "contentHeight": 666,
+        "previewProfile": {
+          "platform": "ios",
+          "width": 375,
+          "height": 666,
+          "scale": 2.0,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "inset rounding half to even (3.5 px)",
+      "pixelWidth": 750,
+      "pixelHeight": 1334,
+      "overrides": {
+        "insetTop": 1.75
+      },
+      "expected": {
+        "platform": "ios",
+        "name": "iPhone SE (2nd/3rd gen), 6, 7, 8",
+        "logicalWidth": 375,
+        "scale": 2.0,
+        "insetTop": 1.75,
+        "insetBottom": 0.0,
+        "pixelWidth": 750,
+        "pixelHeight": 1334,
+        "match": "override",
+        "cropTopPx": 4,
+        "cropBottomPx": 0,
+        "contentHeight": 665,
+        "previewProfile": {
+          "platform": "ios",
+          "width": 375,
+          "height": 665,
+          "scale": 2.0,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "content height rounding half to even",
+      "pixelWidth": 750,
+      "pixelHeight": 1334,
+      "overrides": {
+        "insetTop": 0.5
+      },
+      "expected": {
+        "platform": "ios",
+        "name": "iPhone SE (2nd/3rd gen), 6, 7, 8",
+        "logicalWidth": 375,
+        "scale": 2.0,
+        "insetTop": 0.5,
+        "insetBottom": 0.0,
+        "pixelWidth": 750,
+        "pixelHeight": 1334,
+        "match": "override",
+        "cropTopPx": 1,
+        "cropBottomPx": 0,
+        "contentHeight": 666,
+        "previewProfile": {
+          "platform": "ios",
+          "width": 375,
+          "height": 666,
+          "scale": 2.0,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "out-of-range overrides are ignored",
+      "pixelWidth": 1170,
+      "pixelHeight": 2532,
+      "overrides": {
+        "logicalWidth": 50,
+        "insetTop": 500,
+        "insetBottom": -1
+      },
+      "expected": {
+        "platform": "ios",
+        "name": "iPhone 12, 12 Pro, 13, 13 Pro, 14, 17e",
+        "logicalWidth": 390,
+        "scale": 3.0,
+        "insetTop": 47.0,
+        "insetBottom": 34.0,
+        "pixelWidth": 1170,
+        "pixelHeight": 2532,
+        "match": "exact",
+        "cropTopPx": 141,
+        "cropBottomPx": 102,
+        "contentHeight": 763,
+        "previewProfile": {
+          "platform": "ios",
+          "width": 390,
+          "height": 763,
+          "scale": 3.0,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "non-numeric overrides are ignored",
+      "pixelWidth": 1170,
+      "pixelHeight": 2532,
+      "overrides": {
+        "logicalWidth": "393",
+        "insetTop": true,
+        "platform": "web"
+      },
+      "expected": {
+        "platform": "ios",
+        "name": "iPhone 12, 12 Pro, 13, 13 Pro, 14, 17e",
+        "logicalWidth": 390,
+        "scale": 3.0,
+        "insetTop": 47.0,
+        "insetBottom": 34.0,
+        "pixelWidth": 1170,
+        "pixelHeight": 2532,
+        "match": "exact",
+        "cropTopPx": 141,
+        "cropBottomPx": 102,
+        "contentHeight": 763,
+        "previewProfile": {
+          "platform": "ios",
+          "width": 390,
+          "height": 763,
+          "scale": 3.0,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "text mode, iOS",
+      "pixelWidth": null,
+      "pixelHeight": null,
+      "overrides": null,
+      "expected": {
+        "platform": "ios",
+        "name": "iPhone 12, 12 Pro, 13, 13 Pro, 14, 17e",
+        "logicalWidth": 390,
+        "scale": 3.0,
+        "insetTop": 47.0,
+        "insetBottom": 34.0,
+        "pixelWidth": 1170,
+        "pixelHeight": 2532,
+        "match": "default",
+        "cropTopPx": 141,
+        "cropBottomPx": 102,
+        "contentHeight": 763,
+        "previewProfile": {
+          "platform": "ios",
+          "width": 390,
+          "height": 763,
+          "scale": 3.0,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "text mode, Android",
+      "pixelWidth": null,
+      "pixelHeight": null,
+      "overrides": {
+        "platform": "android"
+      },
+      "expected": {
+        "platform": "android",
+        "name": "Pixel 8 and many 20:9 Androids",
+        "logicalWidth": 412,
+        "scale": 2.621359223300971,
+        "insetTop": 50.3,
+        "insetBottom": 24.0,
+        "pixelWidth": 1080,
+        "pixelHeight": 2400,
+        "match": "default",
+        "cropTopPx": 132,
+        "cropBottomPx": 63,
+        "contentHeight": 841,
+        "previewProfile": {
+          "platform": "android",
+          "width": 412,
+          "height": 841,
+          "scale": 2.621359223300971,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "text mode, unknown platform falls back to iOS",
+      "pixelWidth": null,
+      "pixelHeight": null,
+      "overrides": {
+        "platform": "windows"
+      },
+      "expected": {
+        "platform": "ios",
+        "name": "iPhone 12, 12 Pro, 13, 13 Pro, 14, 17e",
+        "logicalWidth": 390,
+        "scale": 3.0,
+        "insetTop": 47.0,
+        "insetBottom": 34.0,
+        "pixelWidth": 1170,
+        "pixelHeight": 2532,
+        "match": "default",
+        "cropTopPx": 141,
+        "cropBottomPx": 102,
+        "contentHeight": 763,
+        "previewProfile": {
+          "platform": "ios",
+          "width": 390,
+          "height": 763,
+          "scale": 3.0,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "text mode with inset overrides",
+      "pixelWidth": null,
+      "pixelHeight": null,
+      "overrides": {
+        "platform": "android",
+        "insetTop": 30
+      },
+      "expected": {
+        "platform": "android",
+        "name": "Pixel 8 and many 20:9 Androids",
+        "logicalWidth": 412,
+        "scale": 2.621359223300971,
+        "insetTop": 30.0,
+        "insetBottom": 24.0,
+        "pixelWidth": 1080,
+        "pixelHeight": 2400,
+        "match": "override",
+        "cropTopPx": 79,
+        "cropBottomPx": 63,
+        "contentHeight": 861,
+        "previewProfile": {
+          "platform": "android",
+          "width": 412,
+          "height": 861,
+          "scale": 2.621359223300971,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    }
+  ]
+}
