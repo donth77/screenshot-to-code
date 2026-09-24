@@ -994,6 +994,7 @@ function App() {
                       setIsHistoryOpen(true);
                       setMobilePane("chat");
                     }}
+                    stack={settings.generatedCodeConfig}
                   />
                 )}
               </>

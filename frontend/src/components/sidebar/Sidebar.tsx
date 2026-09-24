@@ -23,6 +23,7 @@ import { CodeGenerationModel } from "../../lib/models";
 import DesignSystemSelector, {
   DesignSystemSelectorProps,
 } from "../settings/DesignSystemSelector";
+import { Stack } from "../../lib/stacks";
 
 interface SidebarProps {
   doUpdate: (instruction: string) => void;
@@ -30,6 +31,7 @@ interface SidebarProps {
   cancelCodeGeneration: () => void;
   onOpenVersions: () => void;
   designSystem: DesignSystemSelectorProps;
+  stack: Stack;
 }
 
 const MAX_UPDATE_IMAGES = 5;
@@ -80,6 +82,7 @@ function Sidebar({
   cancelCodeGeneration,
   onOpenVersions,
   designSystem,
+  stack,
 }: SidebarProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const middlePaneRef = useRef<HTMLDivElement>(null);
@@ -292,7 +295,7 @@ function Sidebar({
   return (
     <div className="flex flex-col h-full">
       <div className="shrink-0 border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-4 py-2">
-        <Variants />
+        <Variants stack={stack} />
       </div>
 
       {/* Prominent banner when viewing an older version */}

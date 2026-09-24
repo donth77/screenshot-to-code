@@ -1,6 +1,12 @@
 import { useProjectStore } from "../../store/project-store";
-import { useEffect, useRef, useState } from "react";
+import { useAppStore } from "../../store/app-store";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useThrottle } from "../../hooks/useThrottle";
+import { isReactNativeStack, Stack } from "../../lib/stacks";
+import { Variant } from "../commits/types";
+import { ReactNativeDevice, previewProfile } from "../../lib/react-native/devices";
+import { previewModeFor } from "../../lib/react-native/previewMode";
+import ReactNativeFrame from "../preview/react-native/ReactNativeFrame";
 import {
   CODE_GENERATION_MODEL_DESCRIPTIONS,
   CodeGenerationModel,
@@ -76,9 +82,66 @@ function VariantThumbnail({ code, isSelected }: VariantThumbnailProps) {
   );
 }
 
-function Variants() {
+// Thumbnails show the top of the phone screen, this many times as tall as wide.
+const PHONE_THUMBNAIL_ASPECT = 0.9;
+
+interface ReactNativeThumbnailProps {
+  variant: Variant;
+  device: ReactNativeDevice;
+  isSelected: boolean;
+}
+
+// The same hot-swapping preview as the phone, loaded once scrolled into view.
+function ReactNativeThumbnail({ variant, device, isSelected }: ReactNativeThumbnailProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0.1);
+  const { previewRefreshNonce } = useAppStore();
+  const profile = useMemo(() => previewProfile(device), [device]);
+  const throttledCode = useThrottle(variant.code, isSelected ? 300 : 2000);
+  // Code still catching up with the variant may be half-written: keep the
+  // last good render until it arrives.
+  const mode = throttledCode === variant.code ? previewModeFor(variant) : "streaming";
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const updateScale = () => setScale(container.offsetWidth / profile.width);
+    updateScale();
+    const resizeObserver = new ResizeObserver(updateScale);
+    resizeObserver.observe(container);
+    return () => resizeObserver.disconnect();
+  }, [profile.width]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="w-full overflow-hidden rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900"
+      style={{ height: `${profile.width * PHONE_THUMBNAIL_ASPECT * scale}px` }}
+    >
+      <ReactNativeFrame
+        code={throttledCode}
+        profile={profile}
+        mode={mode}
+        refreshNonce={previewRefreshNonce}
+        lazy
+        title="variant-preview"
+        className="pointer-events-none origin-top-left border-0"
+        style={{
+          width: `${profile.width}px`,
+          height: `${profile.height}px`,
+          transform: `scale(${scale})`,
+        }}
+        sandbox="allow-scripts allow-same-origin"
+        testId="rn-variant-preview"
+      />
+    </div>
+  );
+}
+
+function Variants({ stack }: { stack: Stack }) {
   const { head, commits, updateSelectedVariantIndex, inputMode } =
     useProjectStore();
+  const isReactNative = isReactNativeStack(stack);
 
   const commit = head ? commits[head] : null;
   const variants = commit?.variants || [];
@@ -154,10 +217,18 @@ function Variants() {
                   {label.text}
                 </span>
               )}
-              <VariantThumbnail
-                code={variant.code}
-                isSelected={index === selectedVariantIndex}
-              />
+              {isReactNative && commit.reactNative ? (
+                <ReactNativeThumbnail
+                  variant={variant}
+                  device={commit.reactNative.device}
+                  isSelected={index === selectedVariantIndex}
+                />
+              ) : (
+                <VariantThumbnail
+                  code={variant.code}
+                  isSelected={index === selectedVariantIndex}
+                />
+              )}
               <div className="flex items-center px-2 py-1 bg-white dark:bg-zinc-900">
                 <span className="inline-flex min-w-0 items-center text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
                   <span className={`w-2 h-2 rounded-full mr-1.5 ${statusColor}`} />
