@@ -1,0 +1,738 @@
+{
+  "manifest": {
+    "runtime": "rn-runtime.1dea0b5f4904.js",
+    "babel": "babel-standalone-7.25.6.692d01d309ec.js",
+    "mode": "development",
+    "versions": {
+      "react": "19.2.3",
+      "react-dom": "19.2.3",
+      "react-native-web": "0.21.2",
+      "react-native-svg": "15.15.4",
+      "react-native-safe-area-context": "5.7.0",
+      "lucide-react-native": "1.48.0",
+      "@babel/standalone": "7.25.6"
+    },
+    "sizes": {
+      "runtime": {
+        "raw": 1831700,
+        "gzip": 677561,
+        "brotli": 598265
+      },
+      "babel": {
+        "raw": 2876118,
+        "gzip": 603658,
+        "brotli": 397805
+      }
+    }
+  },
+  "fixture-ios-url": {
+    "ready_error": null,
+    "ready_seconds": 0.51,
+    "page_errors": [],
+    "console_errors": [],
+    "console_warnings": [
+      "A parser-blocking, cross site (i.e. different eTLD+1) script, http://127.0.0.1:55392/rn-runtime/babel-standalone-7.25.6.692d01d309ec.js, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details.",
+      "A parser-blocking, cross site (i.e. different eTLD+1) script, http://127.0.0.1:55392/rn-runtime/rn-runtime.1dea0b5f4904.js, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details.",
+      "A parser-blocking, cross site (i.e. different eTLD+1) script, http://127.0.0.1:55392/rn-runtime/babel-standalone-7.25.6.692d01d309ec.js, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details.",
+      "A parser-blocking, cross site (i.e. different eTLD+1) script, http://127.0.0.1:55392/rn-runtime/rn-runtime.1dea0b5f4904.js, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details.",
+      "\"shadow*\" style props are deprecated. Use \"boxShadow\"."
+    ],
+    "png_size": [
+      1170,
+      2253
+    ],
+    "png_stddev": 33.79,
+    "platform_fonts": [
+      {
+        "familyName": "Inter",
+        "postScriptName": "Inter-Bold",
+        "isCustomFont": true,
+        "glyphCount": 17
+      }
+    ],
+    "status": "ok",
+    "errors": [],
+    "meta": {
+      "runtime": {
+        "mode": "development",
+        "builtAt": "2026-09-24T09:51:13.840Z",
+        "versions": {
+          "react": "19.2.3",
+          "react-dom": "19.2.3",
+          "react-native-web": "0.21.2",
+          "react-native-svg": "15.15.4",
+          "react-native-safe-area-context": "5.7.0",
+          "lucide-react-native": "1.48.0",
+          "@babel/standalone": "7.25.6"
+        }
+      },
+      "transformMs": 38,
+      "statusBar": {
+        "style": "dark",
+        "hidden": false,
+        "backgroundColor": null,
+        "translucent": null
+      },
+      "firstCommitMs": 564,
+      "readyMs": 640
+    },
+    "runtime": {
+      "mode": "development",
+      "builtAt": "2026-09-24T09:51:13.840Z",
+      "versions": {
+        "react": "19.2.3",
+        "react-dom": "19.2.3",
+        "react-native-web": "0.21.2",
+        "react-native-svg": "15.15.4",
+        "react-native-safe-area-context": "5.7.0",
+        "lucide-react-native": "1.48.0",
+        "@babel/standalone": "7.25.6"
+      }
+    },
+    "singleReact": true,
+    "reactVersion": "19.2.3",
+    "babelVersion": "7.25.6",
+    "testIds": [
+      "screen",
+      "settings-list",
+      "avatar",
+      "greeting",
+      "bell-button",
+      "search-input",
+      "chips",
+      "chip-all",
+      "chip-account",
+      "chip-privacy",
+      "chip-devices",
+      "chip-billing",
+      "card-boxshadow",
+      "progress-ring",
+      "card-legacy-shadow",
+      "progress-ring",
+      "settings-row-profile",
+      "settings-row-notifications",
+      "settings-row-privacy",
+      "settings-row-security",
+      "settings-row-appearance",
+      "settings-row-language",
+      "settings-row-storage",
+      "settings-row-help",
+      "settings-row-about"
+    ],
+    "svgCount": 31,
+    "ringPathD": "M32 6 A26 26 0 1 1 8.474496635883487 43.07026158069188",
+    "greetingFont": "\"RNP Inter\"",
+    "safeAreaPadding": {
+      "top": "0px",
+      "bottom": "0px"
+    },
+    "boxShadow": {
+      "modern": "rgba(17, 24, 39, 0.12) 0px 4px 12px 0px",
+      "legacy": "rgba(17, 24, 39, 0.12) 0px 4px 12px 0px"
+    },
+    "viewport": {
+      "width": 390,
+      "height": 751,
+      "dpr": 3
+    }
+  },
+  "fixture-ios-route": {
+    "ready_error": null,
+    "ready_seconds": 0.539,
+    "page_errors": [],
+    "console_errors": [],
+    "console_warnings": [
+      "A parser-blocking, cross site (i.e. different eTLD+1) script, https://rn-runtime.invalid/rn-runtime/babel-standalone-7.25.6.692d01d309ec.js, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details.",
+      "A parser-blocking, cross site (i.e. different eTLD+1) script, https://rn-runtime.invalid/rn-runtime/rn-runtime.1dea0b5f4904.js, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details.",
+      "A parser-blocking, cross site (i.e. different eTLD+1) script, https://rn-runtime.invalid/rn-runtime/babel-standalone-7.25.6.692d01d309ec.js, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details.",
+      "A parser-blocking, cross site (i.e. different eTLD+1) script, https://rn-runtime.invalid/rn-runtime/rn-runtime.1dea0b5f4904.js, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details.",
+      "\"shadow*\" style props are deprecated. Use \"boxShadow\"."
+    ],
+    "png_size": [
+      1170,
+      2253
+    ],
+    "png_stddev": 33.79,
+    "platform_fonts": [
+      {
+        "familyName": "Inter",
+        "postScriptName": "Inter-Bold",
+        "isCustomFont": true,
+        "glyphCount": 17
+      }
+    ],
+    "status": "ok",
+    "errors": [],
+    "meta": {
+      "runtime": {
+        "mode": "development",
+        "builtAt": "2026-09-24T09:51:13.840Z",
+        "versions": {
+          "react": "19.2.3",
+          "react-dom": "19.2.3",
+          "react-native-web": "0.21.2",
+          "react-native-svg": "15.15.4",
+          "react-native-safe-area-context": "5.7.0",
+          "lucide-react-native": "1.48.0",
+          "@babel/standalone": "7.25.6"
+        }
+      },
+      "transformMs": 40,
+      "statusBar": {
+        "style": "dark",
+        "hidden": false,
+        "backgroundColor": null,
+        "translucent": null
+      },
+      "firstCommitMs": 489,
+      "readyMs": 564
+    },
+    "runtime": {
+      "mode": "development",
+      "builtAt": "2026-09-24T09:51:13.840Z",
+      "versions": {
+        "react": "19.2.3",
+        "react-dom": "19.2.3",
+        "react-native-web": "0.21.2",
+        "react-native-svg": "15.15.4",
+        "react-native-safe-area-context": "5.7.0",
+        "lucide-react-native": "1.48.0",
+        "@babel/standalone": "7.25.6"
+      }
+    },
+    "singleReact": true,
+    "reactVersion": "19.2.3",
+    "babelVersion": "7.25.6",
+    "testIds": [
+      "screen",
+      "settings-list",
+      "avatar",
+      "greeting",
+      "bell-button",
+      "search-input",
+      "chips",
+      "chip-all",
+      "chip-account",
+      "chip-privacy",
+      "chip-devices",
+      "chip-billing",
+      "card-boxshadow",
+      "progress-ring",
+      "card-legacy-shadow",
+      "progress-ring",
+      "settings-row-profile",
+      "settings-row-notifications",
+      "settings-row-privacy",
+      "settings-row-security",
+      "settings-row-appearance",
+      "settings-row-language",
+      "settings-row-storage",
+      "settings-row-help",
+      "settings-row-about"
+    ],
+    "svgCount": 31,
+    "ringPathD": "M32 6 A26 26 0 1 1 8.474496635883487 43.07026158069188",
+    "greetingFont": "\"RNP Inter\"",
+    "safeAreaPadding": {
+      "top": "0px",
+      "bottom": "0px"
+    },
+    "boxShadow": {
+      "modern": "rgba(17, 24, 39, 0.12) 0px 4px 12px 0px",
+      "legacy": "rgba(17, 24, 39, 0.12) 0px 4px 12px 0px"
+    },
+    "viewport": {
+      "width": 390,
+      "height": 751,
+      "dpr": 3
+    }
+  },
+  "fixture-ios-inline": {
+    "ready_error": null,
+    "ready_seconds": 0.676,
+    "page_errors": [],
+    "console_errors": [],
+    "console_warnings": [
+      "\"shadow*\" style props are deprecated. Use \"boxShadow\"."
+    ],
+    "png_size": [
+      1170,
+      2253
+    ],
+    "png_stddev": 33.79,
+    "platform_fonts": [
+      {
+        "familyName": "Inter",
+        "postScriptName": "Inter-Bold",
+        "isCustomFont": true,
+        "glyphCount": 17
+      }
+    ],
+    "status": "ok",
+    "errors": [],
+    "meta": {
+      "runtime": {
+        "mode": "development",
+        "builtAt": "2026-09-24T09:51:13.840Z",
+        "versions": {
+          "react": "19.2.3",
+          "react-dom": "19.2.3",
+          "react-native-web": "0.21.2",
+          "react-native-svg": "15.15.4",
+          "react-native-safe-area-context": "5.7.0",
+          "lucide-react-native": "1.48.0",
+          "@babel/standalone": "7.25.6"
+        }
+      },
+      "transformMs": 40,
+      "statusBar": {
+        "style": "dark",
+        "hidden": false,
+        "backgroundColor": null,
+        "translucent": null
+      },
+      "firstCommitMs": 634,
+      "readyMs": 705
+    },
+    "runtime": {
+      "mode": "development",
+      "builtAt": "2026-09-24T09:51:13.840Z",
+      "versions": {
+        "react": "19.2.3",
+        "react-dom": "19.2.3",
+        "react-native-web": "0.21.2",
+        "react-native-svg": "15.15.4",
+        "react-native-safe-area-context": "5.7.0",
+        "lucide-react-native": "1.48.0",
+        "@babel/standalone": "7.25.6"
+      }
+    },
+    "singleReact": true,
+    "reactVersion": "19.2.3",
+    "babelVersion": "7.25.6",
+    "testIds": [
+      "screen",
+      "settings-list",
+      "avatar",
+      "greeting",
+      "bell-button",
+      "search-input",
+      "chips",
+      "chip-all",
+      "chip-account",
+      "chip-privacy",
+      "chip-devices",
+      "chip-billing",
+      "card-boxshadow",
+      "progress-ring",
+      "card-legacy-shadow",
+      "progress-ring",
+      "settings-row-profile",
+      "settings-row-notifications",
+      "settings-row-privacy",
+      "settings-row-security",
+      "settings-row-appearance",
+      "settings-row-language",
+      "settings-row-storage",
+      "settings-row-help",
+      "settings-row-about"
+    ],
+    "svgCount": 31,
+    "ringPathD": "M32 6 A26 26 0 1 1 8.474496635883487 43.07026158069188",
+    "greetingFont": "\"RNP Inter\"",
+    "safeAreaPadding": {
+      "top": "0px",
+      "bottom": "0px"
+    },
+    "boxShadow": {
+      "modern": "rgba(17, 24, 39, 0.12) 0px 4px 12px 0px",
+      "legacy": "rgba(17, 24, 39, 0.12) 0px 4px 12px 0px"
+    },
+    "viewport": {
+      "width": 390,
+      "height": 751,
+      "dpr": 3
+    }
+  },
+  "inline_html_bytes": 4720182,
+  "fixture-android-url": {
+    "ready_error": null,
+    "ready_seconds": 0.43,
+    "page_errors": [],
+    "console_errors": [],
+    "console_warnings": [
+      "A parser-blocking, cross site (i.e. different eTLD+1) script, http://127.0.0.1:55392/rn-runtime/babel-standalone-7.25.6.692d01d309ec.js, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details.",
+      "A parser-blocking, cross site (i.e. different eTLD+1) script, http://127.0.0.1:55392/rn-runtime/rn-runtime.1dea0b5f4904.js, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details.",
+      "A parser-blocking, cross site (i.e. different eTLD+1) script, http://127.0.0.1:55392/rn-runtime/babel-standalone-7.25.6.692d01d309ec.js, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details.",
+      "A parser-blocking, cross site (i.e. different eTLD+1) script, http://127.0.0.1:55392/rn-runtime/rn-runtime.1dea0b5f4904.js, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details.",
+      "\"shadow*\" style props are deprecated. Use \"boxShadow\"."
+    ],
+    "png_size": [
+      1080,
+      2275
+    ],
+    "png_stddev": 31.97,
+    "platform_fonts": [
+      {
+        "familyName": "Roboto",
+        "postScriptName": "Roboto-Bold",
+        "isCustomFont": true,
+        "glyphCount": 17
+      }
+    ],
+    "status": "ok",
+    "errors": [],
+    "meta": {
+      "runtime": {
+        "mode": "development",
+        "builtAt": "2026-09-24T09:51:13.840Z",
+        "versions": {
+          "react": "19.2.3",
+          "react-dom": "19.2.3",
+          "react-native-web": "0.21.2",
+          "react-native-svg": "15.15.4",
+          "react-native-safe-area-context": "5.7.0",
+          "lucide-react-native": "1.48.0",
+          "@babel/standalone": "7.25.6"
+        }
+      },
+      "transformMs": 37,
+      "statusBar": {
+        "style": "dark",
+        "hidden": false,
+        "backgroundColor": null,
+        "translucent": null
+      },
+      "firstCommitMs": 383,
+      "readyMs": 454
+    },
+    "runtime": {
+      "mode": "development",
+      "builtAt": "2026-09-24T09:51:13.840Z",
+      "versions": {
+        "react": "19.2.3",
+        "react-dom": "19.2.3",
+        "react-native-web": "0.21.2",
+        "react-native-svg": "15.15.4",
+        "react-native-safe-area-context": "5.7.0",
+        "lucide-react-native": "1.48.0",
+        "@babel/standalone": "7.25.6"
+      }
+    },
+    "singleReact": true,
+    "reactVersion": "19.2.3",
+    "babelVersion": "7.25.6",
+    "testIds": [
+      "screen",
+      "settings-list",
+      "avatar",
+      "greeting",
+      "bell-button",
+      "search-input",
+      "chips",
+      "chip-all",
+      "chip-account",
+      "chip-privacy",
+      "chip-devices",
+      "chip-billing",
+      "card-boxshadow",
+      "progress-ring",
+      "card-legacy-shadow",
+      "progress-ring",
+      "settings-row-profile",
+      "settings-row-notifications",
+      "settings-row-privacy",
+      "settings-row-security",
+      "settings-row-appearance",
+      "settings-row-language",
+      "settings-row-storage",
+      "settings-row-help",
+      "settings-row-about"
+    ],
+    "svgCount": 31,
+    "ringPathD": "M32 6 A26 26 0 1 1 8.474496635883487 43.07026158069188",
+    "greetingFont": "\"RNP Roboto\"",
+    "safeAreaPadding": {
+      "top": "0px",
+      "bottom": "0px"
+    },
+    "boxShadow": {
+      "modern": "rgba(17, 24, 39, 0.12) 0px 4px 12px 0px",
+      "legacy": "rgba(17, 24, 39, 0.12) 0px 4px 12px 0px"
+    },
+    "viewport": {
+      "width": 412,
+      "height": 868,
+      "dpr": 2.62135910987854
+    }
+  },
+  "fixture-ios-insets": {
+    "ready_error": null,
+    "ready_seconds": 0.433,
+    "page_errors": [],
+    "console_errors": [],
+    "console_warnings": [
+      "A parser-blocking, cross site (i.e. different eTLD+1) script, http://127.0.0.1:55392/rn-runtime/babel-standalone-7.25.6.692d01d309ec.js, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details.",
+      "A parser-blocking, cross site (i.e. different eTLD+1) script, http://127.0.0.1:55392/rn-runtime/rn-runtime.1dea0b5f4904.js, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details.",
+      "A parser-blocking, cross site (i.e. different eTLD+1) script, http://127.0.0.1:55392/rn-runtime/babel-standalone-7.25.6.692d01d309ec.js, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details.",
+      "A parser-blocking, cross site (i.e. different eTLD+1) script, http://127.0.0.1:55392/rn-runtime/rn-runtime.1dea0b5f4904.js, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details.",
+      "\"shadow*\" style props are deprecated. Use \"boxShadow\"."
+    ],
+    "png_size": [
+      1170,
+      2532
+    ],
+    "png_stddev": 31.89,
+    "platform_fonts": [
+      {
+        "familyName": "Inter",
+        "postScriptName": "Inter-Bold",
+        "isCustomFont": true,
+        "glyphCount": 17
+      }
+    ],
+    "status": "ok",
+    "errors": [],
+    "meta": {
+      "runtime": {
+        "mode": "development",
+        "builtAt": "2026-09-24T09:51:13.840Z",
+        "versions": {
+          "react": "19.2.3",
+          "react-dom": "19.2.3",
+          "react-native-web": "0.21.2",
+          "react-native-svg": "15.15.4",
+          "react-native-safe-area-context": "5.7.0",
+          "lucide-react-native": "1.48.0",
+          "@babel/standalone": "7.25.6"
+        }
+      },
+      "transformMs": 37,
+      "statusBar": {
+        "style": "dark",
+        "hidden": false,
+        "backgroundColor": null,
+        "translucent": null
+      },
+      "firstCommitMs": 386,
+      "readyMs": 459
+    },
+    "runtime": {
+      "mode": "development",
+      "builtAt": "2026-09-24T09:51:13.840Z",
+      "versions": {
+        "react": "19.2.3",
+        "react-dom": "19.2.3",
+        "react-native-web": "0.21.2",
+        "react-native-svg": "15.15.4",
+        "react-native-safe-area-context": "5.7.0",
+        "lucide-react-native": "1.48.0",
+        "@babel/standalone": "7.25.6"
+      }
+    },
+    "singleReact": true,
+    "reactVersion": "19.2.3",
+    "babelVersion": "7.25.6",
+    "testIds": [
+      "screen",
+      "settings-list",
+      "avatar",
+      "greeting",
+      "bell-button",
+      "search-input",
+      "chips",
+      "chip-all",
+      "chip-account",
+      "chip-privacy",
+      "chip-devices",
+      "chip-billing",
+      "card-boxshadow",
+      "progress-ring",
+      "card-legacy-shadow",
+      "progress-ring",
+      "settings-row-profile",
+      "settings-row-notifications",
+      "settings-row-privacy",
+      "settings-row-security",
+      "settings-row-appearance",
+      "settings-row-language",
+      "settings-row-storage",
+      "settings-row-help",
+      "settings-row-about"
+    ],
+    "svgCount": 31,
+    "ringPathD": "M32 6 A26 26 0 1 1 8.474496635883487 43.07026158069188",
+    "greetingFont": "\"RNP Inter\"",
+    "safeAreaPadding": {
+      "top": "59px",
+      "bottom": "34px"
+    },
+    "boxShadow": {
+      "modern": "rgba(17, 24, 39, 0.12) 0px 4px 12px 0px",
+      "legacy": "rgba(17, 24, 39, 0.12) 0px 4px 12px 0px"
+    },
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 3
+    }
+  },
+  "shadows": {
+    "modern": "rgba(17, 24, 39, 0.12) 0px 4px 12px 0px",
+    "legacy": "rgba(17, 24, 39, 0.12) 0px 4px 12px 0px"
+  },
+  "deprecation_warnings": [
+    "\"shadow*\" style props are deprecated. Use \"boxShadow\"."
+  ],
+  "iframe, no sandbox, absolute URLs": {
+    "ready_error": null,
+    "page_errors": [],
+    "status": "ok",
+    "errors": [],
+    "parent_dom_access": 25,
+    "singleReact": true
+  },
+  "iframe, sandbox=allow-scripts allow-same-origin, relative URLs": {
+    "ready_error": null,
+    "page_errors": [],
+    "status": "ok",
+    "errors": [],
+    "parent_dom_access": 25,
+    "singleReact": true
+  },
+  "offline-file": {
+    "ready_error": null,
+    "page_errors": [],
+    "network_attempts": [],
+    "status": "ok",
+    "errors": []
+  },
+  "broken-syntax": {
+    "status": "error",
+    "errors": [
+      {
+        "kind": "transform",
+        "fatal": true,
+        "message": "/App.jsx: Unterminated JSX contents. (8:11)",
+        "line": 8,
+        "column": 12,
+        "frame": "/App.jsx: Unterminated JSX contents. (8:11)\n\n   6 |     <View>\n   7 |       <Text>Unclosed text\n>  8 |     </View>\n     |            ^\n   9 |   );\n  10 | }\n  11 |"
+      }
+    ],
+    "page_errors": [],
+    "ready_error": null,
+    "testIds": [
+      "rn-preview-error"
+    ],
+    "png_stddev": 16.0
+  },
+  "broken-runtime": {
+    "status": "error",
+    "errors": [
+      {
+        "kind": "runtime",
+        "fatal": true,
+        "message": "Cannot read properties of undefined (reading 'toFixed')",
+        "line": 5,
+        "componentStack": "Price (App.jsx:4) < App"
+      }
+    ],
+    "page_errors": [],
+    "ready_error": null,
+    "testIds": [
+      "rn-preview-error"
+    ],
+    "png_stddev": 6.82
+  },
+  "broken-import": {
+    "status": "error",
+    "errors": [
+      {
+        "kind": "import",
+        "fatal": true,
+        "message": "Cannot import \"@expo/vector-icons\". Allowed modules: react, react-native, react-native-safe-area-context, react-native-svg, lucide-react-native, expo-status-bar.",
+        "line": 3
+      }
+    ],
+    "page_errors": [],
+    "ready_error": null,
+    "testIds": [
+      "rn-preview-error"
+    ],
+    "png_stddev": 18.4
+  },
+  "broken-icon": {
+    "status": "degraded",
+    "errors": [
+      {
+        "kind": "unknown_icon",
+        "message": "lucide-react-native has no icon \"HeartOutline\". Closest: Heart, Ear, BookHeart, CalendarHeart, FileHeart.",
+        "name": "HeartOutline"
+      }
+    ],
+    "page_errors": [],
+    "ready_error": null,
+    "testIds": [
+      "icons",
+      "unknown-icon-HeartOutline"
+    ],
+    "png_stddev": 7.67
+  },
+  "broken-no-default": {
+    "status": "error",
+    "errors": [
+      {
+        "kind": "no_default_export",
+        "fatal": true,
+        "message": "App.jsx must `export default` a React component."
+      }
+    ],
+    "page_errors": [],
+    "ready_error": null,
+    "testIds": [
+      "rn-preview-error"
+    ],
+    "png_stddev": 12.98
+  },
+  "broken-unknown-export": {
+    "status": "error",
+    "errors": [
+      {
+        "kind": "unknown_export",
+        "message": "react-native (web preview) has no export \"PlatformColor\".",
+        "name": "PlatformColor"
+      },
+      {
+        "kind": "runtime",
+        "fatal": true,
+        "message": "(0 , _reactNative.PlatformColor) is not a function",
+        "line": 7,
+        "componentStack": "App (App.jsx:7)"
+      }
+    ],
+    "page_errors": [],
+    "ready_error": null,
+    "testIds": [
+      "rn-preview-error"
+    ],
+    "png_stddev": 6.82
+  },
+  "no-react-import": {
+    "status": "ok",
+    "errors": [],
+    "page_errors": [],
+    "ready_error": null,
+    "testIds": [
+      "no-react-import"
+    ],
+    "png_stddev": 11.3
+  },
+  "existing_tool_path": {
+    "size": [
+      342,
+      684
+    ],
+    "seconds": 1.2,
+    "stddev": 33.0
+  }
+}
