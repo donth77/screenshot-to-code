@@ -1,10 +1,12 @@
 {
-  "name": "rn-runtime-spike",
+  "name": "rn-runtime",
   "private": true,
-  "version": "0.0.0",
-  "description": "Phase 0 throwaway spike: a browser-global react-native-web runtime for the React Native preview. Superseded by rn-runtime/ in Phase 1.",
+  "version": "1.0.0",
+  "description": "Browser runtime for the React Native (Expo) stack's preview: react-native-web plus the allowlisted React Native libraries, built into one content-hashed script.",
+  "license": "MIT",
   "scripts": {
-    "build": "node build.mjs"
+    "build": "node build.mjs",
+    "sizes": "node measure-sizes.mjs"
   },
   "dependencies": {
     "@babel/standalone": "7.25.6",
@@ -21,5 +23,6 @@
   },
   "devDependencies": {
     "esbuild": "0.28.2"
-  }
+  },
+  "packageManager": "pnpm@10.32.1"
 }

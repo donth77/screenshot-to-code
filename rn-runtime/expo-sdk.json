@@ -1,0 +1,18 @@
+{
+  "$comment": "Single source of truth for the Expo SDK the React Native stack targets. The runtime build asserts its versions match; the Expo export template (Phase 4) is generated from these pins. Bump together: see README.md.",
+  "sdk": "57.0.0",
+  "dependencies": {
+    "expo": "~57.0.24",
+    "expo-status-bar": "~57.0.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-web": "0.21.2",
+    "react-native-safe-area-context": "5.7.0",
+    "react-native-svg": "15.15.4",
+    "lucide-react-native": "1.48.0"
+  },
+  "snack": {
+    "sdkVersion": "55.0.0"
+  }
+}

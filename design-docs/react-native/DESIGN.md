@@ -133,7 +133,7 @@ The fallback (inline RN in `index.html`) is **rejected**.
 
 ## 4. Preview runtime
 
-### 4.1 Composition (Verified; spike at `spikes/rn-runtime/`)
+### 4.1 Composition (Verified in the Phase 0 spike; now the `rn-runtime/` package)
 
 | Package | Version | Why this version |
 | --- | --- | --- |
@@ -649,10 +649,13 @@ A Phase 4 go/no-go check decides whether it ships enabled.
 
 ## Appendix A: reproducing Phase 0
 
+The Phase 0 spike and its gate runner (55/55 checks) are preserved in commit `87f852f`
+(`git show 87f852f --stat`). Phase 1 promoted the spike to `rn-runtime/`, whose gates run in the
+backend test suite:
+
 ```bash
-# Runtime spike and gates (RNW-1, RNW-4, RNW-7 and more): expect "ALL PASS (55/55)"
-cd spikes/rn-runtime && npm ci && npm run build && node measure-sizes.mjs /tmp/rn-sizes
-cd ../../backend && poetry run python ../spikes/rn-runtime/gates/run_gates.py
+cd rn-runtime && pnpm install && pnpm build
+cd ../backend && poetry run pytest tests/test_rn_runtime.py
 ```
 
 Native probe (not committed; about 5 minutes):

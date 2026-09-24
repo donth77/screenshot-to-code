@@ -13,7 +13,7 @@ Companion to [`DESIGN.md`](DESIGN.md), which holds section references (§) and e
 | Read the required docs and code in both repos; re-verified the prior findings | DESIGN §2 |
 | Ran the existing React stack end to end (scripted provider, real engine, Playwright, export) and the test suites | DESIGN §2 |
 | Audited every place that renders, stores or exports code, and every `index.html` assumption | DESIGN §3.1 |
-| Built a throwaway runtime and fixtures (`spikes/rn-runtime/`) | DESIGN §4–5 |
+| Built a throwaway runtime and fixtures (the spike, preserved in commit `87f852f`; promoted to `rn-runtime/` in Phase 1) | DESIGN §4–5 |
 | **RNW-1, RNW-4, RNW-7 pass in real Chromium** (55/55 checks, including iframe, offline, fonts, safe-area and shadow checks) | `evidence/gate-report.json` |
 | Ran the same fixture natively (iOS Simulator, Android emulator); Metro bundling; `expo install --check` | DESIGN §9, §10, §13 |
 

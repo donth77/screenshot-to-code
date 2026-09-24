@@ -1,0 +1,21 @@
+{
+  "$comment": "Known phone screenshot sizes (portrait) -> logical size, scale and safe-area insets. Insets are points (iOS) or dp (Android); null means unknown, so the user sets them with the crop overlay. status: verified = observed on a simulator/emulator, derived = measured from a render, assumed = public specs. See design-docs/react-native/DESIGN.md section 7.",
+  "fallbacks": {
+    "ios": { "logicalWidth": 390 },
+    "android": { "logicalWidth": 412 }
+  },
+  "devices": [
+    { "pixelWidth": 1170, "pixelHeight": 2532, "platform": "ios", "name": "iPhone 12, 12 Pro, 13, 13 Pro, 14, 17e", "logicalWidth": 390, "logicalHeight": 844, "scale": 3, "insetTop": 47, "insetBottom": 34, "status": "verified-size" },
+    { "pixelWidth": 1179, "pixelHeight": 2556, "platform": "ios", "name": "iPhone 14 Pro, 15, 15 Pro, 16", "logicalWidth": 393, "logicalHeight": 852, "scale": 3, "insetTop": 59, "insetBottom": 34, "status": "assumed" },
+    { "pixelWidth": 1206, "pixelHeight": 2622, "platform": "ios", "name": "iPhone 16 Pro, 17, 17 Pro", "logicalWidth": 402, "logicalHeight": 874, "scale": 3, "insetTop": 62, "insetBottom": 34, "status": "assumed" },
+    { "pixelWidth": 1284, "pixelHeight": 2778, "platform": "ios", "name": "iPhone 12/13 Pro Max, 14 Plus", "logicalWidth": 428, "logicalHeight": 926, "scale": 3, "insetTop": 47, "insetBottom": 34, "status": "assumed" },
+    { "pixelWidth": 1290, "pixelHeight": 2796, "platform": "ios", "name": "iPhone 14 Pro Max, 15 Plus, 15 Pro Max, 16 Plus", "logicalWidth": 430, "logicalHeight": 932, "scale": 3, "insetTop": 59, "insetBottom": 34, "status": "assumed" },
+    { "pixelWidth": 1320, "pixelHeight": 2868, "platform": "ios", "name": "iPhone 16 Pro Max, 17 Pro Max", "logicalWidth": 440, "logicalHeight": 956, "scale": 3, "insetTop": 62, "insetBottom": 34, "status": "assumed" },
+    { "pixelWidth": 1125, "pixelHeight": 2436, "platform": "ios", "name": "iPhone X, XS, 11 Pro", "logicalWidth": 375, "logicalHeight": 812, "scale": 3, "insetTop": 44, "insetBottom": 34, "status": "assumed" },
+    { "pixelWidth": 1080, "pixelHeight": 2340, "platform": "ios", "name": "iPhone 12 mini, 13 mini", "logicalWidth": 375, "logicalHeight": 812, "scale": 2.88, "insetTop": 50, "insetBottom": 34, "status": "assumed" },
+    { "pixelWidth": 828, "pixelHeight": 1792, "platform": "ios", "name": "iPhone XR, 11", "logicalWidth": 414, "logicalHeight": 896, "scale": 2, "insetTop": 48, "insetBottom": 34, "status": "assumed" },
+    { "pixelWidth": 750, "pixelHeight": 1334, "platform": "ios", "name": "iPhone SE (2nd/3rd gen), 6, 7, 8", "logicalWidth": 375, "logicalHeight": 667, "scale": 2, "insetTop": 20, "insetBottom": 0, "status": "assumed" },
+    { "pixelWidth": 1080, "pixelHeight": 2400, "platform": "android", "name": "Pixel 8 and many 20:9 Androids", "logicalWidth": 412, "logicalHeight": 915, "scale": 2.62, "insetTop": 52.6, "insetBottom": null, "status": "derived" },
+    { "pixelWidth": 1344, "pixelHeight": 2992, "platform": "android", "name": "Pixel 8 Pro", "logicalWidth": 448, "logicalHeight": 997, "scale": 3, "insetTop": null, "insetBottom": null, "status": "verified-size" }
+  ]
+}
