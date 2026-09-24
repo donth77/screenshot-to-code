@@ -1,0 +1,173 @@
+{
+  "$comment": "Shared by backend/tests/test_rn_preview_html.py and frontend/src/lib/react-native/previewHtml.test.ts. Both implementations must produce each expected string exactly.",
+  "configJson": [
+    {
+      "name": "plain",
+      "source": "export default function App() {\n  return null;\n}\n",
+      "profile": {
+        "platform": "ios",
+        "width": 390,
+        "height": 751,
+        "scale": 3.0,
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "mode": "final",
+      "expected": "{\"source\":\"export default function App() {\\n  return null;\\n}\\n\",\"profile\":{\"platform\":\"ios\",\"width\":390,\"height\":751,\"scale\":3,\"insets\":{\"top\":0,\"right\":0,\"bottom\":0,\"left\":0}},\"mode\":\"final\"}"
+    },
+    {
+      "name": "closes script and comment",
+      "source": "const s = '</script><!-- <script>';\n",
+      "profile": {
+        "platform": "ios",
+        "width": 390,
+        "height": 751,
+        "scale": 3.0,
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "mode": "final",
+      "expected": "{\"source\":\"const s = '\\u003c/script>\\u003c!-- \\u003cscript>';\\n\",\"profile\":{\"platform\":\"ios\",\"width\":390,\"height\":751,\"scale\":3,\"insets\":{\"top\":0,\"right\":0,\"bottom\":0,\"left\":0}},\"mode\":\"final\"}"
+    },
+    {
+      "name": "placeholder literals in source",
+      "source": "// __RN_PREVIEW_CONFIG__ <!--RN_PREVIEW_SCRIPTS-->\n",
+      "profile": {
+        "platform": "ios",
+        "width": 390,
+        "height": 751,
+        "scale": 3.0,
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "mode": "streaming",
+      "expected": "{\"source\":\"// __RN_PREVIEW_CONFIG__ \\u003c!--RN_PREVIEW_SCRIPTS-->\\n\",\"profile\":{\"platform\":\"ios\",\"width\":390,\"height\":751,\"scale\":3,\"insets\":{\"top\":0,\"right\":0,\"bottom\":0,\"left\":0}},\"mode\":\"streaming\"}"
+    },
+    {
+      "name": "unicode and controls",
+      "source": "const t = 'Café 😀    \ttab \\ backslash \"quote\"\u0001';\n",
+      "profile": {
+        "platform": "android",
+        "width": 412,
+        "height": 868,
+        "scale": 2.621359223300971,
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "mode": "final",
+      "expected": "{\"source\":\"const t = 'Café 😀    \\ttab \\\\ backslash \\\"quote\\\"\\u0001';\\n\",\"profile\":{\"platform\":\"android\",\"width\":412,\"height\":868,\"scale\":2.621359223300971,\"insets\":{\"top\":0,\"right\":0,\"bottom\":0,\"left\":0}},\"mode\":\"final\"}"
+    },
+    {
+      "name": "fractional scale",
+      "source": "",
+      "profile": {
+        "platform": "android",
+        "width": 412,
+        "height": 868,
+        "scale": 2.621359223300971,
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "mode": "final",
+      "expected": "{\"source\":\"\",\"profile\":{\"platform\":\"android\",\"width\":412,\"height\":868,\"scale\":2.621359223300971,\"insets\":{\"top\":0,\"right\":0,\"bottom\":0,\"left\":0}},\"mode\":\"final\"}"
+    }
+  ],
+  "inlineScript": [
+    {
+      "name": "no hazards",
+      "js": "var a = 1 < 2;",
+      "expected": "<script>var a = 1 < 2;</script>"
+    },
+    {
+      "name": "closing script, any case",
+      "js": "s = '</script>' + '</SCRIPT >';",
+      "expected": "<script>s = '\\x3C/script>' + '\\x3C/SCRIPT >';</script>"
+    },
+    {
+      "name": "opening script and comment",
+      "js": "r = /<!--/; t = '<script src=x>';",
+      "expected": "<script>r = /\\x3C!--/; t = '\\x3Cscript src=x>';</script>"
+    },
+    {
+      "name": "already escaped",
+      "js": "u = '<\\/script>';",
+      "expected": "<script>u = '<\\/script>';</script>"
+    }
+  ],
+  "scriptTags": [
+    {
+      "name": "absolute",
+      "baseUrl": "http://127.0.0.1:7001",
+      "runtime": "rn-runtime.abc123.js",
+      "babel": "babel-standalone-7.25.6.def456.js",
+      "expected": "<script src=\"http://127.0.0.1:7001/rn-runtime/babel-standalone-7.25.6.def456.js\"></script>\n<script src=\"http://127.0.0.1:7001/rn-runtime/rn-runtime.abc123.js\"></script>"
+    },
+    {
+      "name": "trailing slash",
+      "baseUrl": "https://preview.example/",
+      "runtime": "rn-runtime.abc123.js",
+      "babel": "babel-standalone-7.25.6.def456.js",
+      "expected": "<script src=\"https://preview.example/rn-runtime/babel-standalone-7.25.6.def456.js\"></script>\n<script src=\"https://preview.example/rn-runtime/rn-runtime.abc123.js\"></script>"
+    },
+    {
+      "name": "relative",
+      "baseUrl": "",
+      "runtime": "rn-runtime.abc123.js",
+      "babel": "babel-standalone-7.25.6.def456.js",
+      "expected": "<script src=\"/rn-runtime/babel-standalone-7.25.6.def456.js\"></script>\n<script src=\"/rn-runtime/rn-runtime.abc123.js\"></script>"
+    },
+    {
+      "name": "escaped attribute",
+      "baseUrl": "https://x.example/a?b=1&c=\"2\"",
+      "runtime": "r.js",
+      "babel": "b.js",
+      "expected": "<script src=\"https://x.example/a?b=1&amp;c=&quot;2&quot;/rn-runtime/b.js\"></script>\n<script src=\"https://x.example/a?b=1&amp;c=&quot;2&quot;/rn-runtime/r.js\"></script>"
+    }
+  ],
+  "render": [
+    {
+      "name": "both placeholders",
+      "template": "<script id=\"c\" type=\"application/json\">__RN_PREVIEW_CONFIG__</script><!--RN_PREVIEW_SCRIPTS--><div id=\"root\"></div>",
+      "configJson": "{\"source\":\"// __RN_PREVIEW_CONFIG__\",\"profile\":{\"platform\":\"ios\",\"width\":390,\"height\":751,\"scale\":3,\"insets\":{\"top\":0,\"right\":0,\"bottom\":0,\"left\":0}},\"mode\":\"final\"}",
+      "scripts": "<script src=\"/rn-runtime/b.js\"></script>\n<script src=\"/rn-runtime/r.js\"></script>",
+      "expected": "<script id=\"c\" type=\"application/json\">{\"source\":\"// __RN_PREVIEW_CONFIG__\",\"profile\":{\"platform\":\"ios\",\"width\":390,\"height\":751,\"scale\":3,\"insets\":{\"top\":0,\"right\":0,\"bottom\":0,\"left\":0}},\"mode\":\"final\"}</script><script src=\"/rn-runtime/b.js\"></script>\n<script src=\"/rn-runtime/r.js\"></script><div id=\"root\"></div>"
+    },
+    {
+      "name": "single pass",
+      "template": "__RN_PREVIEW_CONFIG__|<!--RN_PREVIEW_SCRIPTS-->",
+      "configJson": "<!--RN_PREVIEW_SCRIPTS-->",
+      "scripts": "__RN_PREVIEW_CONFIG__",
+      "expected": "<!--RN_PREVIEW_SCRIPTS-->|__RN_PREVIEW_CONFIG__"
+    }
+  ],
+  "renderErrors": [
+    {
+      "name": "missing config placeholder",
+      "template": "<!--RN_PREVIEW_SCRIPTS-->"
+    },
+    {
+      "name": "duplicated scripts placeholder",
+      "template": "__RN_PREVIEW_CONFIG__<!--RN_PREVIEW_SCRIPTS--><!--RN_PREVIEW_SCRIPTS-->"
+    }
+  ]
+}
