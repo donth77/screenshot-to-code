@@ -1,7 +1,7 @@
 import base64
-from typing import Any, Dict
+from typing import Any, Dict, Mapping
 
-from preview_screenshot import capture_preview_screenshot
+from preview_screenshot import capture_preview_screenshot, capture_react_native_preview
 
 from agent.state import AgentFileState
 from agent.tools.types import ToolExecutionResult, ToolMultimodalPart
@@ -96,4 +96,88 @@ async def run_screenshot_preview(
         result=result,
         summary=summary,
         multimodal_parts=multimodal_parts,
+    )
+
+
+_REACT_NATIVE_STATUS = {
+    "ok": "App.jsx rendered without errors.",
+    "degraded": "App.jsx rendered, with the problems listed in runtime_errors.",
+    "error": "App.jsx failed to render. Fix runtime_errors first.",
+    "timeout": "App.jsx did not finish rendering in time. Look for an infinite loop or a hang.",
+}
+
+
+async def run_react_native_screenshot_preview(
+    _args: Dict[str, Any],
+    *,
+    file_state: AgentFileState,
+    profile: Mapping[str, Any],
+) -> ToolExecutionResult:
+    """Render App.jsx on the target phone; return the screenshot and what went wrong.
+
+    Reporting runtime errors is the point of the call, so a render that has
+    them is still ok; only a failed capture is not.
+    """
+    if not file_state.content:
+        return ToolExecutionResult(
+            ok=False,
+            result={"error": "No file exists yet. Call create_file first."},
+            summary={"error": "No file to screenshot"},
+        )
+    try:
+        render = await capture_react_native_preview(file_state.content, profile)
+    except Exception as exc:
+        print(f"React Native preview screenshot failed: {exc}")
+        return ToolExecutionResult(
+            ok=False,
+            result={"error": f"Screenshot failed: {exc}"},
+            summary={"error": "Screenshot failed"},
+        )
+
+    platform = str(profile["platform"])
+    unit = "pt" if platform == "ios" else "dp"
+    viewport = {key: profile[key] for key in ("platform", "width", "height", "scale")}
+    screenshots: list[Dict[str, Any]] = []
+    multimodal_parts: list[ToolMultimodalPart] = []
+    if render.png:
+        display_name = f"preview_{platform}.png"
+        multimodal_parts.append(ToolMultimodalPart(display_name=display_name, mime_type="image/png", data=render.png))
+        screenshots.append(
+            {
+                "viewport": platform,
+                "full_page": False,
+                "image_part_index": 0,
+                "image_display_name": display_name,
+                "image_bytes": len(render.png),
+                "status": render.status,
+            }
+        )
+    status_text = _REACT_NATIVE_STATUS.get(render.status, f"Status: {render.status}.")
+    screenshot_text = (
+        f" A screenshot of the {profile['width']} x {profile['height']} {unit} screen is attached."
+        if render.png
+        else " No screenshot could be taken."
+    )
+    details: Dict[str, Any] = {
+        "status": render.status,
+        "runtime_errors": render.runtime_errors,
+        "status_bar": render.meta.get("statusBar"),
+        "viewport": viewport,
+        "screenshots": screenshots,
+    }
+    summary: Dict[str, Any] = {
+        "status": render.status,
+        "runtime_errors": render.runtime_errors,
+        "viewport": viewport,
+        # Inlined for the UI thumbnail only; never stored as an asset.
+        "screenshots": [
+            {**shot, "image_url": "data:image/png;base64," + base64.b64encode(render.png).decode("ascii")}
+            for shot in screenshots
+        ],
+    }
+    return ToolExecutionResult(
+        ok=True,
+        result={"content": status_text + screenshot_text, "details": details},
+        summary=summary,
+        multimodal_parts=multimodal_parts or None,
     )

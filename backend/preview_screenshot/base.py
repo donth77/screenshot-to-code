@@ -24,3 +24,7 @@ class ScreenshotBackend(Protocol):
     async def available(self) -> bool:
         """Whether this backend can run here (warming it up if needed)."""
         ...
+
+    # Optional: a backend that can render React Native App.jsx files also has
+    #   async def capture_react_native(self, source: str, profile: Mapping[str, Any]) -> PreviewRender
+    # Without it the React Native stack doesn't offer screenshot_preview.

@@ -1,7 +1,7 @@
 import asyncio
 import traceback
 import uuid
-from typing import Any, Awaitable, Callable, Dict, List, Optional, cast
+from typing import Any, Awaitable, Callable, Dict, List, Mapping, Optional, cast
 
 from openai.types.chat import ChatCompletionMessageParam
 
@@ -68,8 +68,10 @@ class AgentEngine:
         option_codes: Optional[List[str]] = None,
         recorder: Optional[AgentRunRecorder] = None,
         main_path: str = HTML_MAIN_PATH,
+        react_native_profile: Optional[Mapping[str, Any]] = None,
     ):
         self.send_message = send_message
+        self.react_native_profile = react_native_profile
         # The one file this run writes: index.html, or App.jsx for React Native.
         self.main_path = main_path
         self.variant_index = variant_index
@@ -97,6 +99,7 @@ class AgentEngine:
             asset_base_url=asset_base_url,
             option_codes=option_codes,
             main_path=main_path,
+            react_native_profile=react_native_profile,
         )
         self._tool_preview_lengths: Dict[str, int] = {}
 
@@ -354,6 +357,7 @@ class AgentEngine:
                 self.should_extract_assets and bool(self.tool_runtime.input_images)
             ),
             recorder=self.recorder,
+            react_native=self.react_native_profile is not None,
         )
         try:
             result = await self._run_with_session(session)

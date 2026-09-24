@@ -33,6 +33,7 @@ async def _run_eval_agent(
     eval_set: str | None,
     eval_session_id: str | None,
     input_file: str | None,
+    react_native_profile: dict[str, Any] | None = None,
 ) -> str:
     async def send_message(
         _: str,
@@ -82,17 +83,20 @@ async def _run_eval_agent(
         option_codes=None,
         recorder=recorder,
         main_path=main_file_path(stack),
+        react_native_profile=react_native_profile,
     )
     return await runner.run(model, prompt_messages)
 
 
 def _react_native_create_prompt(
     input_mode: InputMode, text: str, images: List[str]
-) -> List[ChatCompletionMessageParam]:
-    """The app's React Native create prompt: same cropping and screen facts."""
+) -> tuple[List[ChatCompletionMessageParam], dict[str, Any]]:
+    """The app's React Native create prompt (same cropping and screen facts),
+    and the profile the agent's screenshots render at."""
     prompt: UserTurnInput = {"text": text, "images": images, "videos": []}
     prompt, _, screen = prepare_react_native_inputs(prompt, [], load_device_table())
-    return build_create_prompt_from_input(input_mode, "react_native", prompt, True, None, screen)
+    messages = build_create_prompt_from_input(input_mode, "react_native", prompt, True, None, screen)
+    return messages, screen.device.preview_profile()
 
 
 async def generate_code_for_image(
@@ -104,8 +108,9 @@ async def generate_code_for_image(
     eval_session_id: str | None = None,
     input_file: str | None = None,
 ) -> str:
+    react_native_profile = None
     if stack == "react_native":
-        prompt_messages = _react_native_create_prompt("image", "", [image_url])
+        prompt_messages, react_native_profile = _react_native_create_prompt("image", "", [image_url])
     else:
         prompt_messages = build_image_prompt_messages(
             image_data_urls=[image_url],
@@ -121,6 +126,7 @@ async def generate_code_for_image(
         eval_set=eval_set,
         eval_session_id=eval_session_id,
         input_file=input_file,
+        react_native_profile=react_native_profile,
     )
 
 
@@ -134,8 +140,9 @@ async def generate_code_for_text(
     input_file: str | None = None,
 ) -> str:
     """Text-create eval: same prompt construction as the app's text flow."""
+    react_native_profile = None
     if stack == "react_native":
-        prompt_messages = _react_native_create_prompt("text", text_prompt, [])
+        prompt_messages, react_native_profile = _react_native_create_prompt("text", text_prompt, [])
     else:
         prompt_messages = build_text_prompt_messages(
             text_prompt=text_prompt,
@@ -150,4 +157,5 @@ async def generate_code_for_text(
         eval_set=eval_set,
         eval_session_id=eval_session_id,
         input_file=input_file,
+        react_native_profile=react_native_profile,
     )

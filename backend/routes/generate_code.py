@@ -595,6 +595,7 @@ class AgenticGenerationStage:
         stack: str | None = None,
         input_mode: str | None = None,
         generation_type: str | None = None,
+        react_native_profile: Dict[str, Any] | None = None,
     ):
         self.send_message = send_message
         self.openai_api_key = openai_api_key
@@ -614,6 +615,7 @@ class AgenticGenerationStage:
         self.stack = stack
         self.input_mode = input_mode
         self.generation_type = generation_type
+        self.react_native_profile = react_native_profile
 
     async def process_variants(
         self,
@@ -684,6 +686,7 @@ class AgenticGenerationStage:
                 option_codes=self.option_codes,
                 recorder=recorder,
                 main_path=main_file_path(self.stack),
+                react_native_profile=self.react_native_profile,
             )
             completion = await runner.run(model, prompt_messages)
             if completion:
@@ -870,6 +873,11 @@ class CodeGenerationMiddleware(Middleware):
                 stack=str(context.extracted_params.stack),
                 input_mode=str(context.extracted_params.input_mode),
                 generation_type=context.extracted_params.generation_type,
+                react_native_profile=(
+                    context.extracted_params.react_native_screen.device.preview_profile()
+                    if context.extracted_params.react_native_screen
+                    else None
+                ),
             )
 
             context.variant_completions = await generation_stage.process_variants(

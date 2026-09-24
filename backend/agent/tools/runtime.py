@@ -1,13 +1,13 @@
 # pyright: reportUnknownVariableType=false
 import asyncio
 import difflib
-from typing import Any, Dict, List, Optional, Tuple, Union, cast
+from typing import Any, Dict, List, Mapping, Optional, Tuple, Union, cast
 
 from codegen.utils import HTML_MAIN_PATH, REACT_NATIVE_MAIN_PATH, extract_file_content
 from config import REPLICATE_API_KEY
 from agent.tools.extract_assets import run_extract_assets
 from agent.tools.local_assets import guess_image_mime, local_asset_url_to_data_url
-from agent.tools.screenshot_preview import run_screenshot_preview
+from agent.tools.screenshot_preview import run_react_native_screenshot_preview, run_screenshot_preview
 from image_generation.generation import process_tasks
 from image_generation.replicate import (
     P_IMAGE_EDIT_ASPECT_RATIOS,
@@ -39,9 +39,12 @@ class AgentToolRuntime:
         user_id: Optional[str] = None,
         option_codes: Optional[List[str]] = None,
         main_path: str = HTML_MAIN_PATH,
+        react_native_profile: Optional[Mapping[str, Any]] = None,
     ):
         self.file_state = file_state
         self.main_path = main_path
+        # React Native only: the device profile screenshot_preview renders at.
+        self.react_native_profile = react_native_profile
         self.should_generate_images = should_generate_images
         self.openai_api_key = openai_api_key
         self.openai_base_url = openai_base_url
@@ -91,6 +94,12 @@ class AgentToolRuntime:
                 input_images=self.input_images,
                 asset_base_url=self.asset_base_url,
                 user_id=self.user_id,
+            )
+        if tool_call.name == "screenshot_preview" and self.react_native_profile is not None:
+            return await run_react_native_screenshot_preview(
+                tool_call.arguments,
+                file_state=self.file_state,
+                profile=self.react_native_profile,
             )
         if tool_call.name == "screenshot_preview":
             return await run_screenshot_preview(

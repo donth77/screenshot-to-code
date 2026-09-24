@@ -13,7 +13,7 @@ from agent.tools import canonical_tool_definitions
 from config import REPLICATE_API_KEY
 from fs_logging.agent_runs import AgentRunRecorder
 from llm import ANTHROPIC_MODELS, GEMINI_MODELS, OPENAI_MODELS, Llm
-from preview_screenshot import is_screenshot_preview_available
+from preview_screenshot import is_react_native_capture_available, is_screenshot_preview_available
 
 
 def create_provider_session(
@@ -27,6 +27,7 @@ def create_provider_session(
     replicate_api_key: Optional[str],
     should_extract_assets: bool = True,
     recorder: Optional[AgentRunRecorder] = None,
+    react_native: bool = False,
 ) -> ProviderSession:
     canonical_tools = canonical_tool_definitions(
         image_generation_enabled=should_generate_images,
@@ -35,7 +36,11 @@ def create_provider_session(
         # The extract_assets tool calls Gemini, so don't offer it without a key.
         asset_extraction_enabled=should_extract_assets and bool(gemini_api_key),
         # screenshot_preview needs headless Chromium; skip it if it can't launch.
-        screenshot_enabled=is_screenshot_preview_available(),
+        # React Native also needs a backend that renders it and a built runtime.
+        screenshot_enabled=(
+            is_react_native_capture_available() if react_native else is_screenshot_preview_available()
+        ),
+        react_native=react_native,
     )
 
     if model in OPENAI_MODELS:

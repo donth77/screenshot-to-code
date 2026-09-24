@@ -21,6 +21,7 @@ from PIL import Image, ImageDraw, ImageStat
 from playwright.async_api import Browser, Page, Request, Route
 
 from preview_screenshot.playwright_backend import PlaywrightBackend
+from prompts.react_native import REACT_NATIVE_IMPORTS
 from react_native.preview_html import inline_script, preview_config_json, render_preview_html
 from react_native.render import ROUTE_ORIGIN, PreviewRender, preview_html_for, render_preview
 from react_native.runtime_files import RuntimeBundle, load_runtime
@@ -549,3 +550,12 @@ export default function App() {
     assert android["spaced"]["lineHeight"].startswith("22.09")  # 58 px
     assert android["spaced"]["padTop"] == "4px"  # the code's padding, nothing added
     assert android["unpadded"]["padTop"] == "0px"
+
+
+async def test_the_prompts_import_list_is_the_runtimes_module_registry(browser: Browser) -> None:
+    async def modules(page: Page) -> dict[str, Any]:
+        return {"names": await page.evaluate("Object.keys(window.__RN_MODULES__)")}
+
+    render = await render_preview(browser, bundle(), fixture("App"), IPHONE, inspect=modules)
+
+    assert sorted(render.extra["names"]) == sorted(REACT_NATIVE_IMPORTS)

@@ -5,30 +5,38 @@ from image_generation.replicate import P_IMAGE_EDIT_ASPECT_RATIOS
 from uploaded_assets.tools import SAVE_ASSETS_TOOL_DEFINITION
 
 
-def _create_schema() -> Dict[str, Any]:
+def _create_schema(react_native: bool = False) -> Dict[str, Any]:
     return {
         "type": "object",
         "properties": {
             "path": {
                 "type": "string",
-                "description": "Path for the main HTML file. Use index.html if unsure.",
+                "description": (
+                    "Always App.jsx."
+                    if react_native
+                    else "Path for the main HTML file. Use index.html if unsure."
+                ),
             },
             "content": {
                 "type": "string",
-                "description": "Full HTML for the single-file app.",
+                "description": (
+                    "The full App.jsx source."
+                    if react_native
+                    else "Full HTML for the single-file app."
+                ),
             },
         },
         "required": ["content"],
     }
 
 
-def _edit_schema() -> Dict[str, Any]:
+def _edit_schema(react_native: bool = False) -> Dict[str, Any]:
     return {
         "type": "object",
         "properties": {
             "path": {
                 "type": "string",
-                "description": "Path for the main HTML file.",
+                "description": "Always App.jsx." if react_native else "Path for the main HTML file.",
             },
             "old_text": {
                 "type": "string",
@@ -190,24 +198,34 @@ def canonical_tool_definitions(
     image_editing_enabled: bool = True,
     asset_extraction_enabled: bool = True,
     screenshot_enabled: bool = True,
+    react_native: bool = False,
 ) -> List[CanonicalToolDefinition]:
     tools: List[CanonicalToolDefinition] = [
         CanonicalToolDefinition(
             name="create_file",
             description=(
-                "Create the main HTML file for the app. Use exactly once to write the "
-                "full HTML. Returns a success message and file metadata."
+                (
+                    "Create App.jsx, the React Native screen. Use exactly once to write "
+                    "the full file. Returns a success message and file metadata."
+                )
+                if react_native
+                else (
+                    "Create the main HTML file for the app. Use exactly once to write the "
+                    "full HTML. Returns a success message and file metadata."
+                )
             ),
-            parameters=_create_schema(),
+            parameters=_create_schema(react_native),
         ),
         CanonicalToolDefinition(
             name="edit_file",
             description=(
-                "Edit the main HTML file using exact string replacements. Do not "
+                "Edit "
+                + ("App.jsx" if react_native else "the main HTML file")
+                + " using exact string replacements. Do not "
                 "regenerate the entire file. Returns a success message plus edit "
                 "details, including a unified diff and first changed line."
             ),
-            parameters=_edit_schema(),
+            parameters=_edit_schema(react_native),
         ),
     ]
     if image_generation_enabled:
@@ -271,11 +289,21 @@ def canonical_tool_definitions(
             CanonicalToolDefinition(
                 name="screenshot_preview",
                 description=(
-                    "Render the current HTML file in a headless browser and return "
-                    "full-page desktop and mobile screenshots so you can visually "
-                    "verify your work. Use after creating or substantially editing "
-                    "the file to check layout, spacing, and fidelity to the "
-                    "requested design. Screenshots are returned as attached images."
+                    (
+                        "Render App.jsx on the target phone and return a screenshot of the "
+                        "screen (an attached image) with the render status and "
+                        "runtime_errors: syntax errors, crashes, unknown imports or icons, "
+                        "images that failed to load, and code React Native doesn't support. "
+                        "Use after creating or editing the file; fix runtime_errors first."
+                    )
+                    if react_native
+                    else (
+                        "Render the current HTML file in a headless browser and return "
+                        "full-page desktop and mobile screenshots so you can visually "
+                        "verify your work. Use after creating or substantially editing "
+                        "the file to check layout, spacing, and fidelity to the "
+                        "requested design. Screenshots are returned as attached images."
+                    )
                 ),
                 parameters=_screenshot_preview_schema(),
             )
@@ -286,8 +314,9 @@ def canonical_tool_definitions(
             CanonicalToolDefinition(
                 name="retrieve_option",
                 description=(
-                    "Retrieve the full HTML for a specific option (variant) so you can "
-                    "reference it."
+                    "Retrieve the full "
+                    + ("App.jsx" if react_native else "HTML")
+                    + " for a specific option (variant) so you can reference it."
                 ),
                 parameters=_retrieve_option_schema(),
             ),
