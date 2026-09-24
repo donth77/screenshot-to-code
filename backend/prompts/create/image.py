@@ -1,7 +1,7 @@
 from openai.types.chat import ChatCompletionContentPartParam, ChatCompletionMessageParam
 
 from prompts.prompt_types import Stack
-from prompts import system_prompt
+from prompts.stack_prompts import get_system_prompt
 from prompts.design_system import build_design_system_prompt_block
 from prompts.policies import build_selected_stack_policy, build_user_image_policy
 
@@ -64,7 +64,7 @@ If multiple screenshots are provided, organize them meaningfully:
     return [
         {
             "role": "system",
-            "content": system_prompt.SYSTEM_PROMPT,
+            "content": get_system_prompt(stack),
         },
         {
             "role": "user",
