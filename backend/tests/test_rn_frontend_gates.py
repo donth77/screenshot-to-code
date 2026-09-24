@@ -18,8 +18,10 @@ installed, or Chromium is missing.
 import asyncio
 import json
 import time
+import zipfile
 from pathlib import Path
 from typing import Any, AsyncIterator, Iterator, cast
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 from fastapi import FastAPI
@@ -31,7 +33,9 @@ from playwright.async_api import Browser, BrowserContext, Page, Route, WebSocket
 from preview_screenshot.playwright_backend import PlaywrightBackend
 from react_native.runtime_files import load_runtime
 from react_native.serving import configure_runtime_routes
-from routes import capabilities, design_systems, generate_code
+import config
+from react_native.bundle_check import check_bundle
+from routes import capabilities, design_systems, expo_export, generate_code
 from tests.dev_servers import READY_TIMEOUT_S, VITE, serve_app, vite_dev_server
 from tests.rn_ui_harness import AVATAR_NAME, ScriptedModels, write_avatar
 
@@ -96,6 +100,7 @@ def gate_app(asset_dir: Path, screenshots: PlaywrightBackend) -> FastAPI:
     app.include_router(generate_code.router)
     app.include_router(capabilities.router)
     app.include_router(design_systems.router)
+    app.include_router(expo_export.router)
 
     @app.on_event("shutdown")
     async def close_screenshot_browser() -> None:  # pyright: ignore[reportUnusedFunction]
@@ -184,6 +189,7 @@ def backend_url(dirs: dict[str, Path]) -> Iterator[str]:
         patch.setattr("preview_screenshot.registry._backend", screenshots)
         patch.setattr("preview_screenshot.registry._available", None)
         patch.setenv("SCREENSHOT_TO_CODE_DATA_DIR", str(dirs["data"]))
+        patch.setattr(expo_export, "LOCAL_ASSET_DIR", str(dirs["assets"]))
         write_avatar(str(dirs["assets"]))
         models = ScriptedModels(asset_base_url="")
         patch.setattr("agent.engine.create_provider_session", models)
@@ -194,7 +200,7 @@ def backend_url(dirs: dict[str, Path]) -> Iterator[str]:
 
 @pytest.fixture(scope="module")
 def vite_url(backend_url: str) -> Iterator[str]:
-    with vite_dev_server(backend_url) as url:
+    with vite_dev_server(backend_url, env={"VITE_SNACK_EXPORT": "true"}) as url:
         yield url
 
 
@@ -304,6 +310,7 @@ async def test_rnw2_the_generation_previews_on_the_phone(session: Session) -> No
 
 async def test_rnw3_the_downloaded_preview_renders_offline(browser: Browser, session: Session) -> None:
     page = session.page
+    await page.get_by_test_id("rn-export-menu").click()
     async with page.expect_download() as download_info:
         await page.get_by_test_id("download-preview-html").click()
     download = await download_info.value
@@ -338,6 +345,53 @@ async def test_rnw3_the_downloaded_preview_renders_offline(browser: Browser, ses
     assert status == "ok" and errors == []
     assert avatar == [True, 4, "data:image/png;base64,"]
     assert attempts == []
+
+
+async def test_the_expo_project_download_embeds_images_and_bundles(session: Session) -> None:
+    """Phase 4: the Expo zip from the export menu. With RN_BUNDLE_CHECK=1 it is
+    also bundled for iOS and Android (RNW-6)."""
+    page = session.page
+    await page.get_by_test_id("rn-export-menu").click()
+    async with page.expect_download() as download_info:
+        await page.get_by_test_id("download-expo-project").click()
+    download = await download_info.value
+    assert download.suggested_filename == "screenshot-to-code-expo.zip"
+    target = session.tmp / download.suggested_filename
+    await download.save_as(str(target))
+    with zipfile.ZipFile(target) as archive:
+        files = {name.split("/", 1)[1]: archive.read(name).decode("utf-8") for name in archive.namelist()}
+
+    assert {"package.json", "app.json", "index.js", "App.jsx", "assets.js", "README.md"} <= set(files)
+    assert "import { ASSETS } from './assets';" in files["App.jsx"]
+    assert AVATAR_NAME not in files["App.jsx"] and "ASSETS.asset_" in files["App.jsx"]
+    assert files["assets.js"].count("data:image/png;base64,") == 1
+    assert "<SafeAreaProvider>" in files["index.js"]
+
+    if config.RN_BUNDLE_CHECK:
+        result = await asyncio.to_thread(check_bundle, files)
+        assert result.ok, result.log_tail
+
+
+async def test_open_in_snack_prefills_the_screen(session: Session) -> None:
+    page = session.page
+    await page.get_by_test_id("rn-export-menu").click()
+    assert await page.get_by_test_id("open-in-snack").text_content() == "Open in SnackOpens in Snack (Expo SDK 55)"
+    # Snack itself is out of reach here: answer for it, and read the URL the app built.
+    async def snack_stub(route: Route) -> None:
+        await route.fulfill(body="<p>Snack</p>", content_type="text/html")
+
+    await page.context.route("https://snack.expo.dev/**", snack_stub)
+    async with page.context.expect_page() as popup_info:
+        await page.get_by_test_id("open-in-snack").click()
+    popup = await popup_info.value
+    url = urlparse(popup.url)
+    await popup.close()
+    params = parse_qs(url.query)
+    assert url.netloc == "snack.expo.dev"
+    assert params["sdkVersion"] == ["55.0.0"]
+    files = json.loads(params["files"][0])
+    assert "export default function App" in files["Screen.js"]["contents"]
+    assert "<SafeAreaProvider>" in files["App.js"]["contents"]
 
 
 async def test_a_selected_element_is_edited_by_its_test_id(session: Session) -> None:

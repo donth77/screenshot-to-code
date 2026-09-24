@@ -18,5 +18,9 @@ export const WS_BACKEND_URL =
 export const HTTP_BACKEND_URL =
   import.meta.env.VITE_HTTP_BACKEND_URL || SAME_ORIGIN_HTTP;
 
+// "Open in Snack" for React Native (DESIGN.md §13.4). Off by default: Snack
+// only runs up to Expo SDK 55 and can't load the backend's local assets.
+export const SNACK_EXPORT_ENABLED = import.meta.env.VITE_SNACK_EXPORT === "true";
+
 export const PICO_BACKEND_FORM_SECRET =
   import.meta.env.VITE_PICO_BACKEND_FORM_SECRET || null;

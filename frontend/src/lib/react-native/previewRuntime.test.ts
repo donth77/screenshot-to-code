@@ -1,6 +1,7 @@
 import {
   inlinePreviewDocument,
   loadDeviceTable,
+  loadExpoSdk,
   loadPreviewRuntime,
   previewDocument,
 } from "./previewRuntime";
@@ -17,6 +18,7 @@ const MANIFEST = {
   babel: "babel-standalone-7.25.6.def.js",
   template: "preview-template.html",
   deviceProfiles: "device-profiles.json",
+  expoSdk: "expo-sdk.json",
   expoSdkVersion: "57.0.0",
   versions: {},
 };
@@ -34,6 +36,7 @@ const fetchMock = jest.fn(async (url: string) => {
     "manifest.json": JSON.stringify(MANIFEST),
     "preview-template.html": TEMPLATE,
     "device-profiles.json": JSON.stringify({ fallbacks: {}, devices: [] }),
+    "expo-sdk.json": JSON.stringify({ sdk: "57.0.0", dependencies: {}, snack: { sdkVersion: "55.0.0" } }),
     "rn-runtime.abc.js": "window.runtime = '</script>';",
     "babel-standalone-7.25.6.def.js": "window.Babel = {};",
   };
@@ -80,6 +83,12 @@ describe("previewRuntime", () => {
     const table = await loadDeviceTable("http://backend-c:7001");
     expect(table).toEqual({ fallbacks: {}, devices: [] });
     expect(fetchedPaths()).toContain("http://backend-c:7001/rn-runtime/device-profiles.json");
+  });
+
+  test("loads the Expo SDK pins named by the manifest", async () => {
+    const sdk = await loadExpoSdk("http://backend-f:7001");
+    expect(sdk.snack?.sdkVersion).toBe("55.0.0");
+    expect(fetchedPaths()).toContain("http://backend-f:7001/rn-runtime/expo-sdk.json");
   });
 
   test("builds URL-mode documents that load the runtime from the backend", async () => {

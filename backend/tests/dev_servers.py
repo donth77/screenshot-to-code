@@ -10,7 +10,7 @@ import time
 import urllib.request
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Iterator, cast
+from typing import Iterator, Optional, cast
 
 import uvicorn
 from fastapi import FastAPI
@@ -57,14 +57,15 @@ def serve_app(app: FastAPI, ready_path: str, ws: WSProtocolType = "none") -> Ite
 
 
 @contextmanager
-def vite_dev_server(backend_url: str, ready_path: str = "/") -> Iterator[str]:
+def vite_dev_server(backend_url: str, ready_path: str = "/", env: Optional[dict[str, str]] = None) -> Iterator[str]:
     """The frontend's dev server, proxying /api, /generate-code, /local-assets
-    and /rn-runtime to `backend_url` (frontend/vite.config.ts)."""
+    and /rn-runtime to `backend_url` (frontend/vite.config.ts). `env` adds
+    VITE_* settings."""
     port = free_port()
     process = subprocess.Popen(
         [str(VITE), "--host", "127.0.0.1", "--port", str(port), "--strictPort"],
         cwd=ROOT / "frontend",
-        env={**os.environ, "PROXY_CODEGEN_BACKEND": backend_url},
+        env={**os.environ, "PROXY_CODEGEN_BACKEND": backend_url, **(env or {})},
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
         start_new_session=True,  # its own process group, so teardown stops esbuild and the type checker too

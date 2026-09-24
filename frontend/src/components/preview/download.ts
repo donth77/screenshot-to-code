@@ -105,3 +105,20 @@ export const downloadReactNativePreview = async (
   downloadBlob(new Blob([html], { type: "text/html" }), "App-preview.html");
   return { missingImages: failed.filter(looksLikeImage) };
 };
+
+// React Native: the Expo project zip (POST /api/export/expo), with App.jsx's
+// images embedded by the backend.
+export const downloadExpoProject = async (code: string): Promise<void> => {
+  const response = await fetch(`${HTTP_BACKEND_URL}/api/export/expo`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code }),
+  });
+  if (!response.ok) {
+    throw new Error(`Expo export failed with status ${response.status}`);
+  }
+  downloadBlob(
+    await response.blob(),
+    filenameFromContentDisposition(response.headers.get("Content-Disposition"))
+  );
+};

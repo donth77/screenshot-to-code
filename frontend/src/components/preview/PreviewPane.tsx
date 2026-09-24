@@ -19,8 +19,8 @@ import { useAppStore } from "../../store/app-store";
 import { useProjectStore } from "../../store/project-store";
 import { extractHtml } from "./extractHtml";
 import PreviewComponent from "./PreviewComponent";
-import { downloadCode, downloadReactNativePreview } from "./download";
-import toast from "react-hot-toast";
+import { downloadCode } from "./download";
+import ReactNativeExportMenu from "./react-native/ReactNativeExportMenu";
 import { SelectAndEditToolbarButton } from "../select-and-edit/SelectAndEditControls";
 import { normalizeBabelCdn } from "../../lib/babelCdn";
 import ImageScanningPreview from "./ImageScanningPreview";
@@ -229,31 +229,7 @@ function PreviewPane({ settings, onOpenVersions }: Props) {
             {(appState === AppState.CODE_READY || isSelectedVariantComplete) &&
               isReactNative &&
               reactNativeDevice && (
-                <Button
-                  onClick={async () => {
-                    try {
-                      const { missingImages } = await downloadReactNativePreview(
-                        previewCode,
-                        reactNativeDevice
-                      );
-                      if (missingImages.length > 0) {
-                        toast(
-                          `${missingImages.length} image${missingImages.length === 1 ? "" : "s"} couldn't be embedded and will load from the network.`
-                        );
-                      }
-                    } catch (error) {
-                      console.error("Preview download failed", error);
-                      toast.error("Couldn't build the preview HTML. Is the backend running?");
-                    }
-                  }}
-                  variant="ghost"
-                  size="icon"
-                  title="Download preview HTML (opens offline)"
-                  className="h-9 w-9"
-                  data-testid="download-preview-html"
-                >
-                  <LuDownload />
-                </Button>
+                <ReactNativeExportMenu code={previewCode} device={reactNativeDevice} />
               )}
             {(appState === AppState.CODE_READY || isSelectedVariantComplete) && !isReactNative && (
               <Button

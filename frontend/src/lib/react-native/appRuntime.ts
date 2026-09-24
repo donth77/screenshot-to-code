@@ -9,7 +9,8 @@ import {
   resolveDevice,
   withChosenName,
 } from "./devices";
-import { PreviewRuntime, loadDeviceTable, loadPreviewRuntime } from "./previewRuntime";
+import { PreviewRuntime, loadDeviceTable, loadExpoSdk, loadPreviewRuntime } from "./previewRuntime";
+import type { ExpoSdk } from "./snack";
 
 export const RUNTIME_UNAVAILABLE_MESSAGE =
   "The React Native preview runtime isn't available. Build it with: cd rn-runtime && pnpm build, then restart the backend.";
@@ -20,6 +21,10 @@ export function appPreviewRuntime(): Promise<PreviewRuntime> {
 
 export function appDeviceTable(): Promise<DeviceTable> {
   return loadDeviceTable(HTTP_BACKEND_URL);
+}
+
+export function appExpoSdk(): Promise<ExpoSdk> {
+  return loadExpoSdk(HTTP_BACKEND_URL);
 }
 
 class ScreenshotDecodeError extends Error {}
@@ -83,4 +88,8 @@ export function usePreviewRuntime(enabled = true): Resource<PreviewRuntime> {
 
 export function useDeviceTable(enabled = true): Resource<DeviceTable> {
   return useCachedResource(appDeviceTable, enabled);
+}
+
+export function useExpoSdk(enabled = true): Resource<ExpoSdk> {
+  return useCachedResource(appExpoSdk, enabled);
 }

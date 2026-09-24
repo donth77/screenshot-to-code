@@ -4,6 +4,7 @@
 // origin, which the Vite dev server proxies to the backend. A srcdoc iframe
 // resolves those URLs against its parent page.
 import type { DeviceTable } from "./devices";
+import type { ExpoSdk } from "./snack";
 import {
   DeviceProfile,
   PreviewMode,
@@ -18,6 +19,7 @@ export interface RuntimeManifest {
   babel: string;
   template: string;
   deviceProfiles: string;
+  expoSdk: string;
   expoSdkVersion: string;
   versions: Record<string, string>;
 }
@@ -48,6 +50,7 @@ export interface PreviewStatus {
 
 const runtimes = new Map<string, Promise<PreviewRuntime>>();
 const deviceTables = new Map<string, Promise<DeviceTable>>();
+const expoSdks = new Map<string, Promise<ExpoSdk>>();
 const inlineScriptSets = new Map<string, Promise<string>>();
 
 async function fetchOk(url: string): Promise<Response> {
@@ -89,6 +92,15 @@ export function loadDeviceTable(baseUrl = ""): Promise<DeviceTable> {
   return cached(deviceTables, base, async () => {
     const { manifest } = await loadPreviewRuntime(base);
     return (await (await fetchOk(`${base}/rn-runtime/${manifest.deviceProfiles}`)).json()) as DeviceTable;
+  });
+}
+
+// rn-runtime/expo-sdk.json: the Expo SDK the export targets, and Snack's.
+export function loadExpoSdk(baseUrl = ""): Promise<ExpoSdk> {
+  const base = normalizeBase(baseUrl);
+  return cached(expoSdks, base, async () => {
+    const { manifest } = await loadPreviewRuntime(base);
+    return (await (await fetchOk(`${base}/rn-runtime/${manifest.expoSdk}`)).json()) as ExpoSdk;
   });
 }
 
