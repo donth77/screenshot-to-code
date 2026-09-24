@@ -25,7 +25,7 @@ Uncertainty labels used throughout:
 | Runtime size | 1,789 KB raw / 662 KB gzip (development React build), plus Babel at 2,809 KB / 590 KB (KB = 1024 B). Budget: runtime ≤ 700 KB gzip. | Verified (§4.4). |
 | Export SDK | **Expo SDK 57**, not SDK 56 as the brief proposed. Both pin identical web-side versions; SDK 57 is `latest` and what Expo Go runs today. | Verified: the npm registry, Expo's versions API and `npx expo install --check` (§2, §13). |
 | Hosting | The backend serves `rn-runtime/dist` at `/rn-runtime/`. Playwright intercepts those URLs with `page.route`. The frontend iframe loads them by URL. The downloaded HTML inlines everything. | Verified for all three loading modes, the iframe case and offline `file://` (§6). |
-| Fonts | Inter (iOS) and Roboto (Android) are bundled. RNW's hardcoded `System` font stack is rewritten at build time to a CSS variable. | Verified by CDP platform-font inspection (§8). Inter needs size calibration against SF Pro (§8.3). |
+| Fonts | Inter (iOS) and Roboto (Android) are bundled. RNW's hardcoded `System` font stack is rewritten at build time to a CSS variable. | Verified by CDP platform-font inspection (§8). Text is calibrated against the iOS Simulator and Android emulator (§8.3). |
 | Device profile | Scale = pixel width ÷ logical width. The viewport is the content area only: the status bar and home indicator are cropped from the input. Capture is viewport-only. | Verified: renders are exactly logical size × scale; fractional scales land within 1 px (§7). |
 | Shadows (RNW-8) | Always `boxShadow` (CSS string with `px` units). Never `shadow*` or `elevation`. | Verified on web, the iOS Simulator and the Android emulator (§9). |
 | Safe area | The *host* provides `SafeAreaProvider`: the preview wrapper does, and the exported `index.js` does. `App.jsx` uses `SafeAreaView` only. | Verified: without a provider, native `SafeAreaView` applies no insets (§10). |
@@ -352,8 +352,10 @@ Capture is **viewport-only**. `ScrollView`/`FlatList` content scrolls inside an 
 | 1080 × 2340 | iPhone 12 mini, 13 mini | 375 × 812 | 2.88 | 50 / 34 | Assumed |
 | 828 × 1792 | iPhone XR, 11 | 414 × 896 | 2 | 48 / 34 | Assumed |
 | 750 × 1334 | iPhone SE (2nd/3rd gen), 6–8 | 375 × 667 | 2 | 20 / 0 | Assumed |
-| 1080 × 2400 | Pixel 8 and many 20:9 Androids | 412 × 915 | 2.62 | ≈ 52.6 / not measured (dp) | Top inset derived from the emulator render (avatar offset minus header padding); confirm both with `dumpsys` in Phase 2 |
+| 1080 × 2400 | Pixel 8 and many 20:9 Androids | 412 × 915 | 2.62 | 50.3 / 24 (dp) | Verified on the emulator (`dumpsys window`): display cutout 132 px, navigation bar 63 px |
 | 1344 × 2992 | Pixel 8 Pro | 448 × 997 | 3 | Untested | Size verified (emulator) |
+
+Insets are **safe-area insets**, the values `SafeAreaView` applies, so they include display cutouts. On the Pixel 8 the cutout (132 px = 50.3 dp) is taller than the status bar (63 px = 24 dp), so the top inset is the cutout's. The earlier estimate of 52.6 dp came from a render (avatar offset minus header padding) and is superseded. Crops follow the same insets.
 
 Fallbacks:
 
@@ -386,7 +388,7 @@ In RNW 0.21.2, `Text` and `TextInput` default to `font: '14px System'`. `createR
 - **Verification.** `CSS.getPlatformFontsForNode` over CDP reports `familyName: "Inter"` or `"Roboto"` with `isCustomFont: true` for the fixture title. This is the *rasterised* font, not just the computed style, so the render doesn't depend on fonts installed on the host.
 - **Weights and fallback.** Weights 300–800 are bundled, Latin subset only. Glyphs outside it fall back to host fonts; the Docker image should install Noto (core, CJK, colour emoji) so the fallback is deterministic. This is **untested**.
 
-### 8.2 Web vs native text metrics (Verified; measured from the same fixture)
+### 8.2 Web vs native text metrics before calibration (Verified; measured from the same fixture)
 
 | Comparison | 22 pt bold title width | 15 pt subtitle width | Title ink height |
 | --- | --- | --- | --- |
@@ -395,13 +397,32 @@ In RNW 0.21.2, `Text` and `TextInput` default to `font: '14px System'`. `createR
 
 Also observed: native Android list rows are taller. The row pitch is 72.5 dp natively against 67.1 dp in the preview, so each two-line row gains about 5.4 dp (≈ 2.7 dp per line of text) and the offset accumulates down the list. This matches RN Android's default `includeFontPadding`, which pads each `Text` to the font's top and bottom metrics.
 
-### 8.3 Calibration (Phase 1; Untested)
+### 8.3 Calibration (Verified on the iOS 26.4 Simulator and an Android 16 emulator; Phase 1)
 
-The iOS stand-in is about 4–6% too large. The agent would see preview text wider than the input and might "fix" it by shrinking font sizes, which would then be wrong on a device. Three fixes:
+The `Text` that generated code imports is a wrapper (`rn-runtime/src/text-metrics.js`) that applies each platform's text rules on top of react-native-web. `rn-runtime/calibration/README.md` has the rules, the measurements behind them and how to re-measure. What changed from the plan above:
 
-1. **Inter metrics.** Fit `size-adjust` (≈ 95% from the numbers above), and if needed `ascent-override` / `descent-override`, on the Inter `@font-face`, against Simulator renders of a text grid (sizes 11–34, weights 400–800). Target: median width error ≤ 1.5% and line-height error ≤ 0.5 pt.
-2. **Roboto metrics.** Fit `ascent-override` / `descent-override` on Roboto to emulate `includeFontPadding`.
-3. **Prompt guidance.** The system prompt says the preview font is a metric-matched stand-in, and that font size should be matched by glyph height, not by text width.
+- **`size-adjust` was the wrong fix.** The iOS width gap depends on size and weight. SF Pro tracks size-dependently: at 400 weight Inter needs +0.005 em at 11 pt and −0.050 em at 34 pt. A single scale factor can't close that, so the wrapper applies fitted tracking (`letterSpacing`) per size and weight. An explicit `letterSpacing` adds on top, as `NSKern` does natively. `letterSpacing: 0` also turns pair kerning off, since CoreText treats kern 0 as "no kerning".
+- **The Android gap isn't about glyph widths.** React Native renders at `ceil(size × density)` pixels. Its lines are spaced by Roboto's rounded hhea ascent + descent, and `includeFontPadding` pads only the first and last line of a `Text`, out to the font's bounding box. The §8.2 row-pitch gap was that padding. The uniform `ascent-override` / `descent-override` proposed above would have been wrong for any `Text` longer than one line.
+- **Only iOS tracking is fitted.** Every other constant comes from the fonts: `UIFont` on the Simulator for SF Pro, and the bundled Roboto files. `fit.py` checks the line rules against all 97 native samples per platform (single lines, paragraphs, explicit `lineHeight`, padding off, default size) and fails on any mismatch.
+
+Results, as median / max over the samples the fit never saw:
+
+| | Width, before | Width, after | Line height, before | Line height, after |
+| --- | --- | --- | --- | --- |
+| iOS (held-out sizes, weights, spacing, paragraphs) | 2–6% / 12% | 0.4–1.0% / 1.8% | ≤ 0.67 / 1.33 pt | ≤ 0.30 pt |
+| Android (same) | 0.1–1.1% / 4.0% | 0.1–0.5% / 1.3% | 0.3–3.6 / 6.5 dp | ≤ 0.03 dp |
+
+That meets the targets of median width ≤ 1.5% and line height ≤ 0.5 pt. `test_text_lays_out_like_the_device` holds them.
+
+**Untested:**
+
+- Linux Chromium, where the Docker backend renders. The numbers above come from Chromium on macOS.
+- Real phones and OEM fonts (Samsung's One UI doesn't use Roboto).
+- Font scaling other than 100%.
+- Densities other than 3× and 2.625.
+- Scripts outside Latin, and emoji.
+
+**Prompt guidance (Phase 2).** The system prompt says the preview font is a metric-matched stand-in, and that font size should be matched by glyph height, not by text width.
 
 ---
 

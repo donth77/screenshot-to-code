@@ -15,7 +15,7 @@
     { "pixelWidth": 1080, "pixelHeight": 2340, "platform": "ios", "name": "iPhone 12 mini, 13 mini", "logicalWidth": 375, "logicalHeight": 812, "scale": 2.88, "insetTop": 50, "insetBottom": 34, "status": "assumed" },
     { "pixelWidth": 828, "pixelHeight": 1792, "platform": "ios", "name": "iPhone XR, 11", "logicalWidth": 414, "logicalHeight": 896, "scale": 2, "insetTop": 48, "insetBottom": 34, "status": "assumed" },
     { "pixelWidth": 750, "pixelHeight": 1334, "platform": "ios", "name": "iPhone SE (2nd/3rd gen), 6, 7, 8", "logicalWidth": 375, "logicalHeight": 667, "scale": 2, "insetTop": 20, "insetBottom": 0, "status": "assumed" },
-    { "pixelWidth": 1080, "pixelHeight": 2400, "platform": "android", "name": "Pixel 8 and many 20:9 Androids", "logicalWidth": 412, "logicalHeight": 915, "scale": 2.62, "insetTop": 52.6, "insetBottom": null, "status": "derived" },
+    { "pixelWidth": 1080, "pixelHeight": 2400, "platform": "android", "name": "Pixel 8 and many 20:9 Androids", "logicalWidth": 412, "logicalHeight": 915, "scale": 2.62, "insetTop": 50.3, "insetBottom": 24, "status": "verified" },
     { "pixelWidth": 1344, "pixelHeight": 2992, "platform": "android", "name": "Pixel 8 Pro", "logicalWidth": 448, "logicalHeight": 997, "scale": 3, "insetTop": null, "insetBottom": null, "status": "verified-size" }
   ]
 }

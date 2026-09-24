@@ -20,6 +20,7 @@ import { AppRegistry, ScrollView, Text, View } from 'react-native-web';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { FONT_FACES } from 'virtual:fonts';
 import { lintNativeCompat } from './lint.js';
+import { fontFaceDescriptors } from './text-metrics.js';
 
 const FILENAME = 'App.jsx';
 // new Function() prepends "function anonymous(require,module,exports,React\n) {\n".
@@ -32,7 +33,7 @@ let modules = null;
 let currentRoot = null;
 let renderId = 0;
 let lastGoodApp = null;
-let appliedFontFamily = null;
+let appliedFontKey = null;
 
 function errorList() {
   return (window.__RN_PREVIEW_ERRORS__ = window.__RN_PREVIEW_ERRORS__ || []);
@@ -57,14 +58,18 @@ export function reportError(entry) {
 
 function applyProfile(profile) {
   window.__RN_PREVIEW_PROFILE__ = profile;
-  const family = PLATFORM_FONT[profile.platform === 'android' ? 'android' : 'ios'];
-  if (family === appliedFontFamily) return;
-  appliedFontFamily = family;
+  const platform = profile.platform === 'android' ? 'android' : 'ios';
+  const family = PLATFORM_FONT[platform];
+  // Calibrated metrics can be switched off (calibration measures the raw fonts).
+  const descriptors = profile.textMetrics === false ? '' : fontFaceDescriptors(platform);
+  const fontKey = `${family}|${descriptors}`;
+  if (fontKey === appliedFontKey) return;
+  appliedFontKey = fontKey;
   const faces = FONT_FACES.filter((face) => face.family === family)
     .map(
       (face) =>
         `@font-face{font-family:"${face.family}";font-style:normal;font-weight:${face.weight};` +
-        `font-display:block;src:url(${face.src}) format("woff2");}`
+        `font-display:block;${descriptors}src:url(${face.src}) format("woff2");}`
     )
     .join('\n');
   let style = document.getElementById('rn-preview-fonts');

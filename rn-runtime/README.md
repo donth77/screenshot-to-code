@@ -38,9 +38,12 @@ past 1,900 KB raw / 700 KB gzip.
 | --- | --- |
 | `src/runtime-entry.js` | Module registry (`window.__RN_MODULES__`) and the lucide / react-native proxies |
 | `src/preview.js` | Transform (Babel), execute, mount, error and readiness reporting |
+| `src/lint.js` | Native-compatibility lint (DOM elements, `onClick`, web-only styles) |
+| `src/text-metrics.js` | The `Text` generated code gets: iOS and Android text rules on top of react-native-web |
 | `src/preview-template.html` | Template with the `__RN_PREVIEW_CONFIG__` and `<!--RN_PREVIEW_SCRIPTS-->` placeholders |
 | `src/shims/` | expo-status-bar stand-in; profile-driven safe-area provider |
 | `fixtures/` | Test screens, including deliberately broken ones |
+| `calibration/` | Native text measurements, the fit behind `text-metrics.js`, and how to redo them ([README](calibration/README.md)) |
 | `expo-sdk.json` | Single source of truth for the Expo SDK pins |
 | `device-profiles.json` | Known screenshot sizes, logical sizes, scales and insets |
 
@@ -54,3 +57,5 @@ past 1,900 KB raw / 700 KB gzip.
 3. `pnpm install && pnpm build`. The build refuses mismatched versions.
 4. Run the backend suite (`cd backend && poetry run pytest tests/test_rn_runtime.py`) and check
    the Snack SDK in `expo-sdk.json` against Snack's newest supported version.
+5. Re-measure the text calibration on the new SDK's Expo Go ([calibration/README.md](calibration/README.md)):
+   React Native's text layout rules can change between versions, and `fit.py` checks them.

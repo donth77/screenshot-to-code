@@ -16,6 +16,7 @@ import * as SafeArea from 'react-native-safe-area-context';
 import * as Svg from 'react-native-svg';
 import * as Lucide from 'lucide-react-native';
 import * as StatusBar from './shims/expo-status-bar.js';
+import { Text as CalibratedText } from './text-metrics.js';
 import { boot, reportError, transform } from './preview.js';
 
 // Babel's CommonJS interop only reads `.default` from objects flagged
@@ -96,7 +97,9 @@ const lucideModule = new Proxy(esModule(Lucide), {
 // On native, `import RN from 'react-native'` yields the module object, so keep
 // that for default. Unknown capitalized names are flagged instead of silently
 // rendering `undefined` ("Element type is invalid").
-const reactNativeModule = new Proxy(esModule(RNW, { default: RNW }), {
+// The model's Text gets the calibrated font metrics (see text-metrics.js).
+const reactNativeExports = esModule(RNW, { Text: CalibratedText });
+const reactNativeModule = new Proxy(esModule(reactNativeExports, { default: reactNativeExports }), {
   get(target, prop, receiver) {
     if (typeof prop === 'string' && !(prop in target) && /^[A-Z]/.test(prop)) {
       reportError({

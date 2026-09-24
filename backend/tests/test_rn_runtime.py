@@ -9,7 +9,9 @@ Chromium isn't installed.
 
 import asyncio
 import base64
+import importlib.util
 import io
+import json
 import time
 from pathlib import Path
 from typing import Any, AsyncIterator, Iterator, cast
@@ -467,3 +469,83 @@ async def test_web_only_styles_are_warnings_with_source_lines(browser: Browser) 
         ("legacy-shadow", 19),   # shadowColor
         ("legacy-shadow", 19),   # elevation
     ])
+
+
+# ---------------------------------------------------------------- text metrics (1.6)
+
+
+def _calibration() -> Any:
+    """rn-runtime/calibration/measure_web.py, which owns the sample categories and the reader."""
+    path = FIXTURES.parent / "calibration" / "measure_web.py"
+    spec = importlib.util.spec_from_file_location("rn_calibration_measure_web", path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+# Width error (%) per category and height error (pt / dp) against the device
+# measurements in rn-runtime/calibration/measurements. The held-out categories
+# (everything but "grid") weren't used to fit anything. See calibration/README.md.
+TEXT_METRIC_LIMITS = {
+    "ios": {"width_median_pct": 1.25, "width_max_pct": 2.5, "height_max": 0.34},  # iOS rounds whole blocks; the preview can't
+    "android": {"width_median_pct": 0.75, "width_max_pct": 1.5, "height_max": 0.05},
+}
+
+
+@pytest.mark.parametrize("platform", ["ios", "android"])
+async def test_text_lays_out_like_the_device(browser: Browser, platform: str) -> None:
+    calibration = _calibration()
+    native = json.loads((calibration.HERE / "measurements" / f"native-{platform}.json").read_text())
+    source = (calibration.HERE / "TextGrid.jsx").read_text()
+    render = await render_preview(browser, bundle(), source, calibration.PROFILES[platform], inspect=calibration.read_grid)
+    assert render.status == "ok"
+    limits = TEXT_METRIC_LIMITS[platform]
+    for category, row in calibration.compare(render.extra, native).items():
+        for key, limit in limits.items():
+            assert row[key] <= limit, f"{platform} {category}: {key} {row[key]} > {limit}"
+
+
+async def test_text_metrics_follow_nesting_and_explicit_styles(browser: Browser) -> None:
+    source = """
+import React from 'react';
+import { Text, View } from 'react-native';
+export default function App() {
+  return (
+    <View>
+      <Text testID="outer" style={{ fontSize: 17 }}>
+        Plain <Text testID="bold" style={{ fontWeight: '700' }}>bold</Text>
+        <Text testID="big" style={{ fontSize: 34 }}>big</Text>
+      </Text>
+      <Text testID="spaced" style={{ fontSize: 17, lineHeight: 22, letterSpacing: 1, paddingVertical: 4 }}>Spaced</Text>
+      <Text testID="unpadded" style={{ fontSize: 17, includeFontPadding: false }}>Unpadded</Text>
+    </View>
+  );
+}
+"""
+    read = """() => Object.fromEntries(['outer', 'bold', 'big', 'spaced', 'unpadded'].map((id) => {
+  const s = getComputedStyle(document.querySelector(`[data-testid="${id}"]`));
+  return [id, { fontSize: s.fontSize, lineHeight: s.lineHeight, letterSpacing: s.letterSpacing, kerning: s.fontKerning, padTop: s.paddingTop, padBottom: s.paddingBottom }];
+}))"""
+
+    async def styles(page: Page) -> dict[str, Any]:
+        return cast(dict[str, Any], await page.evaluate(read))
+
+    pixel: dict[str, Any] = {**PIXEL, "scale": 2.625}
+    ios = (await render_preview(browser, bundle(), source, IPHONE, inspect=styles)).extra
+    android = (await render_preview(browser, bundle(), source, pixel, inspect=styles)).extra
+
+    # iOS: SF Pro's line (1.193 em), tracking per size and weight, explicit spacing added on top.
+    assert ios["outer"]["lineHeight"].startswith("20.28")
+    assert ios["bold"]["letterSpacing"] != ios["outer"]["letterSpacing"]  # weight changes tracking
+    assert ios["big"]["lineHeight"].startswith("40.57")  # own size, own line
+    assert ios["spaced"]["lineHeight"] == "22px"
+    assert 0.5 < float(ios["spaced"]["letterSpacing"].removesuffix("px")) < 1  # 1 plus SF's negative tracking at 17 pt
+    assert ios["spaced"]["kerning"] == "auto"
+    # Android: whole-pixel font sizes, font padding on the outer Text only, explicit lineHeight rounded up per line.
+    assert android["outer"]["fontSize"].startswith("17.14")  # 45 px at 2.625
+    assert float(android["outer"]["padTop"].removesuffix("px")) > 0
+    assert android["bold"]["padTop"] == "0px"
+    assert android["spaced"]["lineHeight"].startswith("22.09")  # 58 px
+    assert android["spaced"]["padTop"] == "4px"  # the code's padding, nothing added
+    assert android["unpadded"]["padTop"] == "0px"
