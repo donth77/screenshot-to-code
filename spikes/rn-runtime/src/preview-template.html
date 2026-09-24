@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>React Native preview</title>
+<style>
+  html, body { height: 100%; margin: 0; }
+  body { overflow: hidden; background-color: #fff; }
+  #root { display: flex; height: 100%; flex: 1; }
+</style>
+<script>
+  // Installed before the runtime loads so load and boot failures are captured.
+  (function () {
+    var errors = (window.__RN_PREVIEW_ERRORS__ = []);
+    var originalError = console.error.bind(console);
+    window.__RN_PREVIEW_CONSOLE_ERROR__ = originalError;
+    function push(kind, message, extra) {
+      message = String(message);
+      for (var i = 0; i < errors.length; i++) {
+        if (errors[i].kind === kind && errors[i].message === message) return;
+      }
+      var entry = { kind: kind, message: message.slice(0, 2000) };
+      for (var key in extra || {}) entry[key] = extra[key];
+      errors.push(entry);
+    }
+    function describe(value) {
+      if (value instanceof Error) return value.message;
+      if (typeof value === 'string') return value;
+      try { return JSON.stringify(value); } catch (e) { return String(value); }
+    }
+    function format(args) {
+      var rest = Array.prototype.slice.call(args);
+      var first = rest.shift();
+      if (typeof first !== 'string') return [first].concat(rest).map(describe).join(' ');
+      var text = first.replace(/%[sdifoOc]/g, function (token) {
+        if (!rest.length) return token;
+        var value = rest.shift();
+        return token === '%c' ? '' : describe(value);
+      });
+      return [text].concat(rest.map(describe)).join(' ').trim();
+    }
+    console.error = function () {
+      var message = format(arguments);
+      push(/Invalid hook call/.test(message) ? 'invalid_hook_call' : 'console_error', message);
+      originalError.apply(console, arguments);
+    };
+    window.addEventListener('error', function (event) {
+      push('uncaught', event.message, { line: event.lineno, column: event.colno, source: event.filename });
+    });
+    window.addEventListener('unhandledrejection', function (event) {
+      var reason = event.reason;
+      push('unhandled_rejection', (reason && reason.message) || reason);
+    });
+  })();
+</script>
+<script id="rn-preview-config" type="application/json">__RN_PREVIEW_CONFIG__</script>
+<!--RN_PREVIEW_SCRIPTS-->
+</head>
+<body>
+<div id="root"></div>
+<script>
+  if (window.__RN_PREVIEW__ && window.Babel) {
+    window.__RN_PREVIEW__.boot();
+  } else {
+    window.__RN_PREVIEW_ERRORS__.push({
+      kind: 'runtime_load',
+      fatal: true,
+      message: (window.Babel ? '' : 'Babel failed to load. ') + (window.__RN_PREVIEW__ ? '' : 'Preview runtime failed to load.'),
+    });
+    document.getElementById('root').textContent = 'Preview runtime failed to load.';
+    window.__RN_PREVIEW_STATUS__ = 'error';
+    window.__RN_PREVIEW_READY__ = true;
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+node_modules/
+dist/
+gates/out/
+# Stray size-measurement output from a Phase 0 path bug (safe to delete).
+private/
