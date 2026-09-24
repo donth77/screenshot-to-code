@@ -1,4 +1,4 @@
-import { RefObject, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ReactNativeDevice,
   deviceLabel,
@@ -7,18 +7,32 @@ import {
 import type { PreviewMode } from "../../../lib/react-native/previewHtml";
 import type { PreviewStatus } from "../../../lib/react-native/previewRuntime";
 import ReactNativeFrame from "./ReactNativeFrame";
+import {
+  SelectAndEditOptions,
+  useSelectAndEditFrame,
+} from "../../select-and-edit/useSelectAndEditFrame";
+import {
+  describeReactNativeElement,
+  nearestTestIdElement,
+  reactNativeElementLabel,
+} from "../../select-and-edit/utils";
 
 // pt around the screen, drawn as the phone's bezel.
 const BEZEL = 12;
 // Keep this much of the pane free around the phone.
 const MARGIN = 16;
 
+// Select the nearest element with a testID, and label the rings with it.
+const TEST_ID_SELECTION: SelectAndEditOptions = {
+  resolveTarget: nearestTestIdElement,
+  describeTarget: (element) => reactNativeElementLabel(describeReactNativeElement(element)),
+};
+
 interface Props {
   code: string;
   device: ReactNativeDevice;
   mode: PreviewMode;
   refreshNonce: number;
-  frameRef?: RefObject<HTMLIFrameElement>;
 }
 
 // The status bar and home indicator were cropped from the screenshot, so the
@@ -115,8 +129,10 @@ function StatusPill({
 
 // App.jsx on a phone: one viewport at the target device's content size,
 // scaled down to fit the pane.
-function PhonePreview({ code, device, mode, refreshNonce, frameRef }: Props) {
+function PhonePreview({ code, device, mode, refreshNonce }: Props) {
   const areaRef = useRef<HTMLDivElement>(null);
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  useSelectAndEditFrame(frameRef, TEST_ID_SELECTION);
   const [scale, setScale] = useState(1);
   const [status, setStatus] = useState<PreviewStatus | null>(null);
   const [errorsExpanded, setErrorsExpanded] = useState(false);

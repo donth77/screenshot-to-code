@@ -11,25 +11,32 @@ import {
   showSelectionOverlay,
 } from "./overlays";
 
-// Maps the element under the pointer to the element to select. React Native
-// previews select the nearest element with a testID.
-export type SelectTargetResolver = (element: HTMLElement) => HTMLElement;
+export interface SelectAndEditOptions {
+  // Maps the element under the pointer to the element to select. React
+  // Native previews select the nearest element with a testID.
+  resolveTarget?: (element: HTMLElement) => HTMLElement;
+  // Labels the hover and selection rings; by default the element's tag.
+  describeTarget?: (element: HTMLElement) => string | undefined;
+}
 
-const selectElementItself: SelectTargetResolver = (element) => element;
+const selectElementItself = (element: HTMLElement) => element;
+const tagLabel = () => undefined;
 
 // Select-and-edit inside a same-origin preview iframe: capture-phase
 // listeners on the frame's window, hover and selection rings, the crosshair
 // cursor, and the selection in the app store.
 export function useSelectAndEditFrame(
   iframeRef: RefObject<HTMLIFrameElement>,
-  resolveTarget: SelectTargetResolver = selectElementItself
+  { resolveTarget = selectElementItself, describeTarget = tagLabel }: SelectAndEditOptions = {}
 ) {
   // Select and edit functionality
   const [clickEvent, setClickEvent] = useState<MouseEvent | null>(null);
   const resolveTargetRef = useRef(resolveTarget);
+  const describeTargetRef = useRef(describeTarget);
   useEffect(() => {
     resolveTargetRef.current = resolveTarget;
-  }, [resolveTarget]);
+    describeTargetRef.current = describeTarget;
+  }, [resolveTarget, describeTarget]);
 
   // In select-and-edit mode, intercept clicks in the capture phase so the
   // generated app's own handlers (React/Vue listeners, Bootstrap/Ionic
@@ -77,7 +84,7 @@ export function useSelectAndEditFrame(
     }
 
     hoveredElementRef.current = target;
-    showHoverOverlay(target);
+    showHoverOverlay(target, describeTargetRef.current(target));
   }, []);
 
   const handleIframeMouseOut = useCallback((event: MouseEvent) => {
@@ -94,11 +101,11 @@ export function useSelectAndEditFrame(
     if (!inSelectAndEditModeRef.current) return;
     const hovered = hoveredElementRef.current;
     if (hovered && hovered.isConnected) {
-      showHoverOverlay(hovered);
+      showHoverOverlay(hovered, describeTargetRef.current(hovered));
     }
     const selected = useAppStore.getState().selectedElement;
     if (selected && selected.isConnected) {
-      showSelectionOverlay(selected);
+      showSelectionOverlay(selected, describeTargetRef.current(selected));
     }
   }, []);
 
@@ -144,7 +151,7 @@ export function useSelectAndEditFrame(
   // sidebar's X button or after submitting an edit).
   useEffect(() => {
     if (selectedElement && selectedElement.isConnected) {
-      showSelectionOverlay(selectedElement);
+      showSelectionOverlay(selectedElement, describeTargetRef.current(selectedElement));
       return;
     }
     hideSelectionOverlay(iframeRef.current?.contentWindow?.document);

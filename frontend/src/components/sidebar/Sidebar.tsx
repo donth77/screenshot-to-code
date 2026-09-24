@@ -23,7 +23,11 @@ import { CodeGenerationModel } from "../../lib/models";
 import DesignSystemSelector, {
   DesignSystemSelectorProps,
 } from "../settings/DesignSystemSelector";
-import { Stack } from "../../lib/stacks";
+import { isReactNativeStack, Stack } from "../../lib/stacks";
+import {
+  describeReactNativeElement,
+  reactNativeElementLabel,
+} from "../select-and-edit/utils";
 
 interface SidebarProps {
   doUpdate: (instruction: string) => void;
@@ -161,6 +165,16 @@ function Sidebar({
   const currentCommit = head ? commits[head] : null;
   const latestChangeSummary = summarizeLatestChange(currentCommit);
   const selectedElementTag = getSelectedElementTag(currentCommit);
+  const selectedElementLabel =
+    currentCommit && currentCommit.type !== "code_create"
+      ? currentCommit.inputs.selectedElementLabel
+      : undefined;
+  // React Native selections are named by testID rather than by tag.
+  const liveSelectionLabel = selectedElement
+    ? isReactNativeStack(stack)
+      ? reactNativeElementLabel(describeReactNativeElement(selectedElement))
+      : `<${selectedElement.tagName.toLowerCase()}>`
+    : null;
   const latestChangeImages =
     currentCommit && currentCommit.type !== "code_create"
       ? currentCommit.inputs.images
@@ -348,7 +362,7 @@ function Sidebar({
                 <div className="mt-1.5 flex items-center gap-1.5">
                   <LuMousePointerClick className="w-3 h-3 text-violet-500 dark:text-violet-400" />
                   <span className="text-[11px] text-violet-600 dark:text-violet-300">
-                    Selected: <code className="font-mono text-[10px] bg-violet-200/60 dark:bg-violet-800/50 px-1 py-0.5 rounded">&lt;{selectedElementTag}&gt;</code>
+                    Selected: <code className="font-mono text-[10px] bg-violet-200/60 dark:bg-violet-800/50 px-1 py-0.5 rounded">{selectedElementLabel ?? <>&lt;{selectedElementTag}&gt;</>}</code>
                   </span>
                 </div>
               )}
@@ -528,7 +542,7 @@ function Sidebar({
                     <div className="flex items-center gap-2 min-w-0">
                       <LuMousePointerClick className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400 shrink-0" />
                       <span className="text-sm text-violet-700 dark:text-violet-300 truncate">
-                        Selected: <code className="font-mono text-xs bg-violet-100 dark:bg-violet-800/50 px-1.5 py-0.5 rounded">&lt;{selectedElement.tagName.toLowerCase()}&gt;</code>
+                        Selected: <code className="font-mono text-xs bg-violet-100 dark:bg-violet-800/50 px-1.5 py-0.5 rounded" data-testid="selected-element-label">{liveSelectionLabel}</code>
                       </span>
                     </div>
                     <button
@@ -564,7 +578,7 @@ function Sidebar({
                 ref={textareaRef}
                 placeholder={
                   inSelectAndEditMode && selectedElement
-                    ? `Describe changes for the selected <${selectedElement.tagName.toLowerCase()}> element...`
+                    ? `Describe changes for the selected ${liveSelectionLabel} element...`
                     : "Tell the AI what to change..."
                 }
                 onChange={(e) => {

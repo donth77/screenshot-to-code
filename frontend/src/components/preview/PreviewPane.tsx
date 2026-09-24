@@ -222,7 +222,7 @@ function PreviewPane({ settings, onOpenVersions }: Props) {
 
           <div className="flex items-center gap-1">
             {canSelectAndEdit &&
-              (activeTab === "desktop" || activeTab === "mobile") && (
+              (activeTab === "desktop" || activeTab === "mobile" || activeTab === "phone") && (
                 <SelectAndEditToolbarButton />
               )}
             {(appState === AppState.CODE_READY || isSelectedVariantComplete) && !isReactNative && (

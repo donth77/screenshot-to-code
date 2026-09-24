@@ -36,6 +36,74 @@ export function describeElementContext(el: Element): string {
   return lines.join("\n");
 }
 
+// React Native: App.jsx's testID props become data-testid in the preview.
+const TEST_ID_ATTRIBUTE = "data-testid";
+const MAX_TEST_ID_DEPTH = 8;
+const MAX_TEXT_SNIPPET = 120;
+
+export interface ReactNativeElementDescription {
+  testId: string | null;
+  // testIDs of the elements it sits in, outermost first, ending with its own.
+  testIdPath: string[];
+  text: string;
+}
+
+// The element to select for a pointer target in a React Native preview:
+// the nearest element with a testID.
+export function nearestTestIdElement(element: HTMLElement): HTMLElement {
+  return (element.closest?.(`[${TEST_ID_ATTRIBUTE}]`) as HTMLElement | null) ?? element;
+}
+
+export function describeReactNativeElement(el: Element): ReactNativeElementDescription {
+  const testIdPath: string[] = [];
+  let current: Element | null = el;
+  while (current && testIdPath.length < MAX_TEST_ID_DEPTH) {
+    const testId = current.getAttribute(TEST_ID_ATTRIBUTE);
+    if (testId) testIdPath.unshift(testId);
+    current = current.parentElement;
+  }
+  // innerText separates react-native-web's sibling Text blocks; textContent
+  // would run "Notifications" into "Push, email, SMS".
+  const rendered = (el as Partial<HTMLElement>).innerText;
+  const text = (typeof rendered === "string" ? rendered : el.textContent ?? "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return {
+    testId: el.getAttribute(TEST_ID_ATTRIBUTE),
+    testIdPath,
+    text: text.length > MAX_TEXT_SNIPPET ? `${text.slice(0, MAX_TEXT_SNIPPET)}…` : text,
+  };
+}
+
+// How the selection is labelled in the sidebar, history and overlays.
+export function reactNativeElementLabel(description: ReactNativeElementDescription): string {
+  return description.testId ? `testID="${description.testId}"` : "element";
+}
+
+export function buildReactNativeSelectedElementInstruction(
+  instruction: string,
+  description: ReactNativeElementDescription
+): string {
+  const lines = [
+    instruction,
+    "",
+    description.testId
+      ? `Apply the change to the element the user selected in the preview: the one with testID="${description.testId}".`
+      : "Apply the change to the element the user selected in the preview. It has no testID.",
+  ];
+  if (description.testIdPath.length > (description.testId ? 1 : 0)) {
+    lines.push(`testIDs from the screen down to it: ${description.testIdPath.join(" > ")}`);
+  }
+  if (description.text) {
+    lines.push(`Its text: "${description.text}"`);
+  }
+  lines.push(
+    "",
+    "Find that element in App.jsx by its testID (rows of a list build theirs from the item, such as `row-${item.id}`) and change only it and its rendering logic, leaving the rest of App.jsx unchanged."
+  );
+  return lines.join("\n");
+}
+
 export function buildSelectedElementInstruction(
   instruction: string,
   elementHtml: string,

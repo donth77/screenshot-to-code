@@ -66,6 +66,9 @@ export interface PromptContent {
   images: string[]; // Array of data URLs
   videos?: string[]; // Array of data URLs
   selectedElementHtml?: string; // Raw HTML of selected element (for display only)
+  // How to name the selected element when its tag says little (display
+  // only). React Native: testID="settings-row-wifi".
+  selectedElementLabel?: string;
 }
 
 export interface PromptHistoryMessage {

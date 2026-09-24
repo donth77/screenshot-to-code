@@ -88,7 +88,7 @@ function ensureOverlay(doc: Document, kind: OverlayKind): HTMLElement {
   return overlay;
 }
 
-function showOverlay(element: HTMLElement, kind: OverlayKind) {
+function showOverlay(element: HTMLElement, kind: OverlayKind, name?: string) {
   const doc = element.ownerDocument;
   if (!doc || !doc.documentElement) return;
   if (
@@ -110,7 +110,7 @@ function showOverlay(element: HTMLElement, kind: OverlayKind) {
 
   const label = overlay.firstChild as HTMLElement | null;
   if (label) {
-    const tag = `<${element.tagName.toLowerCase()}>`;
+    const tag = name ?? `<${element.tagName.toLowerCase()}>`;
     label.textContent = kind === "selection" ? `✓ ${tag}` : tag;
     // Flip the label inside the box when the element touches the top edge.
     label.style.top = rect.top - inset > 26 ? "-24px" : "3px";
@@ -126,8 +126,9 @@ function removeOverlay(doc: Document | null | undefined, kind: OverlayKind) {
   doc?.getElementById(OVERLAY_IDS[kind])?.remove();
 }
 
-export function showHoverOverlay(element: HTMLElement) {
-  showOverlay(element, "hover");
+// `name` labels the ring; by default the element's tag, e.g. "<div>".
+export function showHoverOverlay(element: HTMLElement, name?: string) {
+  showOverlay(element, "hover", name);
 }
 
 export function hideHoverOverlay(doc: Document | null | undefined) {
@@ -138,8 +139,8 @@ export function removeHoverOverlay(doc: Document | null | undefined) {
   removeOverlay(doc, "hover");
 }
 
-export function showSelectionOverlay(element: HTMLElement) {
-  showOverlay(element, "selection");
+export function showSelectionOverlay(element: HTMLElement, name?: string) {
+  showOverlay(element, "selection", name);
 }
 
 export function hideSelectionOverlay(doc: Document | null | undefined) {

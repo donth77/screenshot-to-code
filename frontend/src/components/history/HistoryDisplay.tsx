@@ -206,7 +206,7 @@ export default function HistoryDisplay() {
                       {" "}
                       <span className="text-gray-300 dark:text-gray-600">&middot;</span>
                       {" "}
-                      <code className="text-xs font-mono text-violet-600 dark:text-violet-400">&lt;{item.selectedElementTag}&gt;</code>
+                      <code className="text-xs font-mono text-violet-600 dark:text-violet-400">{item.inputs?.selectedElementLabel ?? <>&lt;{item.selectedElementTag}&gt;</>}</code>
                     </>
                   )}
                 </p>
@@ -240,7 +240,7 @@ export default function HistoryDisplay() {
                 )}
                 {item.selectedElementTag && (
                   <p className="text-xs text-violet-500 dark:text-violet-400 mt-1">
-                    Target: <code className="font-mono text-[10px] bg-violet-100 dark:bg-violet-900/30 px-1 py-0.5 rounded">&lt;{item.selectedElementTag}&gt;</code>
+                    Target: <code className="font-mono text-[10px] bg-violet-100 dark:bg-violet-900/30 px-1 py-0.5 rounded">{item.inputs?.selectedElementLabel ?? <>&lt;{item.selectedElementTag}&gt;</>}</code>
                   </p>
                 )}
                 <ExpandedMedia

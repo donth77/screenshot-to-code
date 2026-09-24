@@ -34,8 +34,11 @@ import { useAppStore } from "./store/app-store";
 import { useProjectStore } from "./store/project-store";
 import { useDesignSystems } from "./hooks/useDesignSystems";
 import {
+  buildReactNativeSelectedElementInstruction,
   buildSelectedElementInstruction,
   describeElementContext,
+  describeReactNativeElement,
+  reactNativeElementLabel,
 } from "./components/select-and-edit/utils";
 import { useEscapeToExitSelectMode } from "./components/select-and-edit/useEscapeToExitSelectMode";
 import Sidebar from "./components/sidebar/Sidebar";
@@ -759,10 +762,22 @@ function App() {
 
     let modifiedUpdateInstruction = updateInstruction;
     let selectedElementHtml: string | undefined;
+    let selectedElementLabel: string | undefined;
 
     // Send in a reference to the selected element if it exists. Selection
     // visuals are overlays, so the element's outerHTML is already clean.
-    if (selectedElement) {
+    if (selectedElement && isReactNative) {
+      // The preview's DOM isn't App.jsx: name the element by its testID,
+      // the testIDs around it and its text.
+      const description = describeReactNativeElement(selectedElement);
+      selectedElementHtml = selectedElement.outerHTML;
+      selectedElementLabel = reactNativeElementLabel(description);
+      modifiedUpdateInstruction = buildReactNativeSelectedElementInstruction(
+        updateInstruction,
+        description
+      );
+      setSelectedElement(null);
+    } else if (selectedElement) {
       const elementHtml = selectedElement.outerHTML;
       selectedElementHtml = elementHtml;
       modifiedUpdateInstruction = buildSelectedElementInstruction(
@@ -792,6 +807,7 @@ function App() {
           images: updateImages,
           videos: [],
           selectedElementHtml,
+          ...(selectedElementLabel ? { selectedElementLabel } : {}),
         },
         parentCommit: currentCommit,
         imageAssetIds: updateImageAssetIds,
