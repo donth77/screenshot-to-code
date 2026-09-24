@@ -2,6 +2,7 @@ import { FaCopy } from "react-icons/fa";
 import CodeMirror from "./CodeMirror";
 import { Button } from "../ui/button";
 import { Settings } from "../../types";
+import { isReactNativeStack } from "../../lib/stacks";
 import copy from "copy-to-clipboard";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
@@ -13,6 +14,8 @@ interface Props {
 }
 
 function CodeTab({ code, setCode, settings }: Props) {
+  // React Native projects are one App.jsx, which CodePen can't run.
+  const isReactNative = isReactNativeStack(settings.generatedCodeConfig);
   const copyCode = useCallback(() => {
     copy(code);
     toast.success("Copied to clipboard");
@@ -64,23 +67,33 @@ function CodeTab({ code, setCode, settings }: Props) {
         >
           Copy Code <FaCopy className="ml-2" />
         </span>
-        <Button
-          onClick={doOpenInCodepenio}
-          className="bg-gray-100 text-black ml-2 py-2 px-4 border border-black rounded-md hover:bg-gray-400 focus:outline-none"
-          data-testid="open-codepen"
-        >
-          Open in{" "}
-          <img
-            src="https://assets.codepen.io/t-1/codepen-logo.svg"
-            alt="codepen.io"
-            className="h-4 ml-1"
-          />
-        </Button>
+        {isReactNative ? (
+          <span
+            className="ml-3 rounded-md bg-gray-100 px-2 py-1 font-mono text-xs text-gray-600 dark:bg-zinc-800 dark:text-zinc-300"
+            data-testid="code-filename"
+          >
+            App.jsx
+          </span>
+        ) : (
+          <Button
+            onClick={doOpenInCodepenio}
+            className="bg-gray-100 text-black ml-2 py-2 px-4 border border-black rounded-md hover:bg-gray-400 focus:outline-none"
+            data-testid="open-codepen"
+          >
+            Open in{" "}
+            <img
+              src="https://assets.codepen.io/t-1/codepen-logo.svg"
+              alt="codepen.io"
+              className="h-4 ml-1"
+            />
+          </Button>
+        )}
       </div>
       <CodeMirror
         code={code}
         editorTheme={settings.editorTheme}
         onCodeChange={setCode}
+        language={isReactNative ? "jsx" : "html"}
       />
     </div>
   );

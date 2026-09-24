@@ -11,15 +11,18 @@ import {
 } from "@codemirror/commands";
 import { bracketMatching } from "@codemirror/language";
 import { html } from "@codemirror/lang-html";
+import { javascript } from "@codemirror/lang-javascript";
 import { EditorTheme } from "@/types";
 
 interface Props {
   code: string;
   editorTheme: EditorTheme;
   onCodeChange: (code: string) => void;
+  // "jsx" for React Native's App.jsx; everything else is an HTML page.
+  language?: "html" | "jsx";
 }
 
-function CodeMirror({ code, editorTheme, onCodeChange }: Props) {
+function CodeMirror({ code, editorTheme, onCodeChange, language = "html" }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
   const editorState = useMemo(
@@ -35,7 +38,7 @@ function CodeMirror({ code, editorTheme, onCodeChange }: Props) {
           ]),
           lineNumbers(),
           bracketMatching(),
-          html(),
+          language === "jsx" ? javascript({ jsx: true }) : html(),
           editorTheme === EditorTheme.ESPRESSO ? espresso : cobalt,
           EditorView.lineWrapping,
           EditorView.updateListener.of((update: ViewUpdate) => {
@@ -46,7 +49,7 @@ function CodeMirror({ code, editorTheme, onCodeChange }: Props) {
           }),
         ],
       }),
-    [editorTheme]
+    [editorTheme, language]
   );
   useEffect(() => {
     view.current = new EditorView({
