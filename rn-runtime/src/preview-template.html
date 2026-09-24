@@ -12,11 +12,14 @@
 <script>
   // Installed before the runtime loads so load and boot failures are captured.
   (function () {
-    var errors = (window.__RN_PREVIEW_ERRORS__ = []);
+    window.__RN_PREVIEW_ERRORS__ = [];
     var originalError = console.error.bind(console);
     window.__RN_PREVIEW_CONSOLE_ERROR__ = originalError;
     function push(kind, message, extra) {
+      // Each render clears this array in place, so look it up every time.
+      var errors = window.__RN_PREVIEW_ERRORS__;
       message = String(message);
+      if (errors.length >= 50) return;
       for (var i = 0; i < errors.length; i++) {
         if (errors[i].kind === kind && errors[i].message === message) return;
       }

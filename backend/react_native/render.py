@@ -11,11 +11,13 @@ viewport-only: React Native content scrolls inside its own container, where a
 full-page capture would not reach.
 """
 
+import asyncio
 import time
 from dataclasses import dataclass, field
 from typing import Any, Awaitable, Callable, Mapping, Optional, cast
 
-from playwright.async_api import Browser, ConsoleMessage, Page, Route
+from playwright.async_api import Browser, ConsoleMessage, Error as PlaywrightError, Page, Route
+from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
 from react_native.preview_html import (
     PreviewMode,
@@ -27,6 +29,8 @@ from react_native.runtime_files import RuntimeBundle
 
 ROUTE_ORIGIN = "https://rn-runtime.invalid"
 READY_TIMEOUT_MS = 15000
+STATE_TIMEOUT_S = 3.0
+SCREENSHOT_TIMEOUT_MS = 5000
 MAX_RUNTIME_ERRORS = 20
 MAX_ERROR_CHARS = 500
 MAX_WARNINGS = 20
@@ -34,7 +38,7 @@ MAX_WARNINGS = 20
 _PAGE_STATE_JS = """() => ({
   status: window.__RN_PREVIEW_STATUS__ || null,
   errors: (window.__RN_PREVIEW_ERRORS__ || []).map(({ key, ...rest }) => rest),
-  meta: window.__RN_PREVIEW_META__ || {},
+  meta: (({ app, ...rest }) => rest)(window.__RN_PREVIEW_META__ || {}),
 })"""
 
 Inspector = Callable[[Page], Awaitable[dict[str, Any]]]
@@ -76,6 +80,8 @@ def normalize_runtime_errors(
                 item[key] = entry[key]
         if entry.get("componentStack"):
             item["component_stack"] = str(entry["componentStack"])[:MAX_ERROR_CHARS]
+        if entry.get("frame"):
+            item["frame"] = str(entry["frame"])[:MAX_ERROR_CHARS]
         merged.append(item)
 
     for entry in preview_errors:
@@ -136,18 +142,34 @@ async def render_preview(
         await route.fulfill(path=path, content_type="text/javascript; charset=utf-8")
 
     await page.route(f"{ROUTE_ORIGIN}/rn-runtime/*", fulfill)
+    ready_ms: Optional[int] = None
+    state: dict[str, Any] = {}
+    extra: dict[str, Any] = {}
+    png = b""
     try:
         started = time.perf_counter()
-        await page.set_content(preview_html_for(bundle, source, profile, mode), wait_until="domcontentloaded")
-        ready_ms: Optional[int] = None
         try:
+            # A hung App.jsx (an infinite loop) can block parsing or rendering;
+            # every step below is bounded so the tool always returns.
+            await page.set_content(
+                preview_html_for(bundle, source, profile, mode),
+                wait_until="domcontentloaded",
+                timeout=ready_timeout_ms,
+            )
             await page.wait_for_function("window.__RN_PREVIEW_READY__ === true", timeout=ready_timeout_ms)
             ready_ms = round((time.perf_counter() - started) * 1000)
-        except Exception:
+        except PlaywrightTimeoutError:
             ready_ms = None
-        state = cast(dict[str, Any], await page.evaluate(_PAGE_STATE_JS))
-        extra = await inspect(page) if inspect is not None else {}
-        png = await page.screenshot(full_page=False, type="png")
+        try:
+            state = cast(dict[str, Any], await asyncio.wait_for(page.evaluate(_PAGE_STATE_JS), STATE_TIMEOUT_S))
+        except (asyncio.TimeoutError, PlaywrightError):
+            state = {}
+        if inspect is not None and ready_ms is not None:
+            extra = await inspect(page)
+        try:
+            png = await page.screenshot(full_page=False, type="png", timeout=SCREENSHOT_TIMEOUT_MS)
+        except PlaywrightError:
+            png = b""
     finally:
         await page.close()
 

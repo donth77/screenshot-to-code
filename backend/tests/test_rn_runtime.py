@@ -10,16 +10,17 @@ Chromium isn't installed.
 import asyncio
 import base64
 import io
+import time
 from pathlib import Path
 from typing import Any, AsyncIterator, Iterator, cast
 
 import pytest
 from PIL import Image, ImageDraw, ImageStat
-from playwright.async_api import Browser, Page, Request
+from playwright.async_api import Browser, Page, Request, Route
 
 from preview_screenshot.playwright_backend import PlaywrightBackend
 from react_native.preview_html import inline_script, preview_config_json, render_preview_html
-from react_native.render import PreviewRender, render_preview
+from react_native.render import ROUTE_ORIGIN, PreviewRender, preview_html_for, render_preview
 from react_native.runtime_files import RuntimeBundle, load_runtime
 
 FIXTURES = Path(__file__).resolve().parents[2] / "rn-runtime" / "fixtures"
@@ -188,6 +189,9 @@ async def test_syntax_error_reports_line_and_column(browser: Browser) -> None:
     assert render.status == "error"
     error = render.runtime_errors[0]
     assert (error["kind"], error["line"], error["column"], error["fatal"]) == ("transform", 8, 12, True)
+    # Babel's "/App.jsx: ... (8:11)" wrapper is stripped; the code frame travels separately.
+    assert error["message"] == "Unterminated JSX contents."
+    assert ">  8 |     </View>" in error["frame"]
     assert stddev(render.png) > 5  # the error panel is in the screenshot
 
 
@@ -284,3 +288,142 @@ async def test_inlined_preview_renders_offline_from_a_file(browser: Browser, tmp
         await context.close()
     assert status == "ok"
     assert network == []
+
+
+async def test_failed_image_is_reported_without_failing_the_render(browser: Browser) -> None:
+    render = await render_preview(browser, bundle(), fixture("broken-image"), IPHONE)
+    assert render.status == "degraded"
+    assert kinds(render) == ["image_load"]
+    assert "missing.png" in render.runtime_errors[0]["message"]
+
+
+async def test_hung_app_times_out_instead_of_blocking(browser: Browser, monkeypatch: pytest.MonkeyPatch) -> None:
+    # Production bounds are seconds; shrink them so the test stays fast.
+    monkeypatch.setattr("react_native.render.STATE_TIMEOUT_S", 0.5)
+    monkeypatch.setattr("react_native.render.SCREENSHOT_TIMEOUT_MS", 500)
+    started = time.perf_counter()
+    render = await render_preview(browser, bundle(), fixture("broken-hang"), IPHONE, ready_timeout_ms=2000)
+    assert render.status == "timeout"
+    assert render.ready_ms is None
+    assert render.runtime_errors[0]["kind"] == "timeout" and render.runtime_errors[0]["fatal"] is True
+    assert time.perf_counter() - started < 10
+
+
+# ---------------------------------------------------------------- hot-swap and streaming (1.4)
+
+SCREEN_A = """import React from 'react';
+import { Text, View } from 'react-native';
+
+export default function App() {
+  return (
+    <View testID="screen-a" style={{ flex: 1, padding: 24, backgroundColor: '#EEF2FF' }}>
+      <Text testID="title-a" style={{ fontSize: 22, fontWeight: '700' }}>Screen A</Text>
+    </View>
+  );
+}
+"""
+SCREEN_B = SCREEN_A.replace("screen-a", "screen-b").replace("title-a", "title-b").replace("Screen A", "Screen B")
+
+UPDATE_JS = """([source, mode]) => window.postMessage({ type: 'rn-preview:update', source, mode }, '*')"""
+AFTER_UPDATE_JS = """() => {
+  const badge = document.getElementById('rn-preview-streaming');
+  return {
+    status: window.__RN_PREVIEW_STATUS__,
+    errors: window.__RN_PREVIEW_ERRORS__.map(({ key, ...rest }) => rest),
+    meta: (({ app, ...rest }) => rest)(window.__RN_PREVIEW_META__),
+    testIds: Array.from(document.querySelectorAll('[data-testid]')).map((el) => el.getAttribute('data-testid')),
+    badge: Boolean(badge && !badge.hidden),
+    // Set before the update; a page reload would have cleared it.
+    sameDocument: window.__beforeUpdate === true,
+  };
+}"""
+
+
+async def update(page: Page, source: str, mode: str, render_id: int) -> dict[str, Any]:
+    """Post an update the way the frontend does and wait for that render to settle."""
+    await page.evaluate("() => { window.__beforeUpdate = true; }")
+    await page.evaluate(UPDATE_JS, [source, mode])
+    await page.wait_for_function(
+        "(id) => window.__RN_PREVIEW_READY__ === true && window.__RN_PREVIEW_META__.renderId === id",
+        arg=render_id,
+        timeout=10000,
+    )
+    return cast(dict[str, Any], await page.evaluate(AFTER_UPDATE_JS))
+
+
+async def test_hot_swap_replaces_the_screen_without_reloading_scripts(browser: Browser) -> None:
+    async def swap(page: Page) -> dict[str, Any]:
+        return await update(page, SCREEN_B, "final", 2)
+
+    render = await render_preview(browser, bundle(), SCREEN_A, IPHONE, inspect=swap)
+    after = render.extra
+    assert after["status"] == "ok" and after["errors"] == []
+    assert "screen-b" in after["testIds"] and "screen-a" not in after["testIds"]
+    assert after["sameDocument"] is True  # swapped in place, no reload
+    # Target is 150 ms from update to settled; allow slack for loaded CI machines.
+    assert after["meta"]["readyMs"] < 500
+
+
+async def test_streaming_keeps_the_last_good_render(browser: Browser) -> None:
+    async def stream(page: Page) -> dict[str, Any]:
+        return {
+            "partial": await update(page, SCREEN_B[: len(SCREEN_B) // 2], "streaming", 2),
+            "throwing": await update(page, fixture("broken-runtime"), "streaming", 3),
+            "final": await update(page, SCREEN_B, "final", 4),
+        }
+
+    render = await render_preview(browser, bundle(), SCREEN_A, IPHONE, inspect=stream)
+    partial, throwing, final = render.extra["partial"], render.extra["throwing"], render.extra["final"]
+    # A half-written file (syntax error) keeps screen A up, with the badge and no errors.
+    assert partial["status"] == "streaming" and partial["errors"] == []
+    assert "screen-a" in partial["testIds"] and partial["badge"] is True
+    # A file that throws while still streaming falls back to screen A too.
+    assert throwing["status"] == "streaming" and throwing["errors"] == []
+    assert "screen-a" in throwing["testIds"] and "rn-preview-error" not in throwing["testIds"]
+    # The finished file renders normally and the badge goes away.
+    assert final["status"] == "ok" and "screen-b" in final["testIds"] and final["badge"] is False
+
+
+async def test_streaming_before_any_render_shows_a_blank_screen(browser: Browser) -> None:
+    partial = "import React from 'react';\nexport default fun"
+    render = await render_preview(browser, bundle(), partial, IPHONE, mode="streaming", inspect=probe)
+    assert render.status == "streaming" and render.runtime_errors == []
+    assert "rn-preview-error" not in render.extra["testIds"]
+
+
+async def test_parent_window_drives_updates_and_receives_status(browser: Browser) -> None:
+    runtime = bundle()
+    page = await browser.new_page(viewport={"width": 480, "height": 900})
+
+    async def fulfill(route: Route) -> None:
+        await route.fulfill(path=runtime.path(route.request.url.rsplit("/", 1)[-1]), content_type="text/javascript")
+
+    await page.route(f"{ROUTE_ORIGIN}/rn-runtime/*", fulfill)
+    try:
+        await page.set_content(
+            '<iframe id="preview" style="width:390px;height:751px;border:0"></iframe>'
+            "<script>window.statuses = []; addEventListener('message', (e) => {"
+            " if (e.data && e.data.type === 'rn-preview:status') window.statuses.push(e.data); });</script>"
+        )
+        await page.evaluate("(html) => { document.getElementById('preview').srcdoc = html; }", preview_html_for(runtime, SCREEN_A, IPHONE))
+        await page.wait_for_function("window.statuses.length === 1", timeout=15000)
+        await page.evaluate(
+            "(source) => document.getElementById('preview').contentWindow.postMessage({ type: 'rn-preview:update', source }, '*')",
+            SCREEN_B,
+        )
+        await page.wait_for_function("window.statuses.length === 2", timeout=10000)
+        # A message that doesn't come from the parent window is ignored. It must
+        # be sent from the iframe's own realm: postMessage's source is the caller.
+        await page.evaluate(
+            "(source) => document.getElementById('preview').contentWindow.eval("
+            " `window.postMessage({ type: 'rn-preview:update', source: ${JSON.stringify(source)} }, '*')`)",
+            SCREEN_A,
+        )
+        await page.wait_for_timeout(400)
+        statuses = cast(list[dict[str, Any]], await page.evaluate("window.statuses"))
+        title = await page.frame_locator("#preview").locator('[data-testid^="title-"]').first.text_content()
+    finally:
+        await page.close()
+    assert [status["renderId"] for status in statuses] == [1, 2]
+    assert all(status["status"] == "ok" and status["errors"] == [] for status in statuses)
+    assert title == "Screen B"
