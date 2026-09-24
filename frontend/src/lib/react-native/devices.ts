@@ -218,6 +218,42 @@ export function applyOverrides(
   return Object.keys(changes).length ? { ...device, ...changes, match: "override" } : device;
 }
 
+// resolveDevice keeps the detected phone's name, as the backend does (it
+// never uses the name). For display: once the user sets the width, name the
+// table phone that matches what they chose, or none.
+export function withChosenName(
+  table: DeviceTable,
+  device: ReactNativeDevice,
+  overrides: DeviceOverrides
+): ReactNativeDevice {
+  if (overrides.logicalWidth === undefined) return device;
+  const entry = table.devices.find(
+    (candidate) =>
+      candidate.platform === device.platform &&
+      candidate.logicalWidth === device.logicalWidth &&
+      (candidate.insetTop ?? 0) === device.insetTop &&
+      (candidate.insetBottom ?? 0) === device.insetBottom
+  );
+  return { ...device, name: entry ? entry.name : null };
+}
+
+// Keep at least this much of the screen (pt / dp) between the crop strips.
+const MIN_CONTENT = 100;
+const MAX_INSET = 200; // the backend ignores larger overrides
+
+// An inset (pt / dp, one decimal) from a crop handle dragged `offsetPx`
+// screenshot pixels from its edge, leaving room for the other strip.
+export function insetFromOffset(
+  device: ReactNativeDevice,
+  edge: "top" | "bottom",
+  offsetPx: number
+): number {
+  const other = edge === "top" ? device.insetBottom : device.insetTop;
+  const limit = Math.min(MAX_INSET, device.pixelHeight / device.scale - other - MIN_CONTENT);
+  const inset = Math.max(0, Math.min(limit, offsetPx / device.scale));
+  return Math.round(inset * 10) / 10;
+}
+
 // What the backend decides for a request (react_native/inputs.py): the
 // screenshot's size when there is one, the platform's default phone otherwise.
 export function resolveDevice(

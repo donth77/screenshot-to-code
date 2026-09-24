@@ -4,8 +4,9 @@ import { Textarea } from "../../ui/textarea";
 import toast from "react-hot-toast";
 import OutputSettingsSection from "../../settings/OutputSettingsSection";
 import { DesignSystemSelectorProps } from "../../settings/DesignSystemSelector";
-import { Stack } from "../../../lib/stacks";
+import { isReactNativeStack, Stack } from "../../../lib/stacks";
 import type { DeviceOverrides } from "../../../lib/react-native/devices";
+import ReactNativeDeviceControls from "../ReactNativeDeviceControls";
 
 interface Props {
   doCreateFromText: (text: string, reactNativeOverrides?: DeviceOverrides) => void;
@@ -24,6 +25,8 @@ const EXAMPLE_PROMPTS = [
 function TextTab({ doCreateFromText, stack, setStack, designSystem }: Props) {
   const [text, setText] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  // React Native without a screenshot: only the platform is a choice.
+  const [reactNativeOverrides, setReactNativeOverrides] = useState<DeviceOverrides>({});
 
   useEffect(() => {
     textareaRef.current?.focus();
@@ -34,7 +37,7 @@ function TextTab({ doCreateFromText, stack, setStack, designSystem }: Props) {
       toast.error("Please enter a description");
       return;
     }
-    doCreateFromText(text);
+    doCreateFromText(text, isReactNativeStack(stack) ? reactNativeOverrides : undefined);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -111,6 +114,14 @@ function TextTab({ doCreateFromText, stack, setStack, designSystem }: Props) {
               setStack={setStack}
               designSystem={designSystem}
             />
+
+            {isReactNativeStack(stack) && (
+              <ReactNativeDeviceControls
+                screenshotUrl={null}
+                overrides={reactNativeOverrides}
+                onChange={setReactNativeOverrides}
+              />
+            )}
 
             <Button
               onClick={handleGenerate}

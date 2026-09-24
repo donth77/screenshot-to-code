@@ -7,6 +7,7 @@ import ScreenRecorder from "../../recording/ScreenRecorder";
 import { DesignSystemSelectorProps } from "../../settings/DesignSystemSelector";
 import { isReactNativeStack, Stack } from "../../../lib/stacks";
 import ScreenshotToCodeControls from "../ScreenshotToCodeControls";
+import ReactNativeDeviceControls from "../ReactNativeDeviceControls";
 import type { DeviceOverrides } from "../../../lib/react-native/devices";
 
 function fileToDataURL(file: File): Promise<string> {
@@ -69,6 +70,8 @@ function UploadTab({ doCreate, stack, setStack, designSystem }: Props) {
   const [textPrompt, setTextPrompt] = useState("");
   const [isAssetExtractionEnabled, setIsAssetExtractionEnabled] = useState(true);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  // React Native: the user's corrections to the detected phone.
+  const [reactNativeOverrides, setReactNativeOverrides] = useState<DeviceOverrides>({});
   const textInputRef = useRef<HTMLTextAreaElement>(null);
   const filesRef = useRef<FileWithPreview[]>([]);
   const [screenRecorderState, setScreenRecorderState] =
@@ -92,7 +95,8 @@ function UploadTab({ doCreate, stack, setStack, designSystem }: Props) {
         [uploadedDataUrls[selectedIndex] ?? uploadedDataUrls[0]],
         "image",
         textPrompt,
-        isAssetExtractionEnabled
+        isAssetExtractionEnabled,
+        reactNativeOverrides
       );
       return;
     }
@@ -107,6 +111,7 @@ function UploadTab({ doCreate, stack, setStack, designSystem }: Props) {
     uploadedInputMode,
     selectedIndex,
     isReactNative,
+    reactNativeOverrides,
     textPrompt,
     isAssetExtractionEnabled,
     doCreate,
@@ -128,6 +133,7 @@ function UploadTab({ doCreate, stack, setStack, designSystem }: Props) {
   }, [hasUploadedFile, handleGenerate]);
 
   const handleClear = () => {
+    setReactNativeOverrides({});
     files.forEach((file) => URL.revokeObjectURL(file.preview));
     setUploadedDataUrls([]);
     setFiles([]);
@@ -161,6 +167,7 @@ function UploadTab({ doCreate, stack, setStack, designSystem }: Props) {
         setUploadedDataUrls([dataUrl]);
         setUploadedInputMode("image");
         setSelectedIndex(0);
+        setReactNativeOverrides({});
         setTimeout(() => textInputRef.current?.focus(), 100);
       } catch (error) {
         toast.error("Error reading files.");
@@ -445,17 +452,27 @@ function UploadTab({ doCreate, stack, setStack, designSystem }: Props) {
                     ? "Limit reached"
                     : `${remainingSlots} remaining`}
                 </div>
-                <div className="mt-3 rounded-md border border-gray-100 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 p-2 overflow-hidden">
-                  <div className="flex h-[280px] w-full items-center justify-center overflow-hidden rounded bg-white dark:bg-zinc-900">
-                    {files[selectedIndex] && (
-                      <img
-                        src={files[selectedIndex].preview}
-                        alt={`Uploaded screenshot ${selectedIndex + 1}`}
-                        className="h-auto w-auto max-h-full max-w-full object-contain"
-                      />
-                    )}
+                {isReactNative ? (
+                  <div className="mt-3 rounded-md border border-gray-100 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 p-3">
+                    <ReactNativeDeviceControls
+                      screenshotUrl={files[selectedIndex]?.preview ?? null}
+                      overrides={reactNativeOverrides}
+                      onChange={setReactNativeOverrides}
+                    />
                   </div>
-                </div>
+                ) : (
+                  <div className="mt-3 rounded-md border border-gray-100 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 p-2 overflow-hidden">
+                    <div className="flex h-[280px] w-full items-center justify-center overflow-hidden rounded bg-white dark:bg-zinc-900">
+                      {files[selectedIndex] && (
+                        <img
+                          src={files[selectedIndex].preview}
+                          alt={`Uploaded screenshot ${selectedIndex + 1}`}
+                          className="h-auto w-auto max-h-full max-w-full object-contain"
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
                 <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
                   {files.map((file, index) => (
                     <div key={`${file.name}-${index}`} className="relative group flex-shrink-0">

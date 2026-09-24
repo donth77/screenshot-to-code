@@ -7,9 +7,11 @@ import {
   contentHeight,
   cropBottomPx,
   cropTopPx,
+  insetFromOffset,
   previewProfile,
   resolveDevice,
   roundHalfEven,
+  withChosenName,
 } from "./devices";
 
 // Shared with backend/tests/test_rn_device_detection.py, whose Python
@@ -49,6 +51,44 @@ describe("resolveDevice", () => {
         ? null
         : { width: pixelWidth, height: pixelHeight };
     expect(describeDevice(resolveDevice(table, size, overrides ?? {}))).toEqual(expected);
+  });
+});
+
+describe("withChosenName", () => {
+  const size = { width: 1170, height: 2532 };
+
+  test("keeps the detected name until the width is overridden", () => {
+    const device = resolveDevice(table, size, { insetTop: 40 });
+    expect(withChosenName(table, device, { insetTop: 40 }).name).toBe(device.name);
+  });
+
+  test("names the phone the user picked from the table", () => {
+    const overrides = { platform: "ios" as const, logicalWidth: 393, insetTop: 59, insetBottom: 34 };
+    const device = withChosenName(table, resolveDevice(table, size, overrides), overrides);
+    expect(device.name).toBe("iPhone 14 Pro, 15, 15 Pro, 16");
+  });
+
+  test("names no phone for a width no phone has", () => {
+    const overrides = { logicalWidth: 391 };
+    expect(withChosenName(table, resolveDevice(table, size, overrides), overrides).name).toBeNull();
+  });
+});
+
+describe("insetFromOffset", () => {
+  const iphone = resolveDevice(table, { width: 1170, height: 2532 });
+
+  test("converts screenshot pixels to points, to one decimal", () => {
+    expect(insetFromOffset(iphone, "top", 141)).toBe(47);
+    expect(insetFromOffset(iphone, "bottom", 100)).toBe(33.3);
+  });
+
+  test("never goes negative, past the backend's limit or over the other strip", () => {
+    expect(insetFromOffset(iphone, "top", -20)).toBe(0);
+    expect(insetFromOffset(iphone, "top", 5000)).toBe(200);
+    // A 208 pt tall image with no bottom strip: the top strip stops 100 pt short.
+    const short = resolveDevice(table, { width: 780, height: 416 });
+    expect(short.pixelHeight / short.scale).toBe(208);
+    expect(insetFromOffset(short, "top", 1000)).toBe(108);
   });
 });
 

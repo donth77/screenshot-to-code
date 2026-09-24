@@ -2,7 +2,13 @@
 // /rn-runtime (through the Vite proxy in development). Loaded once and cached.
 import { useEffect, useState } from "react";
 import { HTTP_BACKEND_URL } from "../../config";
-import { DeviceOverrides, DeviceTable, ReactNativeTarget, resolveDevice } from "./devices";
+import {
+  DeviceOverrides,
+  DeviceTable,
+  ReactNativeTarget,
+  resolveDevice,
+  withChosenName,
+} from "./devices";
 import { PreviewRuntime, loadDeviceTable, loadPreviewRuntime } from "./previewRuntime";
 
 export const RUNTIME_UNAVAILABLE_MESSAGE =
@@ -44,7 +50,7 @@ export async function resolveTarget(
     appDeviceTable(),
     screenshotUrl ? imageSize(screenshotUrl) : Promise.resolve(null),
   ]);
-  return { device: resolveDevice(table, size, overrides), overrides };
+  return { device: withChosenName(table, resolveDevice(table, size, overrides), overrides), overrides };
 }
 
 interface Resource<T> {
