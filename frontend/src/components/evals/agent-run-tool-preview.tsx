@@ -1,10 +1,16 @@
 import { Light as SyntaxHighlighterBase } from "react-syntax-highlighter";
 import html from "react-syntax-highlighter/dist/esm/languages/hljs/xml";
+import javascript from "react-syntax-highlighter/dist/esm/languages/hljs/javascript";
 import { vs2015 } from "react-syntax-highlighter/dist/esm/styles/hljs";
 
 import { LightboxImage } from "./image-lightbox";
+import {
+  codeLanguageForPath,
+  parseReactNativeScreenshot,
+} from "../../lib/react-native/toolOutput";
 
 SyntaxHighlighterBase.registerLanguage("html", html);
+SyntaxHighlighterBase.registerLanguage("javascript", javascript);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SyntaxHighlighter = SyntaxHighlighterBase as any;
 
@@ -110,7 +116,7 @@ function ToolPreview({
           {path && <FieldLabel>{path}</FieldLabel>}
           <div className="max-h-80 overflow-auto rounded-md">
             <SyntaxHighlighter
-              language="html"
+              language={codeLanguageForPath(path)}
               style={vs2015}
               customStyle={{
                 margin: 0,
@@ -396,6 +402,52 @@ function ToolPreview({
         </div>
       );
     }
+  }
+
+  const reactNativeScreenshot =
+    name === "screenshot_preview" ? parseReactNativeScreenshot(summary) : null;
+  if (reactNativeScreenshot) {
+    const unit = reactNativeScreenshot.platform === "ios" ? "pt" : "dp";
+    return (
+      <div className="grid gap-3 py-1 sm:grid-cols-[minmax(0,10rem)_1fr]">
+        <div>
+          <FieldLabel>
+            {reactNativeScreenshot.platform === "ios" ? "iPhone" : "Android"} ·{" "}
+            {reactNativeScreenshot.width} × {reactNativeScreenshot.height} {unit}
+          </FieldLabel>
+          {reactNativeScreenshot.imageUrl ? (
+            <div className="max-h-48 overflow-y-auto rounded border border-zinc-800">
+              <LightboxImage
+                src={reactNativeScreenshot.imageUrl}
+                alt="React Native preview screenshot"
+                className="w-full"
+              />
+            </div>
+          ) : (
+            <MissingBox />
+          )}
+        </div>
+        <div className="min-w-0 text-xs">
+          <FieldLabel>Status: {reactNativeScreenshot.status}</FieldLabel>
+          {reactNativeScreenshot.errors.length > 0 ? (
+            <ul className="space-y-1">
+              {reactNativeScreenshot.errors.map((error, index) => (
+                <li key={`${error.kind}-${index}`} className="font-mono text-[11px] text-zinc-300">
+                  <span className={error.fatal ? "text-red-400" : "text-amber-400"}>
+                    {error.kind}
+                    {error.rule ? `/${error.rule}` : ""}
+                    {error.line ? ` App.jsx:${error.line}` : ""}
+                  </span>{" "}
+                  <span className="whitespace-pre-wrap break-words">{error.message}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="text-zinc-500">No runtime errors.</div>
+          )}
+        </div>
+      </div>
+    );
   }
 
   if (name === "screenshot_preview") {

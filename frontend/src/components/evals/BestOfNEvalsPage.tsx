@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { HTTP_BACKEND_URL } from "../../config";
 import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 import EvalNavigation from "./EvalNavigation";
+import PreviewPageFrame from "./PreviewPageFrame";
 
 interface Eval {
   input: string;
@@ -904,22 +905,22 @@ function BestOfNEvalsPage() {
                           {folderNames[currentModelIndex]}
                         </span>
                       </div>
-                      <iframe
+                      <PreviewPageFrame
                         srcDoc={selectedHtml}
                         className="w-full h-full rounded-lg"
-                      ></iframe>
+                      />
                     </DialogContent>
                   </Dialog>
                 </div>
                 <div className="relative bg-gray-50">
-                  <iframe
-                    ref={(el) => {
+                  <PreviewPageFrame
+                    frameRef={(el) => {
                       iframeRefs.current[currentModelIndex] = el;
                     }}
                     srcDoc={currentEval.outputs[currentModelIndex]}
                     className="w-full h-[calc(100vh-200px)]"
                     style={{ colorScheme: "light" }}
-                  ></iframe>
+                  />
                 </div>
               </div>
             </div>

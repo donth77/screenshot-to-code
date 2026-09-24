@@ -436,7 +436,7 @@ function Sidebar({
           </div>
         )}
 
-        {!isViewingOlderVersion && <AgentActivity />}
+        {!isViewingOlderVersion && <AgentActivity isReactNative={isReactNativeStack(stack)} />}
 
         {/* Retry any AI-generated version. A completed older version can be
             retried once no other request is running; the regenerated edit

@@ -23,6 +23,7 @@ import {
 import ReactMarkdown from "react-markdown";
 import { Light as SyntaxHighlighterBase } from "react-syntax-highlighter";
 import html from "react-syntax-highlighter/dist/esm/languages/hljs/xml";
+import javascript from "react-syntax-highlighter/dist/esm/languages/hljs/javascript";
 import { vs2015 } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import WorkingPulse from "../core/WorkingPulse";
 import { groupCompletedAgentEvents } from "./activity-order";
@@ -30,8 +31,14 @@ import {
   formatDurationBetween,
   isTerminalVariantStatus,
 } from "./generation-time";
+import {
+  ReactNativeScreenshot,
+  codeLanguageForPath,
+  parseReactNativeScreenshot,
+} from "../../lib/react-native/toolOutput";
 
 SyntaxHighlighterBase.registerLanguage("html", html);
+SyntaxHighlighterBase.registerLanguage("javascript", javascript);
 const SyntaxHighlighter = SyntaxHighlighterBase as any;
 
 function ExpandablePrompt({ prompt }: { prompt: string }) {
@@ -85,7 +92,15 @@ function ExpandablePrompt({ prompt }: { prompt: string }) {
   );
 }
 
-function CodePreviewBlock({ code, isGenerating }: { code: string; isGenerating: boolean }) {
+function CodePreviewBlock({
+  code,
+  isGenerating,
+  language = "html",
+}: {
+  code: string;
+  isGenerating: boolean;
+  language?: "html" | "javascript";
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -97,7 +112,7 @@ function CodePreviewBlock({ code, isGenerating }: { code: string; isGenerating: 
   return (
     <div ref={containerRef} className="max-h-60 overflow-auto rounded-md">
       <SyntaxHighlighter
-        language="html"
+        language={language}
         style={vs2015}
         customStyle={{ margin: 0, padding: "0.5rem", fontSize: "0.75rem", borderRadius: "0.375rem" }}
         wrapLongLines
@@ -288,7 +303,68 @@ function getEventTitle(event: AgentEvent): string {
 }
 
 
-function renderToolDetails(event: AgentEvent, variantCode?: string) {
+const REACT_NATIVE_STATUS: Record<string, [string, string]> = {
+  ok: ["Rendered without errors", "text-emerald-600 dark:text-emerald-400"],
+  degraded: ["Rendered with warnings", "text-amber-600 dark:text-amber-400"],
+  error: ["Failed to render", "text-red-600 dark:text-red-400"],
+  timeout: ["Timed out while rendering", "text-red-600 dark:text-red-400"],
+};
+
+// screenshot_preview for React Native: one phone screenshot, and the
+// runtime_errors the agent was shown.
+function ReactNativeScreenshotCard({ screenshot }: { screenshot: ReactNativeScreenshot }) {
+  const unit = screenshot.platform === "ios" ? "pt" : "dp";
+  const [statusText, statusTone] = REACT_NATIVE_STATUS[screenshot.status] ?? [
+    screenshot.status,
+    "text-gray-600 dark:text-gray-300",
+  ];
+  return (
+    <div className="grid gap-3 py-2 sm:grid-cols-[minmax(0,11rem)_1fr]" data-testid="rn-screenshot-card">
+      <div>
+        <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+          {screenshot.platform === "ios" ? "iPhone" : "Android"} · {screenshot.width} × {screenshot.height} {unit}
+        </div>
+        {screenshot.imageUrl ? (
+          <div className="max-h-96 overflow-y-auto rounded border border-gray-200 dark:border-gray-700">
+            <img
+              src={screenshot.imageUrl}
+              alt="Screenshot of the generated React Native screen"
+              className="w-full"
+              loading="lazy"
+            />
+          </div>
+        ) : (
+          <div className="aspect-[9/16] rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xs text-gray-400">
+            Missing
+          </div>
+        )}
+      </div>
+      <div className="min-w-0 text-xs">
+        <div className={`font-medium ${statusTone}`} data-testid="rn-screenshot-status">
+          {statusText}
+        </div>
+        {screenshot.errors.length > 0 ? (
+          <ul className="mt-1.5 space-y-1.5">
+            {screenshot.errors.map((error, index) => (
+              <li key={`${error.kind}-${index}`} className="font-mono text-[11px] leading-4 text-gray-700 dark:text-gray-300">
+                <span className={error.fatal ? "text-red-600 dark:text-red-400" : "text-amber-600 dark:text-amber-400"}>
+                  {error.kind}
+                  {error.rule ? `/${error.rule}` : ""}
+                  {error.line ? ` App.jsx:${error.line}` : ""}
+                </span>{" "}
+                <span className="whitespace-pre-wrap break-words">{error.message}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-1 text-gray-500 dark:text-gray-400">No runtime errors.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function renderToolDetails(event: AgentEvent, variantCode?: string, isReactNative = false) {
   if (!event.input && !event.output) return null;
 
   const renderJson = (data: unknown) => {
@@ -328,6 +404,8 @@ function renderToolDetails(event: AgentEvent, variantCode?: string) {
     output && Array.isArray(output.screenshots)
       ? (output.screenshots as Array<unknown>)
       : [];
+  const reactNativeScreenshot =
+    event.toolName === "screenshot_preview" ? parseReactNativeScreenshot(output) : null;
 
   return (
     <div className="text-sm text-gray-700 dark:text-gray-200">
@@ -348,7 +426,11 @@ function renderToolDetails(event: AgentEvent, variantCode?: string) {
         </div>
       )}
       {event.toolName === "create_file" && !hasError && variantCode && (
-        <CodePreviewBlock code={variantCode} isGenerating={event.status === "running"} />
+        <CodePreviewBlock
+          code={variantCode}
+          isGenerating={event.status === "running"}
+          language={codeLanguageForPath(input?.path)}
+        />
       )}
 
       {event.toolName === "edit_file" && edits && !hasError && (
@@ -835,10 +917,15 @@ function renderToolDetails(event: AgentEvent, variantCode?: string) {
         <div>
           {event.status === "running" && (
             <div className="text-xs text-gray-600 dark:text-gray-400 py-1.5">
-              Rendering desktop and mobile previews...
+              {isReactNative
+                ? "Rendering the phone preview..."
+                : "Rendering desktop and mobile previews..."}
             </div>
           )}
-          {event.status !== "running" && (
+          {event.status !== "running" && reactNativeScreenshot && (
+            <ReactNativeScreenshotCard screenshot={reactNativeScreenshot} />
+          )}
+          {event.status !== "running" && !reactNativeScreenshot && (
             <div className="grid gap-3 py-2 sm:grid-cols-2">
               {(["desktop", "mobile"] as const).map((viewport) => {
                 const screenshot = screenshotPreviews.find((item) => {
@@ -905,10 +992,12 @@ function AgentEventCard({
   event,
   autoExpand,
   variantCode,
+  isReactNative,
 }: {
   event: AgentEvent;
   autoExpand?: boolean;
   variantCode?: string;
+  isReactNative?: boolean;
 }) {
   const [expanded, setExpanded] = useState(Boolean(autoExpand));
 
@@ -981,14 +1070,14 @@ function AgentEventCard({
               </ReactMarkdown>
             </div>
           )}
-          {event.type === "tool" && renderToolDetails(event, variantCode)}
+          {event.type === "tool" && renderToolDetails(event, variantCode, isReactNative)}
         </div>
       )}
     </div>
   );
 }
 
-function AgentActivity() {
+function AgentActivity({ isReactNative = false }: { isReactNative?: boolean }) {
   const { head, commits, latestCommitHash } = useProjectStore();
   const [expandedStepGroups, setExpandedStepGroups] = useState<
     Record<string, boolean>
@@ -1087,6 +1176,7 @@ function AgentActivity() {
                             ? variantCode
                             : undefined
                         }
+                        isReactNative={isReactNative}
                       />
                     ))}
                   </div>
@@ -1112,6 +1202,7 @@ function AgentActivity() {
               event={event}
               autoExpand={event.type === "assistant" && event.id === lastAssistantId}
               variantCode={event.toolName === "create_file" ? variantCode : undefined}
+              isReactNative={isReactNative}
             />
           ))}
         </>

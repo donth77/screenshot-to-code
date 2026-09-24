@@ -10,6 +10,7 @@ import {
 import { HTTP_BACKEND_URL } from "../../config";
 import EvalNavigation from "./EvalNavigation";
 import { formatCost, formatMs } from "./report-format";
+import PreviewPageFrame from "./PreviewPageFrame";
 
 interface EvalSession {
   session_id: string;
@@ -436,7 +437,7 @@ function EvalComparePage() {
                 );
               }
               return (
-                <iframe
+                <PreviewPageFrame
                   key={pane.run!.run_id}
                   title={`${pane.model} output`}
                   src={`${HTTP_BACKEND_URL}/agent-runs/${encodeURIComponent(

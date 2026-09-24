@@ -19,6 +19,7 @@ import {
   formatTimestamp,
   providerBadgeClass,
 } from "./report-format";
+import PreviewPageFrame from "./PreviewPageFrame";
 
 interface AgentRunSummary {
   run_id: string;
@@ -524,7 +525,7 @@ function AgentRunsPage() {
                   </LightboxProvider>
                 )}
                 {activeTab === "output" && (
-                  <iframe
+                  <PreviewPageFrame
                     title="Captured final output"
                     src={runOutputUrl(selectedRunId)}
                     className="h-[75vh] w-full rounded-xl border border-zinc-800 bg-white"
