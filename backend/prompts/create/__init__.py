@@ -4,6 +4,8 @@ from prompts.create.text import build_text_prompt_messages
 from prompts.create.video import build_video_prompt_messages
 from prompts.prompt_types import Stack, UserTurnInput
 from prompts.message_builder import Prompt
+from prompts.react_native import build_react_native_create_messages
+from react_native.profiles import ReactNativeScreen
 
 
 def build_create_prompt_from_input(
@@ -12,7 +14,21 @@ def build_create_prompt_from_input(
     prompt: UserTurnInput,
     image_generation_enabled: bool,
     design_system: str | None = None,
+    react_native_screen: ReactNativeScreen | None = None,
 ) -> Prompt:
+    if stack == "react_native":
+        if react_native_screen is None:
+            raise ValueError("React Native prompts need the target screen")
+        if input_mode not in ("image", "text"):
+            raise ValueError(f"React Native doesn't support {input_mode} input")
+        return build_react_native_create_messages(
+            input_mode=input_mode,
+            text_prompt=prompt.get("text", ""),
+            image_data_urls=prompt.get("images", []),
+            image_generation_enabled=image_generation_enabled,
+            design_system=design_system,
+            screen=react_native_screen,
+        )
     if input_mode == "image":
         image_urls = prompt.get("images", [])
         text_prompt = prompt.get("text", "")

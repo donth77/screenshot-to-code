@@ -8,6 +8,8 @@ from prompts.policies import build_selected_stack_policy, build_user_image_polic
 from codegen.utils import main_file_path
 from prompts.prompt_types import PromptHistoryMessage, Stack
 from prompts.message_builder import Prompt, build_history_message
+from prompts.react_native import screen_target
+from react_native.profiles import ReactNativeScreen
 
 
 def build_update_prompt_from_history(
@@ -15,6 +17,7 @@ def build_update_prompt_from_history(
     history: list[PromptHistoryMessage],
     image_generation_enabled: bool,
     design_system: str | None = None,
+    react_native_screen: ReactNativeScreen | None = None,
 ) -> Prompt:
     first_user_index = next(
         (index for index, item in enumerate(history) if item["role"] == "user"),
@@ -40,6 +43,8 @@ def build_update_prompt_from_history(
             stack_prefix_parts = [selected_stack, image_policy]
             if design_system_block:
                 stack_prefix_parts.append(design_system_block.strip())
+            if react_native_screen is not None:
+                stack_prefix_parts.append(f"## The screen\n\n- Target: {screen_target(react_native_screen)}.")
             stack_prefix = "\n\n".join(stack_prefix_parts)
             user_text = item.get("text", "")
             prefixed_text = (

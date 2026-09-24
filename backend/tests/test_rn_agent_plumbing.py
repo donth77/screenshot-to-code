@@ -6,6 +6,9 @@ The web stacks keep index.html; their existing tests cover that.
 from typing import Any, cast
 from unittest.mock import AsyncMock
 
+import json
+from pathlib import Path
+
 import pytest
 from openai.types.chat import ChatCompletionMessageParam
 
@@ -143,3 +146,10 @@ async def test_request_file_state_defaults_to_app_jsx() -> None:
     )
 
     assert extracted.file_state == {"path": "App.jsx", "content": APP}
+
+
+@pytest.fixture(autouse=True)
+def _device_table_from_source(monkeypatch: pytest.MonkeyPatch) -> None:
+    """React Native requests read the device table; use the source copy, not a build."""
+    table = json.loads((Path(__file__).resolve().parents[2] / "rn-runtime" / "device-profiles.json").read_text())
+    monkeypatch.setattr("routes.generate_code.load_device_table", lambda: table)

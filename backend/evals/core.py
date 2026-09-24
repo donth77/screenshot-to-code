@@ -2,6 +2,11 @@ import uuid
 from datetime import datetime
 
 from codegen.utils import main_file_path
+from custom_types import InputMode
+from prompts.create import build_create_prompt_from_input
+from prompts.prompt_types import UserTurnInput
+from react_native.inputs import prepare_react_native_inputs
+from react_native.profiles import load_device_table
 from config import (
     ANTHROPIC_API_KEY,
     GEMINI_API_KEY,
@@ -81,6 +86,15 @@ async def _run_eval_agent(
     return await runner.run(model, prompt_messages)
 
 
+def _react_native_create_prompt(
+    input_mode: InputMode, text: str, images: List[str]
+) -> List[ChatCompletionMessageParam]:
+    """The app's React Native create prompt: same cropping and screen facts."""
+    prompt: UserTurnInput = {"text": text, "images": images, "videos": []}
+    prompt, _, screen = prepare_react_native_inputs(prompt, [], load_device_table())
+    return build_create_prompt_from_input(input_mode, "react_native", prompt, True, None, screen)
+
+
 async def generate_code_for_image(
     image_url: str,
     stack: Stack,
@@ -90,12 +104,15 @@ async def generate_code_for_image(
     eval_session_id: str | None = None,
     input_file: str | None = None,
 ) -> str:
-    prompt_messages = build_image_prompt_messages(
-        image_data_urls=[image_url],
-        stack=stack,
-        text_prompt="",
-        image_generation_enabled=True,
-    )
+    if stack == "react_native":
+        prompt_messages = _react_native_create_prompt("image", "", [image_url])
+    else:
+        prompt_messages = build_image_prompt_messages(
+            image_data_urls=[image_url],
+            stack=stack,
+            text_prompt="",
+            image_generation_enabled=True,
+        )
     return await _run_eval_agent(
         prompt_messages,
         stack,
@@ -117,11 +134,14 @@ async def generate_code_for_text(
     input_file: str | None = None,
 ) -> str:
     """Text-create eval: same prompt construction as the app's text flow."""
-    prompt_messages = build_text_prompt_messages(
-        text_prompt=text_prompt,
-        stack=stack,
-        image_generation_enabled=True,
-    )
+    if stack == "react_native":
+        prompt_messages = _react_native_create_prompt("text", text_prompt, [])
+    else:
+        prompt_messages = build_text_prompt_messages(
+            text_prompt=text_prompt,
+            stack=stack,
+            image_generation_enabled=True,
+        )
     return await _run_eval_agent(
         prompt_messages,
         stack,

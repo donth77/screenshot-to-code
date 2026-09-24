@@ -1,5 +1,8 @@
 from unittest.mock import AsyncMock
 
+import json
+from pathlib import Path
+
 import pytest
 
 from routes.generate_code import ParameterExtractionStage
@@ -133,3 +136,10 @@ async def test_rejects_video_input_for_react_native() -> None:
         )
 
     throw_error.assert_awaited_once()
+
+
+@pytest.fixture(autouse=True)
+def _device_table_from_source(monkeypatch: pytest.MonkeyPatch) -> None:
+    """React Native requests read the device table; use the source copy, not a build."""
+    table = json.loads((Path(__file__).resolve().parents[2] / "rn-runtime" / "device-profiles.json").read_text())
+    monkeypatch.setattr("routes.generate_code.load_device_table", lambda: table)

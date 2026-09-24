@@ -10,6 +10,8 @@ import openai
 from starlette.websockets import WebSocketDisconnect
 from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
 from codegen.utils import main_file_path
+from react_native.inputs import prepare_react_native_inputs
+from react_native.profiles import ReactNativeScreen, load_device_table
 from config import (
     ANTHROPIC_API_KEY,
     GEMINI_API_KEY,
@@ -269,6 +271,8 @@ class ExtractedParams:
     should_extract_assets: bool = True
     asset_base_url: str = ""
     design_system: str | None = None
+    # React Native only: the phone the screen targets, from its screenshot.
+    react_native_screen: ReactNativeScreen | None = None
 
 
 class ParameterExtractionStage:
@@ -347,6 +351,25 @@ class ParameterExtractionStage:
             params.get("history")
         )
 
+        react_native_screen: ReactNativeScreen | None = None
+        if validated_stack == "react_native":
+            # Crop the screenshot before anything reads it, asset IDs included.
+            try:
+                device_table = load_device_table()
+            except RuntimeError:
+                await self.throw_error(
+                    "React Native needs its preview runtime. Build it with: cd rn-runtime && pnpm build"
+                )
+                raise
+            raw_profile = params.get("reactNativeProfile")
+            prompt, history, react_native_screen = prepare_react_native_inputs(
+                prompt,
+                history,
+                device_table,
+                raw_profile if isinstance(raw_profile, dict) else None,
+                generation_type,
+            )
+
         prompt = append_uploaded_asset_ids_to_prompt(prompt, self.asset_base_url)
         history = append_uploaded_asset_ids_to_history(history, self.asset_base_url)
 
@@ -394,6 +417,7 @@ class ParameterExtractionStage:
             option_codes=option_codes,
             asset_base_url=self.asset_base_url,
             design_system=design_system,
+            react_native_screen=react_native_screen,
         )
 
     def _get_from_settings_dialog_or_env(
@@ -524,6 +548,7 @@ class PromptCreationStage:
                 file_state=extracted_params.file_state,
                 image_generation_enabled=extracted_params.should_generate_images,
                 design_system=extracted_params.design_system,
+                react_native_screen=extracted_params.react_native_screen,
             )
             print_prompt_preview(prompt_messages)
 

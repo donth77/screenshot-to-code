@@ -3,6 +3,7 @@ from prompts.create import build_create_prompt_from_input
 from prompts.plan import derive_prompt_construction_plan
 from prompts.prompt_types import PromptHistoryMessage, Stack, UserTurnInput
 from prompts.message_builder import Prompt
+from react_native.profiles import ReactNativeScreen
 from prompts.update import (
     build_update_prompt_from_file_snapshot,
     build_update_prompt_from_history,
@@ -18,6 +19,7 @@ async def build_prompt_messages(
     file_state: dict[str, str] | None = None,
     image_generation_enabled: bool = True,
     design_system: str | None = None,
+    react_native_screen: ReactNativeScreen | None = None,
 ) -> Prompt:
     plan = derive_prompt_construction_plan(
         stack=stack,
@@ -34,6 +36,7 @@ async def build_prompt_messages(
             history=history,
             image_generation_enabled=image_generation_enabled,
             design_system=design_system,
+            react_native_screen=react_native_screen,
         )
     if strategy == "update_from_file_snapshot":
         assert file_state is not None
@@ -43,6 +46,7 @@ async def build_prompt_messages(
             file_state=file_state,
             image_generation_enabled=image_generation_enabled,
             design_system=design_system,
+            react_native_screen=react_native_screen,
         )
     return build_create_prompt_from_input(
         input_mode,
@@ -50,4 +54,5 @@ async def build_prompt_messages(
         prompt,
         image_generation_enabled,
         design_system,
+        react_native_screen,
     )
