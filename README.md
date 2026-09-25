@@ -111,6 +111,7 @@ Then pick **React Native (Expo)** as the stack. The stack menu marks it unavaila
   - **Download preview HTML:** one file that renders the screen offline in a browser.
   - **Open in Snack:** only with `VITE_SNACK_EXPORT=true` in `frontend/.env.local`. Snack runs an older Expo SDK (the one in `expo-sdk.json`'s `snack` entry) and can't load local images.
 - **Native bundling check.** `cd backend && poetry run python -m react_native.bundle_check path/to/App.jsx` bundles a screen for iOS and Android with Expo's Metro, catching imports and syntax the web preview accepts but a phone wouldn't. It installs an Expo workspace once (about 400 MB, under `~/.cache/screenshot-to-code`, or `RN_BUNDLE_WORKSPACE`). With `RN_BUNDLE_CHECK=1`, React Native evals record the result for each output.
+- **Evals.** React Native eval outputs are scored against their input screenshots: SSIM, render errors, native-compat lint, a fake status-bar check, bundling, and iterations and cost. See [EVALS.md](design-docs/react-native/EVALS.md).
 - **Updating the Expo SDK.** See [rn-runtime/README.md](rn-runtime/README.md#bumping-the-expo-sdk).
 
 Design notes and status: [design-docs/react-native](design-docs/react-native/DESIGN.md).

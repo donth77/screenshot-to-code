@@ -1,0 +1,185 @@
+{
+  "phase": "Phase 5 tasks 5.1–5.3 (harness, metrics, set manifest); 5.4 and 5.5 need model API access",
+  "date": "2026-09-25",
+  "environment": "Linux sandbox, Chromium 141 headless, numpy 2.2.0",
+  "ssim_reference_check": {
+    "result": "verified: matches scikit-image 0.24.0 structural_similarity (gaussian_weights, sigma 1.5, population covariance, data_range 255) to 1e-6 on random 40x30, 844x390 and 200x200 pairs, and to 1e-9 on the deterministic pairs pinned in tests/test_rn_eval_metrics.py",
+    "note": "scikit-image was installed only in a throwaway venv; it's not a dependency"
+  },
+  "fixture_scoring": {
+    "what": "rn-runtime/fixtures/*.jsx written through write_react_native_outputs at the default iPhone profile, then python -m evals.react_native_metrics semantics (report_folder, no inputs so no SSIM)",
+    "result": "verified: every fixture lands in the category it was built for",
+    "outputs": {
+      "App_0": {
+        "status": "degraded",
+        "fatal": false,
+        "error_kinds": {
+          "image_load": 1
+        },
+        "fake_status_bar": false
+      },
+      "brokenhang_0": {
+        "status": "timeout",
+        "fatal": true,
+        "error_kinds": {
+          "timeout": 1
+        },
+        "fake_status_bar": null
+      },
+      "brokenicon_0": {
+        "status": "degraded",
+        "fatal": false,
+        "error_kinds": {
+          "unknown_icon": 1
+        },
+        "fake_status_bar": false
+      },
+      "brokenimage_0": {
+        "status": "degraded",
+        "fatal": false,
+        "error_kinds": {
+          "image_load": 1
+        },
+        "fake_status_bar": false
+      },
+      "brokenimport_0": {
+        "status": "error",
+        "fatal": true,
+        "error_kinds": {
+          "import": 1
+        },
+        "fake_status_bar": false
+      },
+      "brokennodefault_0": {
+        "status": "error",
+        "fatal": true,
+        "error_kinds": {
+          "no_default_export": 1
+        },
+        "fake_status_bar": false
+      },
+      "brokenruntime_0": {
+        "status": "error",
+        "fatal": true,
+        "error_kinds": {
+          "runtime": 1
+        },
+        "fake_status_bar": false
+      },
+      "brokensyntax_0": {
+        "status": "error",
+        "fatal": true,
+        "error_kinds": {
+          "transform": 1
+        },
+        "fake_status_bar": false
+      },
+      "brokenunknownexport_0": {
+        "status": "error",
+        "fatal": true,
+        "error_kinds": {
+          "runtime": 1,
+          "unknown_export": 1
+        },
+        "fake_status_bar": false
+      },
+      "lintdom_0": {
+        "status": "error",
+        "fatal": true,
+        "error_kinds": {
+          "native_compat": 3
+        },
+        "fake_status_bar": false
+      },
+      "lintwebstyles_0": {
+        "status": "degraded",
+        "fatal": false,
+        "error_kinds": {
+          "console_error": 1,
+          "native_compat": 10
+        },
+        "fake_status_bar": false
+      },
+      "noreactimport_0": {
+        "status": "ok",
+        "fatal": false,
+        "error_kinds": {},
+        "fake_status_bar": false
+      },
+      "shadows_0": {
+        "status": "degraded",
+        "fatal": false,
+        "error_kinds": {
+          "native_compat": 5
+        },
+        "fake_status_bar": false
+      }
+    },
+    "note": "App.jsx is degraded only because its remote image can't load from the sandbox",
+    "aggregate": {
+      "outputs": 13,
+      "renders": {
+        "rate": 0.462,
+        "count": 6,
+        "of": 13
+      },
+      "clean_render": {
+        "rate": 0.077,
+        "count": 1,
+        "of": 13
+      },
+      "fatal": {
+        "rate": 0.538,
+        "count": 7,
+        "of": 13
+      },
+      "runtime_error": {
+        "rate": 0.385,
+        "count": 5,
+        "of": 13
+      },
+      "native_compat": {
+        "rate": 0.231,
+        "count": 3,
+        "of": 13
+      },
+      "native_compat_rules": {
+        "legacy-shadow": 2,
+        "class-name": 1,
+        "host-element": 1,
+        "on-click": 1,
+        "css-shorthand": 1,
+        "platform-branch": 1,
+        "unit-string": 1,
+        "web-style": 1
+      },
+      "unknown_import": {
+        "rate": 0.077,
+        "count": 1,
+        "of": 13
+      },
+      "unknown_icon": {
+        "rate": 0.077,
+        "count": 1,
+        "of": 13
+      },
+      "unknown_export": {
+        "rate": 0.077,
+        "count": 1,
+        "of": 13
+      },
+      "fake_status_bar": {
+        "rate": 0.0,
+        "count": 0,
+        "of": 12
+      }
+    }
+  },
+  "fake_status_bar_check": "verified on a scripted screen (a 9:41 clock plus Signal, Wifi and Battery icons) and a plain screen, in tests/test_rn_eval_metrics.py; untested on real model outputs",
+  "self_comparison": "verified: a render framed as an iPhone 16 screenshot and scored against itself gives SSIM > 0.99 and mean abs. diff < 0.01; a different screen scores lower (tests/test_rn_eval_metrics.py)",
+  "not_run": {
+    "5.1 screenshots": "needs the user's screenshots, or approved permissively licensed sources; evals/react_native_set.json is empty",
+    "5.4 baseline and 5.5 prompt rounds": "need model API access; api.openai.com is blocked here and no Anthropic or Gemini app key is set",
+    "CLIP": "optional per DESIGN §14 and not built: it pulls in torch"
+  }
+}

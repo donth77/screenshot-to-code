@@ -139,7 +139,7 @@ Companion to [`DESIGN.md`](DESIGN.md), which holds section references (§) and e
 4. README and the Expo Go script.
 5. Docs.
 
-## Phase 5: evals and prompt iteration (≈ 5 days plus model time)
+## Phase 5: evals and prompt iteration (≈ 5 days plus model time; 5.1–5.3 built, 5.4–5.5 need model access; see DESIGN §14.1)
 
 | # | Task | Deliverable | Est. |
 | --- | --- | --- | --- |
@@ -148,6 +148,20 @@ Companion to [`DESIGN.md`](DESIGN.md), which holds section references (§) and e
 | 5.3 | Metrics | SSIM and pixel difference (NumPy); optional CLIP; error, lint and unknown-import/icon rates; fake-status-bar detector; bundle pass rate; iterations, latency and cost from the recorder; aggregate report | 1.25 |
 | 5.4 | Baseline | Baseline run; create `EVALS.md` | 0.5 |
 | 5.5 | Prompt iteration | 3–5 rounds with before-and-after numbers in `EVALS.md` | 1.5 |
+
+**Status (`evidence/phase5-harness.json`).**
+
+- **Built and tested in the sandbox:**
+  - 5.2: every React Native eval output gets `<name>_<n>.metrics.json`;
+  - 5.3: the metrics and the aggregate report (`python -m evals.react_native_metrics`), except CLIP (optional, not built);
+  - 5.1's manifest format and checker (`python -m evals.react_native_set`).
+- **Verified:**
+  - SSIM matches scikit-image;
+  - the runtime fixtures each score in the category they were built for;
+  - a render scored against itself gives SSIM > 0.99.
+- **Not done:**
+  - 5.1's screenshots: the manifest is empty until you supply screenshots or approve sources;
+  - 5.4 and 5.5, which need model API access. `EVALS.md` has the procedure and empty tables.
 
 ## Phase 6: stretch (separate proposals, not estimated)
 

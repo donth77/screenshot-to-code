@@ -748,6 +748,33 @@ A Phase 4 go/no-go check decides whether it ships enabled.
   - Refinement iterations, latency and token cost, from the existing run recorder.
 - **Protocol.** Baseline first, then before-and-after numbers per prompt change in `EVALS.md`.
 
+### 14.1 As built (Phase 5, tasks 5.1–5.3)
+
+- **Per output** (`evals/react_native_metrics.py`). `run_image_evals` writes `<name>_<n>.metrics.json` next to the `.jsx`, `.png` and `.json` for every React Native output. Other stacks' evals are unchanged.
+  - **Image.** SSIM (Wang et al.: 11-tap Gaussian, σ 1.5) and mean absolute RGB difference (0 to 1), in NumPy.
+    - The reference is the input screenshot cropped exactly as the prompt crops it (`read_screenshot`).
+    - Both images are cropped to a common size (at most 2 px apart, or the pair isn't compared) and box-downsampled to logical points. That way every device counts alike and subpixel antialiasing matters less.
+    - Verified against scikit-image 0.24 to 1e-6.
+    - Transparent screenshots are composited over white.
+  - **Errors.** The render status, the error kinds, the native-compat rules hit, and flags for unknown imports, icons and exports and for runtime errors. Counts are of distinct errors, capped as `render.py` caps them.
+  - **Fake status bar.** An inspector passed through `capture_react_native_preview` records the visible text and the `lucide-*` icons in the top 60 pt of the rendered page. A bar is flagged for a lone clock (`9:41`, `12:30 PM`), or for icons from two of the battery, wifi and signal families. One icon alone could be a settings row.
+    - This is a heuristic. It's verified on scripted screens only, and misses bars drawn with plain Views.
+  - **Bundle.** The RNW-6 result when `RN_BUNDLE_CHECK=1`.
+  - **Run.** From the recorder's `run.json` (needs `PROMPT_REPORTS_ENABLED`): LLM calls, `screenshot_preview` calls (the refinement iterations), `edit_file` calls, latency, tokens and cost.
+    - The runner collects each try's run folder and uses the last one, which produced the output.
+- **Aggregate.** `python -m evals.react_native_metrics <results folder> --inputs <set inputs>` rescores a folder and writes `report.json` and `report.md` (the table `EVALS.md` uses).
+  - It re-renders outputs recorded before the probe existed, unless `--no-probe` is given.
+  - Rates count only outputs where the metric is known. For example, the bundle rate is over the outputs that were checked.
+- **Eval set** (`evals/react_native_set.json`, `evals/react_native_set.py`).
+  - The committed manifest records each screenshot's file, sha256, source, licence, platform, theme, categories (the list above) and `long` flag. It can also record the insets detection should find.
+  - `python -m evals.react_native_set` checks the manifest against `evals_data/sets/react-native/inputs/` and fills in hashes with `--write-hashes`. It fails on bad fields, missing, changed or unlisted images, and insets that detection doesn't find.
+  - With `--strict`, it also fails on coverage gaps: 25–30 images, both platforms, both themes, every category, and at least 3 long screenshots.
+  - The manifest is empty until screenshots are chosen.
+- **Not built:** CLIP (optional; it pulls in torch).
+- **Known limits (untested):**
+  - Long stitched screenshots are compared only over the rendered viewport, which is the content height the profile gives.
+  - Detection of long screenshots hasn't been exercised.
+
 ---
 
 ## 15. Deviations from the brief (consolidated)
