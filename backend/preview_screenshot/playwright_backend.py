@@ -9,7 +9,7 @@ from playwright.async_api import (
 )
 
 from preview_screenshot.base import VIEWPORT_SIZES
-from react_native.render import PreviewRender, render_preview
+from react_native.render import Inspector, PreviewRender, render_preview
 from react_native.runtime_files import load_runtime
 
 PAGE_LOAD_TIMEOUT_MS = 15000
@@ -91,9 +91,11 @@ class PlaywrightBackend:
         finally:
             await page.close()
 
-    async def capture_react_native(self, source: str, profile: Mapping[str, Any]) -> PreviewRender:
+    async def capture_react_native(
+        self, source: str, profile: Mapping[str, Any], inspect: Optional[Inspector] = None
+    ) -> PreviewRender:
         """Render a React Native App.jsx with the preview runtime at a device profile."""
         bundle = load_runtime()
         if bundle is None:
             raise RuntimeError("rn-runtime is not built (cd rn-runtime && pnpm build)")
-        return await render_preview(await self._get_browser(), bundle, source, profile)
+        return await render_preview(await self._get_browser(), bundle, source, profile, inspect=inspect)

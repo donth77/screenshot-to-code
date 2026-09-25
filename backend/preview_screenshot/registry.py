@@ -3,7 +3,7 @@ from typing import Any, Awaitable, Callable, Mapping, Optional, cast
 from babel_cdn import normalize_babel_cdn
 from preview_screenshot.base import ScreenshotBackend
 from preview_screenshot.playwright_backend import PlaywrightBackend
-from react_native.render import PreviewRender
+from react_native.render import Inspector, PreviewRender
 from react_native.runtime_files import load_runtime
 
 # The active backend. Defaults to local Chromium; a deployment can swap in an
@@ -63,9 +63,17 @@ def is_react_native_capture_available() -> bool:
     )
 
 
-async def capture_react_native_preview(source: str, profile: Mapping[str, Any]) -> PreviewRender:
-    """Render App.jsx at a device profile via the active backend."""
+async def capture_react_native_preview(
+    source: str, profile: Mapping[str, Any], inspect: Optional[Inspector] = None
+) -> PreviewRender:
+    """Render App.jsx at a device profile via the active backend.
+
+    ``inspect`` (evals) runs against the settled page; its result is in the
+    render's ``extra``. It's only passed to backends when given.
+    """
     capture = getattr(_backend, "capture_react_native", None)
     if capture is None:
         raise RuntimeError("The screenshot backend can't render React Native.")
-    return await cast(Callable[[str, Mapping[str, Any]], Awaitable[PreviewRender]], capture)(source, profile)
+    if inspect is None:
+        return await cast(Callable[[str, Mapping[str, Any]], Awaitable[PreviewRender]], capture)(source, profile)
+    return await cast(Callable[..., Awaitable[PreviewRender]], capture)(source, profile, inspect=inspect)

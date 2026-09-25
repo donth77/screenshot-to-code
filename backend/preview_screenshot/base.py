@@ -27,4 +27,6 @@ class ScreenshotBackend(Protocol):
 
     # Optional: a backend that can render React Native App.jsx files also has
     #   async def capture_react_native(self, source: str, profile: Mapping[str, Any]) -> PreviewRender
+    # optionally taking an ``inspect`` keyword (react_native.render.Inspector),
+    # which evals use to probe the rendered page.
     # Without it the React Native stack doesn't offer screenshot_preview.
