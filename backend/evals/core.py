@@ -34,6 +34,7 @@ async def _run_eval_agent(
     eval_session_id: str | None,
     input_file: str | None,
     react_native_profile: dict[str, Any] | None = None,
+    run_dirs: List[str] | None = None,
 ) -> str:
     async def send_message(
         _: str,
@@ -67,6 +68,9 @@ async def _run_eval_agent(
         eval_set=eval_set,
         input_file=input_file,
     )
+    if run_dirs is not None:
+        # React Native evals read the run's iterations and cost from here.
+        run_dirs.append(recorder.run_dir)
     runner = Agent(
         send_message=send_message,
         variant_index=0,
@@ -114,6 +118,7 @@ async def generate_code_for_image(
     eval_set: str | None = None,
     eval_session_id: str | None = None,
     input_file: str | None = None,
+    run_dirs: List[str] | None = None,
 ) -> str:
     react_native_profile = None
     if stack == "react_native":
@@ -134,6 +139,7 @@ async def generate_code_for_image(
         eval_session_id=eval_session_id,
         input_file=input_file,
         react_native_profile=react_native_profile,
+        run_dirs=run_dirs,
     )
 
 
@@ -145,6 +151,7 @@ async def generate_code_for_text(
     eval_set: str | None = None,
     eval_session_id: str | None = None,
     input_file: str | None = None,
+    run_dirs: List[str] | None = None,
 ) -> str:
     """Text-create eval: same prompt construction as the app's text flow."""
     react_native_profile = None
@@ -165,4 +172,5 @@ async def generate_code_for_text(
         eval_session_id=eval_session_id,
         input_file=input_file,
         react_native_profile=react_native_profile,
+        run_dirs=run_dirs,
     )

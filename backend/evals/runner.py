@@ -124,10 +124,12 @@ async def generate_code_and_time(
     eval_set: Optional[str] = None,
     eval_session_id: Optional[str] = None,
     brief_text: Optional[str] = None,
+    run_dirs: Optional[List[str]] = None,
 ) -> Tuple[str, int, Optional[str], Optional[float], Optional[Exception], int]:
     """
     Generates code for an image, measures the time taken, and returns identifiers
-    along with success/failure status.
+    along with success/failure status. ``run_dirs``, if given, collects each
+    try's run-recorder folder (the last is the one that produced the content).
     Returns a tuple:
     (original_input_filename, attempt_idx, content, duration, error_object, retries_used)
     content and duration are None if an error occurs during generation.
@@ -144,6 +146,7 @@ async def generate_code_and_time(
                     eval_set=eval_set,
                     eval_session_id=eval_session_id,
                     input_file=original_input_filename,
+                    run_dirs=run_dirs,
                 )
             else:
                 content = await generate_code_for_image(
@@ -153,6 +156,7 @@ async def generate_code_and_time(
                     eval_set=eval_set,
                     eval_session_id=eval_session_id,
                     input_file=original_input_filename,
+                    run_dirs=run_dirs,
                 )
             end_time = time.perf_counter()
             duration = end_time - start_time
@@ -246,6 +250,9 @@ async def run_image_evals(
     skipped_existing_tasks = 0
     # React Native outputs render at their input's device profile.
     react_native_profiles: dict[str, dict[str, Any]] = {}
+    # ...scored against their input screenshot and agent run.
+    react_native_inputs: dict[str, str] = {}
+    react_native_run_dirs: dict[Tuple[str, int], List[str]] = {}
     for original_filename in evals:
         # Handle both full paths and relative filenames
         if os.path.isabs(original_filename):
@@ -274,6 +281,7 @@ async def run_image_evals(
                 data_url = await image_to_data_url(filepath)
             if stack == "react_native" and original_filename not in react_native_profiles:
                 react_native_profiles[original_filename] = react_native_eval_profile(data_url)
+                react_native_inputs[original_filename] = filepath
             current_model_for_task = (
                 selected_model if n_idx == 0 else Llm.GPT_5_5_LOW
             )
@@ -286,6 +294,11 @@ async def run_image_evals(
                 eval_set=eval_set,
                 eval_session_id=eval_session_id,
                 brief_text=briefs_by_id.get(original_filename),
+                run_dirs=(
+                    react_native_run_dirs.setdefault((original_filename, n_idx), [])
+                    if stack == "react_native"
+                    else None
+                ),
             )
             task_coroutines.append(coro)
 
@@ -355,6 +368,8 @@ async def run_image_evals(
                             output_html_filepath,
                             normalize_local_asset_urls(generated_content),
                             react_native_profiles[task_orig_fn],
+                            input_png=react_native_inputs.get(task_orig_fn),
+                            run_dir=(react_native_run_dirs.get((task_orig_fn, task_attempt_idx)) or [None])[-1],
                         )
                     else:
                         with open(output_html_filepath, "w") as file:
