@@ -1,0 +1,5 @@
+{
+  "set": "react-native",
+  "description": "Phone screenshots for the React Native (Expo) stack's evals (DESIGN.md §14). Images go in evals_data/sets/react-native/inputs/ (gitignored); see evals/react_native_set.py for the item format.",
+  "items": []
+}
