@@ -132,7 +132,8 @@
         "lists-feeds"
       ],
       "long": false,
-      "sha256": "e92379899dc7c88881a651dc5f8564e363ccddd5a46e660f54d67bcf1c7a6ac4"
+      "notes": "The listing's image is a device mockup: cropped by hand to the screen (1080 x 2340 at 60, 65), then its system bars (140 px top, 69 px bottom), because the screen's size matches a different phone in the device table (an iPhone mini).",
+      "sha256": "3343ed61f4091c3887e3589e0f7ae6147725f4acb75566a8e7a73b793e4cbe6b"
     },
     {
       "file": "android-feeder-list-light.png",
@@ -144,7 +145,8 @@
         "lists-feeds"
       ],
       "long": false,
-      "sha256": "03890c88f496b038eaadbbf350d35492070e3999c54af14e2ba1f843ee2670da"
+      "notes": "The listing's image is a device mockup: cropped by hand to the screen (1080 x 2340 at 60, 65), then its system bars (140 px top, 69 px bottom), because the screen's size matches a different phone in the device table (an iPhone mini).",
+      "sha256": "34f4ff17d786d0d0edb8165c25bbef70b0c00f6d0c8507c79528d128e2e5de3e"
     },
     {
       "file": "android-fossify-contacts-tabs-light.png",
@@ -267,7 +269,8 @@
         "forms"
       ],
       "long": false,
-      "sha256": "d2026b81e34e705522833d496b195b5fc4dd357d2625de61b485c753876243b9"
+      "notes": "The listing's image is a device mockup: cropped by hand to the screen (1080 x 2400 at 56, 57), then its system bars (118 px top, 63 px bottom). The screen is the table's Pixel 8 size, but its status bar is shorter (118 px, not 132), so the Pixel 8's insets would cut into the app.",
+      "sha256": "73c50bc2c58f18662861f4235eb7ae6e93120e36a579df7d1ddb90e4713a3fa5"
     },
     {
       "file": "android-tusky-timeline-dark.png",
@@ -279,7 +282,8 @@
         "lists-feeds"
       ],
       "long": false,
-      "sha256": "968a05dc0ef3d0f4a51cf3460979bb02f9644742a270051bd6c9cdc616ab3c7e"
+      "notes": "The listing's image is a device mockup: cropped by hand to the screen (1080 x 2400 at 56, 57), then its system bars (118 px top, 63 px bottom). The screen is the table's Pixel 8 size, but its status bar is shorter (118 px, not 132), so the Pixel 8's insets would cut into the app.",
+      "sha256": "972d45a99aa3e9ba0d2d6dda13f8557e7fbb7829eeb3a8e62f995e5d87b6c39b"
     },
     {
       "file": "ios-contacts-light.png",

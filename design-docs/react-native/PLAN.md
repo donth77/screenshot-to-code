@@ -126,8 +126,8 @@ Companion to [`DESIGN.md`](DESIGN.md), which holds section references (§) and e
 **Status (`evidence/phase4-gate.json`).**
 
 - **RNW-6 runs and passes on Linux** for the fixtures, and for an Expo zip downloaded through the app after a scripted generation. It correctly fails the unresolvable-import and syntax-error fixtures.
-- **Still open** (it needs a machine that can reach the model APIs and has the eval outputs):
-  - RNW-6 on live-model eval outputs;
+- **RNW-6 passes on live-model output:** all 30 outputs of the full-set eval baseline bundle for iOS and Android (on macOS; `EVALS.md`).
+- **Still open:**
   - the Expo Go check, which needs devices or a simulator and emulator (`scripts/expo-go-check.sh`);
   - the Snack go/no-go.
 
@@ -139,7 +139,7 @@ Companion to [`DESIGN.md`](DESIGN.md), which holds section references (§) and e
 4. README and the Expo Go script.
 5. Docs.
 
-## Phase 5: evals and prompt iteration (≈ 5 days plus model time; 5.1–5.3 built; 5.1's 30-screenshot set chosen; 5.4 and two 5.5 rounds run on an interim 5-screenshot set, to re-run on the full set; see EVALS.md)
+## Phase 5: evals and prompt iteration (≈ 5 days plus model time; 5.1–5.4 done; two 5.5 rounds run on an interim set, the rest to run on the full set; see EVALS.md)
 
 | # | Task | Deliverable | Est. |
 | --- | --- | --- | --- |
@@ -159,8 +159,8 @@ Companion to [`DESIGN.md`](DESIGN.md), which holds section references (§) and e
   - SSIM matches scikit-image;
   - the runtime fixtures each score in the category they were built for;
   - a render scored against itself gives SSIM > 0.99.
-- **Not done:**
-  - 5.4 and 5.5 on the full set. An interim baseline and two rounds ran on the five Phase 2 screenshots (`EVALS.md`): round 2, the side-by-side screenshot check, raised SSIM from 0.681 to 0.724.
+- **5.4, the baseline on the full set:** mean SSIM 0.644 over 30 screenshots; every output renders cleanly and bundles (RNW-6). Oversizing is still the main failure (`EVALS.md`).
+- **Not done:** 5.5 on the full set. Two rounds ran earlier on the five Phase 2 screenshots: round 2, the side-by-side screenshot check, raised SSIM from 0.681 to 0.724 there.
 
 ## Phase 6: stretch (separate proposals, not estimated)
 

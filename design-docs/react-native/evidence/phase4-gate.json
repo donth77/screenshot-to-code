@@ -1,7 +1,7 @@
 {
   "gate": "Phase 4: RNW-6 (npx expo export --platform ios --platform android) passes on every eval output, and the manual Expo Go check passes",
   "date": "2026-09-24",
-  "result": "partial: RNW-6 runs and passes on Linux for the fixtures and for an export downloaded through the app, but not yet on live-model eval outputs; the Expo Go check has not run",
+  "result": "partial: RNW-6 passes on Linux for the fixtures and for an export downloaded through the app, and on macOS for all 30 live-model outputs of the full-set baseline; the Expo Go check has not run",
   "environment": {
     "os": "Linux sandbox, x86_64, no KVM",
     "node": "22.22.2, npm 10.9.7",
@@ -36,8 +36,11 @@
     "result": "pass: the Expo zip downloaded from the export menu after a scripted generation (App.jsx with its /local-assets avatar embedded in assets.js) bundles for iOS and Android"
   },
   "rnw6_live_eval_outputs": {
-    "result": "not run",
-    "reason": "the sandbox's network policy blocks api.openai.com (a 3-screen live eval run failed with connection errors before any spend) and no Anthropic or Gemini app key is set; the Phase 2 outputs are on the developer's machine, not in the repo",
+    "date": "2026-09-26",
+    "result": "pass: all 30 outputs of the full-set eval baseline bundle for iOS and Android",
+    "run": "claude-opus-4-8 (medium effort), one output per screenshot of the react-native set; results in the gitignored evals_data/results/Sep_26_2026_full-baseline_react_native (EVALS.md, Baseline)",
+    "environment": "macOS 26.4.1 arm64, Node 22.22.1, npm 10.9.4; expo 57.0.25, react-native 0.86.3; workspace 384 MB",
+    "seconds": "12 median per output (12-28), bundled one at a time after the run",
     "how_to_run": "cd backend && poetry run python -m react_native.bundle_check evals_data/results/<run>/*.jsx, or rerun the evals with RN_BUNDLE_CHECK=1"
   },
   "expo_go": {
