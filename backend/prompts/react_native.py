@@ -34,7 +34,8 @@ REACT_NATIVE_TOOLING = """# Tooling instructions
 - Use retrieve_option to fetch the full App.jsx for a specific option (1-based option_number) when a user references another option.
 - When available, always call screenshot_preview after create_file and after edit_file changes. It renders App.jsx on the target phone and returns the screenshot with a `status` and any `runtime_errors`.
 - If there are runtime_errors, fix them first: each names its kind, message and, where known, the line. Then take another screenshot.
-- Once the screen renders cleanly, compare it with the requested design and fix visual problems (layout, spacing, sizes, colors) with edit_file. When there's an input screenshot, screenshot_preview also shows it next to your render at the same scale. Each element should be the same size and in the same place in both; if your text, rows or icons come out bigger or smaller, resize them."""
+- Once the screen renders cleanly, compare it with the requested design and fix visual problems (layout, spacing, sizes, colors) with edit_file.
+- When there's an input screenshot, screenshot_preview also shows it next to your render at the same scale, with guide lines every 50 pt (dp on Android) across both, numbered every 100. Measure with them: find where the title, the first row or section, the last fully visible element and any bar at the bottom start, in the input and in your render, counting from the top of the app's content (below the status bar, if the input shows one). If any is more than about 8 off, or a different number of rows is visible, a size or spacing above it is wrong: fix it and take another screenshot. Finish when they line up."""
 
 _FILE_RULES = f"""## The file
 
@@ -138,7 +139,10 @@ def screen_facts(screen: ReactNativeScreen, has_screenshot: bool) -> str:
         if device.crop_top_px or device.crop_bottom_px:
             facts.append(f"- The phone's {bars} were cropped off the screenshot. Don't draw them.")
         else:
-            facts.append(f"- If the screenshot includes the phone's {bars}, don't draw them.")
+            facts.append(
+                f"- If the screenshot includes the phone's {bars}, don't draw them or leave space for them: "
+                "on the phone, SafeAreaView adds that space."
+            )
     if screen.status_bar_style:
         facts.append(
             f'- Use <StatusBar style="{screen.status_bar_style}" />: the status bar over this screen '

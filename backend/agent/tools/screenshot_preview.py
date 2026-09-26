@@ -112,7 +112,12 @@ _REACT_NATIVE_STATUS = {
 
 
 _COMPARISON_LABEL_PX = 30
-_COMPARISON_GAP_PX = 12
+# The gutter between the two holds the guide lines' numbers.
+_COMPARISON_GAP_PX = 40
+# Guide lines every 50 pt (dp), numbered every 100, so positions can be read
+# off and compared. Magenta shows on light and dark screens alike.
+_GUIDE_STEP = 50
+_GUIDE_COLOR = (255, 0, 170)
 # The cropped input and the render differ by at most a pixel of rounding.
 _COMPARISON_SIZE_TOLERANCE_PX = 2
 
@@ -123,7 +128,8 @@ def side_by_side(reference_url: Optional[str], render_png: bytes, profile: Mappi
     screenshot (a different size: an image attached as a reference, say).
 
     The model's first look at the input was earlier in the conversation, at
-    whatever scale its provider chose; side by side, sizes compare directly.
+    whatever scale its provider chose; side by side, sizes compare directly,
+    and guide lines across both let it measure where things are.
     """
     reference = decode_image(reference_url) if reference_url else None
     if reference is None:
@@ -142,6 +148,16 @@ def side_by_side(reference_url: Optional[str], render_png: bytes, profile: Mappi
         x = index * (size[0] + _COMPARISON_GAP_PX)
         draw.text((x + 8, 5), label, fill="#FFFFFF", font=font)
         canvas.paste(image.convert("RGB").resize(size, Image.Resampling.LANCZOS), (x, _COMPARISON_LABEL_PX))
+    guides = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+    guide_draw = ImageDraw.Draw(guides)
+    number_font = ImageFont.load_default(size=13)
+    for y in range(_GUIDE_STEP, size[1], _GUIDE_STEP):
+        numbered = y % (2 * _GUIDE_STEP) == 0
+        top = _COMPARISON_LABEL_PX + y
+        guide_draw.line([(0, top), (canvas.width, top)], fill=(*_GUIDE_COLOR, 200 if numbered else 110), width=1)
+        if numbered:
+            guide_draw.text((size[0] + _COMPARISON_GAP_PX // 2, top - 1), str(y), fill="#FFFFFF", font=number_font, anchor="mb")
+    canvas = Image.alpha_composite(canvas.convert("RGBA"), guides).convert("RGB")
     buffer = io.BytesIO()
     canvas.save(buffer, "PNG")
     return buffer.getvalue()
@@ -205,8 +221,8 @@ async def run_react_native_screenshot_preview(
     )
     if comparison:
         screenshot_text += (
-            " So is the input screenshot next to your render, both at the same scale:"
-            " each element should be the same size and in the same place in both."
+            " So is the input screenshot next to your render, both at the same scale, with guide lines"
+            f" every {_GUIDE_STEP} {unit} across both: each element should be the same size and in the same place in both."
         )
     details: Dict[str, Any] = {
         "status": render.status,

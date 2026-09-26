@@ -150,5 +150,12 @@ async def test_the_input_screenshot_is_shown_next_to_the_render(
     if compared:
         assert parts[1].data is not None
         comparison = Image.open(io.BytesIO(parts[1].data))
-        assert comparison.size == (390 * 2 + 12, 763 + 30)  # both at the screen's logical size, labelled
+        assert comparison.size == (390 * 2 + 40, 763 + 30)  # both at the screen's logical size, labelled
         assert result.result["details"]["comparison"]["image_part_index"] == 1
+        # Guide lines every 50 pt cross both screens (black input, white render); rows between stay clean.
+        line, between = 30 + 100, 30 + 125
+        for x in (20, 390 + 40 + 20):
+            assert comparison.getpixel((x, line)) != comparison.getpixel((x, between))
+        assert comparison.getpixel((20, between)) == (0, 0, 0)
+        assert comparison.getpixel((390 + 40 + 20, between)) == (255, 255, 255)
+        assert "guide lines every 50 pt" in result.result["content"]
