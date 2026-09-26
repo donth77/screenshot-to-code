@@ -142,6 +142,7 @@ Mean SSIM by group (a screenshot can be in more than one category):
 | 0 | Baseline: interim round 2's prompt | `19ea88c` | 0.644 | 0.106 | 30/30 | 0/30 | 30/30 | 1.6 | 56 s | $7.95 |
 | 3 | Guide lines every 50 pt across the comparison, a measuring step, and no space left for system bars | `5361a6a` | 0.653 | 0.102 | 30/30 | 0/30 | 30/30 | 1.9 | 65 s | $9.08 |
 | 4 | Unknown Android phones cropped at the bars their screenshots show (nine re-run, 21 carried over) | `467e596` | 0.661 | 0.097 | 30/30 | 0/30 | 30/30 | 2.0 | 70 s | $9.57 |
+| 5 (partial) | A Gemini key, so extract_assets crops photos out of the input; stopped at 24 of 30 when the API credits ran out | `734163e` | 0.644 on 24 (round 4: 0.656) | 0.089 | 24/24 | 0/24 | not checked | 2.1 | 73 s | $7.61 |
 
 Rounds are compared screen by screen: the change in each screen's SSIM, averaged, with its standard error.
 
@@ -156,6 +157,10 @@ Rounds are compared screen by screen: the change in each screen's SSIM, averaged
   - Only the nine screenshots that keep their bars changed, so only they were re-run; the other 21 outputs are round 3's.
   - On the nine, SSIM rose from 0.618 to 0.646 (+0.028 ± 0.021). The gains are where the status-bar offset was the main error: Loop +0.166, Catima's two +0.071 and +0.067. The long screens (now 1528 dp tall instead of 1602) and Breezy (a bottom bar only) stayed within noise.
   - Mean over all 30: 0.661. The nine cost $3.46: the model checked more on them, up to 4 screenshots.
+- **Round 5 (partial)** had a Gemini key, so the model could crop the photos out of the input with `extract_assets` instead of drawing them. It stopped at 24 of 30 screens when the Anthropic API credits ran out; Tusky's login also failed all three attempts on a streaming bug, fixed since in `78a943a`.
+  - On the 24: 0.656 → 0.644 (−0.011 ± 0.028), within noise. Without one outlier (below) it's about +0.015.
+  - The photos helped the screens that have them: Feeder in light mode +0.142, Photos +0.085, the long apps list +0.084, Shortcuts +0.081.
+  - The outlier: the Health welcome screen fell from 0.681 to 0.060 with a layout much like round 4's, because its background came out pure black where the input's sheet is `#1C1C1E`. SSIM compares brightness relative to its own level, so on a near-black screen a small shift counts as a large difference. That's much of why dark screens score lower, and what the next change targets: the prompt now lists the screenshot's exact flat colours (`01feca5`), not yet measured.
 
 ## Interim runs (5 screenshots)
 
