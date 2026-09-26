@@ -53,8 +53,20 @@ CLOCK_RE = re.compile(r"^(?:[01]?\d|2[0-3]):[0-5]\d(?:\s?[AaPp]\.?[Mm]\.?)?$")
 # lucide icon families a fake status bar uses (battery-full, wifi-high, ...).
 STATUS_ICON_FAMILIES = ("battery", "wifi", "signal")
 
-# Error kinds from the preview (rn-runtime/src) and render.py.
-RUNTIME_ERROR_KINDS = ("runtime", "uncaught", "module", "transform", "runtime_load", "no_default_export", "timeout")
+# Error kinds from the preview (rn-runtime/src) and render.py. Async errors
+# (unhandled_rejection) and hook misuse (invalid_hook_call) count: both are
+# the app failing, even when the screen still renders.
+RUNTIME_ERROR_KINDS = (
+    "runtime",
+    "uncaught",
+    "unhandled_rejection",
+    "invalid_hook_call",
+    "module",
+    "transform",
+    "runtime_load",
+    "no_default_export",
+    "timeout",
+)
 
 FloatArray = NDArray[np.floating[Any]]
 

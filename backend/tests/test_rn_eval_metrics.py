@@ -157,6 +157,16 @@ def test_error_metrics_summarize_the_render_report() -> None:
     assert metrics["error_kinds"] == {"native_compat": 3, "unknown_icon": 1}
 
 
+@pytest.mark.parametrize("kind", ["unhandled_rejection", "invalid_hook_call"])
+def test_async_and_hook_errors_are_runtime_errors(kind: str) -> None:
+    # The screen can still render ("degraded") while the app is failing.
+    report: dict[str, Any] = {"status": "degraded", "runtime_errors": [{"kind": kind, "message": "boom", "fatal": False}]}
+
+    metrics = error_metrics(report)
+
+    assert metrics["renders"] and metrics["runtime_error"]
+
+
 def test_an_unknown_import_is_a_fatal_runtime_error() -> None:
     report: dict[str, Any] = {"status": "error", "runtime_errors": [{"kind": "import", "message": 'Cannot import "expo-blur".', "fatal": True}]}
 
