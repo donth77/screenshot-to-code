@@ -139,6 +139,17 @@ Mean SSIM by group (a screenshot can be in more than one category):
 | Round | Change | Commit | SSIM (mean) | Pixel diff | Clean render | Fake status bar | Bundles | Iterations | Latency | Cost |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | Baseline: interim round 2's prompt | `19ea88c` | 0.644 | 0.106 | 30/30 | 0/30 | 30/30 | 1.6 | 56 s | $7.95 |
+| 3 | Guide lines every 50 pt across the comparison, a measuring step, and no space left for system bars | `5361a6a` | 0.653 | 0.102 | 30/30 | 0/30 | 30/30 | 1.9 | 65 s | $9.08 |
+
+Rounds are compared screen by screen: the change in each screen's SSIM, averaged, with its standard error.
+
+- **Round 3** added guide lines to the comparison image, and asked the model to measure where the title, the first row, the last fully visible element and any bottom bar start in both, fixing anything more than about 8 off. Over all 30 screens, SSIM rose 0.009 ± 0.008: within noise.
+  - On the 24 screens from phones in the device table or with their bars cropped, it rose 0.014 ± 0.009 (12 better, 5 worse). The screens whose problem was position improved most: the Health welcome screen +0.165, Shortcuts +0.064, iOS Settings in dark mode +0.056. Their titles and rows now start where the input's do.
+  - The six unknown phones that keep their system bars lost 0.012 (below).
+  - The other losses look like run-to-run variation: different placeholder drawings for photos, and rows drifting a few points.
+  - The model checks more (1.9 screenshots, 5.6 LLM calls), so each screen costs 14% more and takes 16% longer.
+  - Kept: it fixes the failure it targets, and leaving the system bars to SafeAreaView is right regardless.
+- **Found: unknown phones render shifted.** A screenshot from a phone that isn't in the device table keeps its system bars, but renders with zero insets, so the app starts where the status bar is and everything sits one status bar too high. At baseline the six such screens averaged 0.567 SSIM against 0.664 for the rest, and in round 3 the comparison showed the model an offset it was told to ignore. Fix: detect the bars on unknown phones and crop them as for known phones.
 
 ## Interim runs (5 screenshots)
 
