@@ -164,7 +164,8 @@ Companion to [`DESIGN.md`](DESIGN.md), which holds section references (§) and e
 - **Round 4** crops the bars of Android phones that aren't in the device table, read off the screenshot: +0.028 SSIM on the nine screenshots it changes, 0.661 over all 30.
 - **Round 5**, extracted photos, ran on 24 of 30 screens before the API credits ran out: within noise overall, with clear gains where the screen has photos.
 - **Round 6**, the screenshot's exact flat colours in the prompt, is kept: 0.677 over all 30 (+0.016 on round 4), with dark backgrounds now matching exactly.
-- **Not done:** a clean measure of extracted photos with the colours (Gemini's quota cut round 6's extractions short) (`EVALS.md`).
+- **Round 7** completed round 6's photo extractions: 0.672, within noise. The photos are a clear gain by eye, but SSIM scores a slightly offset real photo below a flat placeholder, so it can't credit them.
+- **Not done:** a perceptual score for photos (5.3's optional CLIP similarity) (`EVALS.md`).
 
 ## Phase 6: stretch (separate proposals, not estimated)
 

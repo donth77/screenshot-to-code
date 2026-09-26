@@ -144,6 +144,7 @@ Mean SSIM by group (a screenshot can be in more than one category):
 | 4 | Unknown Android phones cropped at the bars their screenshots show (nine re-run, 21 carried over) | `467e596` | 0.661 | 0.097 | 30/30 | 0/30 | 30/30 | 2.0 | 70 s | $9.57 |
 | 5 (partial) | A Gemini key, so extract_assets crops photos out of the input; stopped at 24 of 30 when the API credits ran out | `734163e` | 0.644 on 24 (round 4: 0.656) | 0.089 | 24/24 | 0/24 | not checked | 2.1 | 73 s | $7.61 |
 | 6 | The screenshot's exact flat colours in the prompt; photos where Gemini's quota allowed | `c195f20` | **0.677** | **0.079** | 30/30 | 0/30 | 30/30 | 2.4 | 76 s | $10.57 |
+| 7 | Round 6 with working extractions: the four screens Gemini refused re-run, 26 carried over | `c195f20` | 0.672 | 0.080 | 30/30 | 0/30 | 30/30 | 2.4 | 72 s | $10.36 |
 
 Rounds are compared screen by screen: the change in each screen's SSIM, averaged, with its standard error.
 
@@ -167,6 +168,10 @@ Rounds are compared screen by screen: the change in each screen's SSIM, averaged
   - Against round 4, over all 30: 0.662 → 0.677 (+0.016 ± 0.008; 18 better, 6 worse), the best so far. Dark screens +0.025 ± 0.011, light +0.009 ± 0.012.
   - Gemini refused 16 extractions (13 over its quota, 3 over capacity), so many screens had no photos this round (NewPipe had 5 in round 5, none now). On the 21 without photos, colours alone moved SSIM +0.007 ± 0.009 against round 4: most of the SSIM gain is on dark screens, and the photos' full effect isn't in this round.
   - The model checks more (2.4 screenshots, 6.9 LLM calls, one screen 9 and 19 while extractions kept failing): $0.35 a screen.
+- **Round 7** re-ran, with new Gemini credit, the four screens whose extractions Gemini refused in round 6: Breezy in light mode, Catima's form, Feeder in dark mode and NewPipe. That cost $1.59; the other 26 outputs are round 6's.
+  - The photos now appear (NewPipe's five thumbnails, Feeder's two photos) and the screens look much closer to the input, but SSIM fell on three of the four: NewPipe 0.506 → 0.454, Catima 0.501 → 0.443, Breezy 0.675 → 0.653, Feeder 0.547 → 0.536. The mean over 30, 0.672, is within noise of round 6.
+  - SSIM compares local structure, so a real photo a few points out of place scores worse than a flat placeholder in the same spot. It can't credit the photos: judge them by eye, or add a perceptual score (the optional CLIP similarity in DESIGN §14.1) before tuning them further.
+  - Kept: the extracted photos are what users see, and by eye they're a clear gain.
 
 ## Interim runs (5 screenshots)
 
