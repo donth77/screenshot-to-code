@@ -2,7 +2,7 @@
 
 Results for the React Native stack (PLAN.md 5.4 and 5.5). The metrics are described in DESIGN.md §14.1.
 
-**Status:** the full-set baseline (5.4) is done: mean SSIM 0.644 across 30 screenshots, and every output renders cleanly and bundles for iOS and Android. Two prompt rounds ran earlier on a 5-screenshot interim set (at the end); the next rounds run on the full set.
+**Status:** the full-set baseline (5.4) and two rounds on the full set are done: mean SSIM 0.644, then 0.661, across 30 screenshots, and every output renders cleanly and bundles for iOS and Android. Two earlier rounds ran on a 5-screenshot interim set (at the end).
 
 ## The eval set (5.1)
 
@@ -17,7 +17,7 @@ Results for the React Native stack (PLAN.md 5.4 and 5.5). The metrics are descri
   - Marketing images (framed devices with captions) were left out. Four device mockups without captions got in (Feeder's two and Tusky's two); the baseline run exposed them, and they're now cropped to their screens.
   - Eight had their system bars cropped off by hand, the four mockups among them: at their screen size, the device table would take them for a different phone or crop bars of a different height. The manifest's notes say how each was cropped. The rest keep their bars and exercise the unknown-device path.
 - **Coverage:** 9 iOS and 21 Android; 18 light and 12 dark; every category (lists and feeds 10, forms 5, tab bars 5, settings 5, cards 4, onboarding 3, chat 2); 3 long.
-- **Detection:** the platform is right for all 30. The 16 exact-device captures are cropped by the table's insets, which the manifest records and the checker verifies. Everything else is a guessed Android phone with no crop.
+- **Detection:** the platform is right for all 30. The 13 exact-device captures are cropped by the table's insets. The other 17 are Android phones that aren't in the table: nine keep their bars, which have been read off the screenshot and cropped since round 4, and eight have none. The manifest records every screenshot's insets, and the checker verifies them.
 - **Found while sourcing:** detection took 16:9 Android screenshots (1080 x 1920) for scaled iPhone SEs; fixed in `a33f3a4`.
 
 ## How to run
@@ -140,6 +140,7 @@ Mean SSIM by group (a screenshot can be in more than one category):
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | Baseline: interim round 2's prompt | `19ea88c` | 0.644 | 0.106 | 30/30 | 0/30 | 30/30 | 1.6 | 56 s | $7.95 |
 | 3 | Guide lines every 50 pt across the comparison, a measuring step, and no space left for system bars | `5361a6a` | 0.653 | 0.102 | 30/30 | 0/30 | 30/30 | 1.9 | 65 s | $9.08 |
+| 4 | Unknown Android phones cropped at the bars their screenshots show (nine re-run, 21 carried over) | `467e596` | 0.661 | 0.097 | 30/30 | 0/30 | 30/30 | 2.0 | 70 s | $9.57 |
 
 Rounds are compared screen by screen: the change in each screen's SSIM, averaged, with its standard error.
 
@@ -149,7 +150,11 @@ Rounds are compared screen by screen: the change in each screen's SSIM, averaged
   - The other losses look like run-to-run variation: different placeholder drawings for photos, and rows drifting a few points.
   - The model checks more (1.9 screenshots, 5.6 LLM calls), so each screen costs 14% more and takes 16% longer.
   - Kept: it fixes the failure it targets, and leaving the system bars to SafeAreaView is right regardless.
-- **Found: unknown phones render shifted.** A screenshot from a phone that isn't in the device table keeps its system bars, but renders with zero insets, so the app starts where the status bar is and everything sits one status bar too high. At baseline the six such screens averaged 0.567 SSIM against 0.664 for the rest, and in round 3 the comparison showed the model an offset it was told to ignore. Fix: detect the bars on unknown phones and crop them as for known phones.
+- **Found: unknown phones render shifted.** A screenshot from a phone that isn't in the device table keeps its system bars, but renders with zero insets, so the app starts where the status bar is and everything sits one status bar too high. At baseline the six such screens averaged 0.567 SSIM against 0.664 for the rest, and in round 3 the comparison showed the model an offset it was told to ignore. Fix: detect the bars on unknown phones and crop them as for known phones. Done in round 4.
+- **Round 4** reads the status and navigation bars off the screenshot of an Android phone that isn't in the device table, and crops them as for a known phone (DESIGN §7.2), so the render lines up with the input.
+  - Only the nine screenshots that keep their bars changed, so only they were re-run; the other 21 outputs are round 3's.
+  - On the nine, SSIM rose from 0.618 to 0.646 (+0.028 ± 0.021). The gains are where the status-bar offset was the main error: Loop +0.166, Catima's two +0.071 and +0.067. The long screens (now 1528 dp tall instead of 1602) and Breezy (a bottom bar only) stayed within noise.
+  - Mean over all 30: 0.661. The nine cost $3.46: the model checked more on them, up to 4 screenshots.
 
 ## Interim runs (5 screenshots)
 
