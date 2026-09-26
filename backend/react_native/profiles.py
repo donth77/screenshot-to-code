@@ -79,6 +79,8 @@ class ReactNativeScreen:
     device: DeviceProfile
     # From the cropped-off status bar; None without one or when it's unclear.
     status_bar_style: Optional[StatusBarStyle]
+    # The screenshot's flat colours, (hex, share of the screen), most common first.
+    colors: tuple[tuple[str, float], ...] = ()
 
 
 def load_device_table() -> dict[str, Any]:
@@ -210,6 +212,38 @@ def infer_status_bar_style(strip: Image.Image) -> Optional[StatusBarStyle]:
         return None
     glyph_level = sum(level * count for level, count in glyph_levels) / glyph_pixels
     return "light" if glyph_level > background else "dark"
+
+
+# ------------------------------------------------------------------ flat colours
+
+# A design's fills and text repeat the same exact colour pixel for pixel, where
+# photos, gradients and anti-aliased edges don't, so a screenshot's most common
+# exact colours are its palette. Every other pixel is counted: plenty for shares.
+_COLOR_COUNT = 6
+_COLOR_MIN_SHARE = 0.005
+_COLOR_MIN_DISTANCE = 24  # RGB distance between two listed colours
+
+
+def flat_colors(image: Image.Image) -> tuple[tuple[str, float], ...]:
+    """The screenshot's most common exact colours, as (hex, share of the
+    screen) pairs, most common first, leaving out near-duplicates."""
+    rgb = np.asarray(image.convert("RGB"), dtype=np.uint32)[::2, ::2]
+    packed = ((rgb[..., 0] << 16) | (rgb[..., 1] << 8) | rgb[..., 2]).ravel()
+    if packed.size == 0:
+        return ()
+    values, counts = np.unique(packed, return_counts=True)
+    chosen: list[tuple[int, int, int]] = []
+    colors: list[tuple[str, float]] = []
+    for index in np.argsort(-counts, kind="stable"):
+        share = float(counts[index]) / packed.size
+        if share < _COLOR_MIN_SHARE or len(colors) == _COLOR_COUNT:
+            break
+        value = int(values[index])
+        color = (value >> 16, (value >> 8) & 255, value & 255)
+        if all(sum((a - b) ** 2 for a, b in zip(color, other)) > _COLOR_MIN_DISTANCE**2 for other in chosen):
+            chosen.append(color)
+            colors.append((f"#{value:06X}", round(share, 3)))
+    return tuple(colors)
 
 
 # ------------------------------------------------------------------ system bars
@@ -386,4 +420,5 @@ def read_screenshot(
     style = None
     if device.crop_top_px > 0:
         style = infer_status_bar_style(image.crop((0, 0, image.width, device.crop_top_px)))
-    return crop_to_content(image, device), ReactNativeScreen(device=device, status_bar_style=style)
+    cropped = crop_to_content(image, device)
+    return cropped, ReactNativeScreen(device=device, status_bar_style=style, colors=flat_colors(cropped))

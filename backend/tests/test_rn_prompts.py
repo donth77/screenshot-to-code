@@ -86,7 +86,22 @@ def test_the_screenshot_turn_states_the_screen() -> None:
     assert "cropped off the screenshot" in text
     assert '<StatusBar style="light" />' in text
     assert "placehold.co" in text  # image generation is off
+    assert "flat colors" not in text  # none were read
     assert text.endswith("Additional instructions: Use a blue accent.")
+
+
+def test_the_screenshot_turn_lists_its_flat_colors() -> None:
+    screen = ReactNativeScreen(
+        device=default_device(TABLE, "ios"), status_bar_style="light", colors=(("#1C1B1F", 0.62), ("#E6E1E5", 0.04), ("#D0BCFF", 0.006))
+    )
+    messages = build_create_prompt_from_input(
+        "image", "react_native", {"text": "", "images": ["data:image/png;base64,AA=="], "videos": []}, False, None, screen
+    )
+
+    assert (
+        "- The screenshot's main flat colors, by share of the screen: #1C1B1F (62%), #E6E1E5 (4%), #D0BCFF (under 1%). "
+        "Use these exact values for the backgrounds, surfaces, text and accents they match."
+    ) in user_text(messages)
 
 
 def test_the_text_turn_targets_the_default_phone() -> None:

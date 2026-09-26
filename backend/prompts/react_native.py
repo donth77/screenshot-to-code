@@ -125,6 +125,10 @@ def screen_target(screen: ReactNativeScreen) -> str:
     return f"{phone}, with a content area {device.logical_width} {unit} wide and {device.content_height} {unit} tall"
 
 
+def _percent(share: float) -> str:
+    return f"{round(share * 100)}%" if share >= 0.01 else "under 1%"
+
+
 def screen_facts(screen: ReactNativeScreen, has_screenshot: bool) -> str:
     device = screen.device
     unit = "pt" if device.platform == "ios" else "dp"
@@ -143,6 +147,12 @@ def screen_facts(screen: ReactNativeScreen, has_screenshot: bool) -> str:
                 f"- If the screenshot includes the phone's {bars}, don't draw them or leave space for them: "
                 "on the phone, SafeAreaView adds that space."
             )
+    if has_screenshot and screen.colors:
+        listed = ", ".join(f"{color} ({_percent(share)})" for color, share in screen.colors)
+        facts.append(
+            f"- The screenshot's main flat colors, by share of the screen: {listed}. "
+            "Use these exact values for the backgrounds, surfaces, text and accents they match."
+        )
     if screen.status_bar_style:
         facts.append(
             f'- Use <StatusBar style="{screen.status_bar_style}" />: the status bar over this screen '

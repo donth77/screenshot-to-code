@@ -34,6 +34,7 @@ Results for the React Native stack (PLAN.md 5.4 and 5.5). The metrics are descri
 2. **Generate.** Run from the evals UI (stack `react_native`, set `react-native`) or call `run_image_evals(stack="react_native", model=…, eval_set="react-native")`.
    - Set `PROMPT_REPORTS_ENABLED=true` for iterations, latency and cost.
    - Set `RN_BUNDLE_CHECK=1` for the RNW-6 bundle rate. It adds about 10–40 s per output.
+   - With `GEMINI_API_KEY` set, the model can call `extract_assets`, which crops photos out of the input into `backend/local_assets/`. The renders load them from `LOCAL_ASSET_BASE_URL` (`http://127.0.0.1:7001` by default), so keep the backend running during the run, or the photos render as broken images.
    - Each output gets `<name>_<n>.metrics.json`.
 3. **Report.**
 

@@ -163,3 +163,21 @@ async def test_react_native_without_a_runtime_build_fails_clearly(monkeypatch: p
 
     assert throw_error.await_args is not None
     assert "pnpm build" in throw_error.await_args.args[0]
+
+
+def test_flat_colors_are_the_screenshots_repeated_exact_colors() -> None:
+    from react_native.profiles import flat_colors
+
+    image = Image.new("RGB", (400, 800), "#1C1B1F")  # background
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((0, 400, 399, 599), fill="#2B2930")  # a surface: a quarter
+    draw.rectangle((20, 40, 379, 79), fill="#E6E1E5")  # text: 4.5%
+    draw.rectangle((0, 700, 399, 709), fill="#1E1D21")  # too close to the background to list
+    for x in range(400):  # a gradient "photo": no colour repeats much
+        draw.line((x, 610, x, 690), fill=(x % 256, (x * 3) % 256, 128))
+
+    colors = flat_colors(image)
+
+    assert [color for color, _ in colors] == ["#1C1B1F", "#2B2930", "#E6E1E5"]
+    assert colors[1][1] == pytest.approx(0.25, abs=0.01)
+    assert colors[2][1] == pytest.approx(0.045, abs=0.005)
