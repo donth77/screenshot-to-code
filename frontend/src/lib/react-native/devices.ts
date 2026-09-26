@@ -131,6 +131,19 @@ function guessPlatform(pixelWidth: number): Platform {
   return "android";
 }
 
+// Whether a screenshot this wide can be that device's screen: a downscaled
+// copy of its screenshots, or the same logical size at a whole 2x or 3x (an
+// iPhone XS Max has the XR's shape at 3x). A 1080 x 1920 Android screenshot
+// is neither for an iPhone SE (375 pt at 2x).
+function plausibleScale(pixelWidth: number, entry: DeviceTableEntry): boolean {
+  const scale = pixelWidth / entry.logicalWidth;
+  const whole = Math.round(scale);
+  return (
+    scale <= entry.pixelWidth / entry.logicalWidth + 1e-9 ||
+    ((whole === 2 || whole === 3) && Math.abs(scale - whole) < 0.01)
+  );
+}
+
 // Exact size match, then a scaled screenshot of a known shape, then a guess.
 export function detectDevice(
   pixelWidth: number,
@@ -152,7 +165,7 @@ export function detectDevice(
         index,
         distance: Math.abs(entry.pixelHeight / entry.pixelWidth - aspect),
       }))
-      .filter(({ distance }) => distance <= ASPECT_TOLERANCE * aspect)
+      .filter(({ entry, distance }) => distance <= ASPECT_TOLERANCE * aspect && plausibleScale(pixelWidth, entry))
       .sort((a, b) => a.distance - b.distance || a.index - b.index);
     // Only when every device of that shape is on the same platform.
     if (shaped.length && new Set(shaped.map(({ entry }) => entry.platform)).size === 1) {

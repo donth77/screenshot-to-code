@@ -546,6 +546,38 @@
       }
     },
     {
+      "name": "16:9 Android is not an enlarged iPhone SE",
+      "pixelWidth": 1080,
+      "pixelHeight": 1920,
+      "overrides": null,
+      "expected": {
+        "platform": "android",
+        "name": null,
+        "logicalWidth": 412,
+        "scale": 2.621359223300971,
+        "insetTop": 0,
+        "insetBottom": 0,
+        "pixelWidth": 1080,
+        "pixelHeight": 1920,
+        "match": "guessed",
+        "cropTopPx": 0,
+        "cropBottomPx": 0,
+        "contentHeight": 732,
+        "previewProfile": {
+          "platform": "android",
+          "width": 412,
+          "height": 732,
+          "scale": 2.621359223300971,
+          "insets": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        }
+      }
+    },
+    {
       "name": "unknown width that is an iPhone at 3x",
       "pixelWidth": 1125,
       "pixelHeight": 2000,

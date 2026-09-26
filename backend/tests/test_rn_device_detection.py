@@ -47,6 +47,7 @@ CASES: list[tuple[str, Optional[int], Optional[int], Optional[dict[str, Any]]]] 
     ("Pixel 8 at half size", 540, 1200, None),
     ("unknown iPhone shape (XS Max)", 1242, 2688, None),
     ("unknown tall Android", 1000, 2000, None),
+    ("16:9 Android is not an enlarged iPhone SE", 1080, 1920, None),
     ("unknown width that is an iPhone at 3x", 1125, 2000, None),
     ("landscape iPhone is guessed", 2532, 1170, None),
     ("tiny image", 40, 90, None),

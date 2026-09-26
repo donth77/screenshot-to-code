@@ -108,6 +108,17 @@ def _guess_platform(pixel_width: int) -> Platform:
     return "android"
 
 
+def _plausible_scale(pixel_width: int, entry: Mapping[str, Any]) -> bool:
+    """Whether a screenshot this wide can be that device's screen: a downscaled
+    copy of its screenshots, or the same logical size at a whole 2x or 3x (an
+    iPhone XS Max has the XR's shape at 3x). A 1080 x 1920 Android screenshot
+    is neither for an iPhone SE (375 pt at 2x)."""
+    scale = pixel_width / entry["logicalWidth"]
+    return scale <= entry["pixelWidth"] / entry["logicalWidth"] + 1e-9 or (
+        round(scale) in (2, 3) and abs(scale - round(scale)) < 0.01
+    )
+
+
 def detect_device(
     pixel_width: int,
     pixel_height: int,
@@ -126,6 +137,7 @@ def detect_device(
             (abs(entry["pixelHeight"] / entry["pixelWidth"] - aspect), index, entry)
             for index, entry in enumerate(devices)
             if abs(entry["pixelHeight"] / entry["pixelWidth"] - aspect) <= _ASPECT_TOLERANCE * aspect
+            and _plausible_scale(pixel_width, entry)
         )
         # Only when every device of that shape is on the same platform.
         if shaped and len({entry["platform"] for _, _, entry in shaped}) == 1:
