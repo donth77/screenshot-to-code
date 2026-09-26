@@ -139,7 +139,7 @@ Companion to [`DESIGN.md`](DESIGN.md), which holds section references (§) and e
 4. README and the Expo Go script.
 5. Docs.
 
-## Phase 5: evals and prompt iteration (≈ 5 days plus model time; 5.1–5.3 built; 5.4 and two 5.5 rounds run on an interim 5-screenshot set, see EVALS.md; the full set is still to choose)
+## Phase 5: evals and prompt iteration (≈ 5 days plus model time; 5.1–5.3 built; 5.1's 30-screenshot set chosen; 5.4 and two 5.5 rounds run on an interim 5-screenshot set, to re-run on the full set; see EVALS.md)
 
 | # | Task | Deliverable | Est. |
 | --- | --- | --- | --- |
@@ -160,7 +160,6 @@ Companion to [`DESIGN.md`](DESIGN.md), which holds section references (§) and e
   - the runtime fixtures each score in the category they were built for;
   - a render scored against itself gives SSIM > 0.99.
 - **Not done:**
-  - 5.1's screenshots: the manifest is empty until you supply screenshots or approve sources;
   - 5.4 and 5.5 on the full set. An interim baseline and two rounds ran on the five Phase 2 screenshots (`EVALS.md`): round 2, the side-by-side screenshot check, raised SSIM from 0.681 to 0.724.
 
 ## Phase 6: stretch (separate proposals, not estimated)

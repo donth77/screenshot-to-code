@@ -1,5 +1,432 @@
 {
   "set": "react-native",
-  "description": "Phone screenshots for the React Native (Expo) stack's evals (DESIGN.md §14). Images go in evals_data/sets/react-native/inputs/ (gitignored); see evals/react_native_set.py for the item format.",
-  "items": []
+  "description": "Phone screenshots for the React Native (Expo) stack's evals (DESIGN.md \u00a714). Images go in evals_data/sets/react-native/inputs/ (gitignored); see evals/react_native_set.py for the item format.",
+  "items": [
+    {
+      "file": "android-apps-long-dark.png",
+      "source": "own capture: Pixel 8 emulator (Android 16, API 36), demo-mode status bar",
+      "licence": "Screenshot of Android Settings (AOSP, Apache-2.0); internal evaluation only, not redistributed",
+      "platform": "android",
+      "theme": "dark",
+      "categories": [
+        "lists-feeds"
+      ],
+      "long": true,
+      "notes": "A long screen: the emulator's display was set to 1080 x 4200 (adb shell wm size), so the app laid out the whole screen; not stitched.",
+      "sha256": "3a86736a73741e170d2b4f22fb5b4e275326dc573aa4bee2fde6a8de39cbf515"
+    },
+    {
+      "file": "android-breezy-weather-dark.png",
+      "source": "https://f-droid.org/repo/org.breezyweather/en-US/phoneScreenshots/02-main-header-dark.png",
+      "licence": "LGPL-3.0-only (the app's licence; from its F-Droid listing, Breezy Weather)",
+      "platform": "android",
+      "theme": "dark",
+      "categories": [
+        "cards"
+      ],
+      "long": false,
+      "sha256": "5840cd903d9c12d89b510ec22d59d56b60b069052f39638a6100dd2d032f6dd7"
+    },
+    {
+      "file": "android-breezy-weather-light.png",
+      "source": "https://f-droid.org/repo/org.breezyweather/en-US/phoneScreenshots/01-main-header-light.png",
+      "licence": "LGPL-3.0-only (the app's licence; from its F-Droid listing, Breezy Weather)",
+      "platform": "android",
+      "theme": "light",
+      "categories": [
+        "cards"
+      ],
+      "long": false,
+      "sha256": "d76bce81e65fd326dc5dcecff96ff5abedbb0116c6502b5354f3d7bd4aae1cbe"
+    },
+    {
+      "file": "android-catima-add-card-light.png",
+      "source": "https://f-droid.org/repo/me.hackerchick.catima/en-US/phoneScreenshots/screenshot-02.png",
+      "licence": "GPL-3.0-or-later (the app's licence; from its F-Droid listing, Catima \u2014 Loyalty Card Wallet)",
+      "platform": "android",
+      "theme": "light",
+      "categories": [
+        "forms"
+      ],
+      "long": false,
+      "sha256": "43d338d4b95dfc9961bb9569eeafcdcce87c1bbeb8b768fcc804e4616a2e96a8"
+    },
+    {
+      "file": "android-catima-cards-light.png",
+      "source": "https://f-droid.org/repo/me.hackerchick.catima/en-US/phoneScreenshots/screenshot-01.png",
+      "licence": "GPL-3.0-or-later (the app's licence; from its F-Droid listing, Catima \u2014 Loyalty Card Wallet)",
+      "platform": "android",
+      "theme": "light",
+      "categories": [
+        "cards"
+      ],
+      "long": false,
+      "sha256": "ba3fd57aa30d7ad5d041b5f9ec82cca1a2af4854ab84c75dcaefb734564e52c3"
+    },
+    {
+      "file": "android-clock-dark.png",
+      "source": "own capture: Pixel 8 emulator (Android 16, API 36), demo-mode status bar",
+      "licence": "Screenshot of Google's Clock app; internal evaluation only, not redistributed",
+      "platform": "android",
+      "theme": "dark",
+      "categories": [
+        "tab-bars"
+      ],
+      "long": false,
+      "insets": {
+        "top": 50.3,
+        "bottom": 24
+      },
+      "notes": "Clock uses a dark theme regardless of the system setting.",
+      "sha256": "f126d64b39e4a070d094780f23c0a8379d5e33a6a24862fc8c58765096e5f0b8"
+    },
+    {
+      "file": "android-contacts-create-light.png",
+      "source": "own capture: Pixel 8 emulator (Android 16, API 36), demo-mode status bar",
+      "licence": "Screenshot of Google's Contacts app; internal evaluation only, not redistributed",
+      "platform": "android",
+      "theme": "light",
+      "categories": [
+        "forms"
+      ],
+      "long": false,
+      "insets": {
+        "top": 50.3,
+        "bottom": 24
+      },
+      "sha256": "19bfaf790711b97467b3edf99c515a509f9e04176a5c36293e159283231ca1b8"
+    },
+    {
+      "file": "android-contacts-create-long-light.png",
+      "source": "own capture: Pixel 8 emulator (Android 16, API 36), demo-mode status bar",
+      "licence": "Screenshot of Google's Contacts app; internal evaluation only, not redistributed",
+      "platform": "android",
+      "theme": "light",
+      "categories": [
+        "forms"
+      ],
+      "long": true,
+      "notes": "A long screen: the emulator's display was set to 1080 x 4200 (adb shell wm size), so the app laid out the whole screen; not stitched.",
+      "sha256": "0e2c4f06d167ba658b4ce38966bda2b008420dfcfa1cedbfdbc7bf6a7efcc015"
+    },
+    {
+      "file": "android-conversations-chat-light.png",
+      "source": "https://f-droid.org/repo/eu.siacs.conversations/en-US/phoneScreenshots/02.png",
+      "licence": "GPL-3.0-only (the app's licence; from its F-Droid listing, Conversations)",
+      "platform": "android",
+      "theme": "light",
+      "categories": [
+        "chat"
+      ],
+      "long": false,
+      "notes": "System bars cropped off by hand (94 px top, 0 px bottom): the source device's size matches a different phone in the device table.",
+      "sha256": "2b9481710314f97507c3d3816e6ce34afea8b7b2e393a1f7b7addc615fbfec39"
+    },
+    {
+      "file": "android-feeder-list-dark.png",
+      "source": "https://f-droid.org/repo/com.nononsenseapps.feeder/en-US/phoneScreenshots/2_en-US_phone_portrait_dark_list.png",
+      "licence": "GPL-3.0-only (the app's licence; from its F-Droid listing, Feeder)",
+      "platform": "android",
+      "theme": "dark",
+      "categories": [
+        "lists-feeds"
+      ],
+      "long": false,
+      "sha256": "e92379899dc7c88881a651dc5f8564e363ccddd5a46e660f54d67bcf1c7a6ac4"
+    },
+    {
+      "file": "android-feeder-list-light.png",
+      "source": "https://f-droid.org/repo/com.nononsenseapps.feeder/en-US/phoneScreenshots/1_en-US_phone_portrait_light_list.png",
+      "licence": "GPL-3.0-only (the app's licence; from its F-Droid listing, Feeder)",
+      "platform": "android",
+      "theme": "light",
+      "categories": [
+        "lists-feeds"
+      ],
+      "long": false,
+      "sha256": "03890c88f496b038eaadbbf350d35492070e3999c54af14e2ba1f843ee2670da"
+    },
+    {
+      "file": "android-fossify-contacts-tabs-light.png",
+      "source": "https://f-droid.org/repo/org.fossify.contacts/en-US/phoneScreenshots/2_en-US.png",
+      "licence": "GPL-3.0-only (the app's licence; from its F-Droid listing, Fossify Contacts)",
+      "platform": "android",
+      "theme": "light",
+      "categories": [
+        "tab-bars",
+        "lists-feeds"
+      ],
+      "long": false,
+      "notes": "System bars cropped off by hand (124 px top, 100 px bottom): the source device's size matches a different phone in the device table.",
+      "sha256": "4a652c35167a735fc4a228576dccc6c97d08387ff103c55db0c8b55240988541"
+    },
+    {
+      "file": "android-fossify-notes-settings-light.png",
+      "source": "https://f-droid.org/repo/org.fossify.notes/en-US/phoneScreenshots/4_en-US.png",
+      "licence": "GPL-3.0-only (the app's licence; from its F-Droid listing, Fossify Notes Beta)",
+      "platform": "android",
+      "theme": "light",
+      "categories": [
+        "settings"
+      ],
+      "long": false,
+      "notes": "System bars cropped off by hand (124 px top, 70 px bottom): the source device's size matches a different phone in the device table.",
+      "sha256": "d152bec6c572954a2a82892d893c3aa25ae512a2d771a9d1133d3cd5b2bed2a7"
+    },
+    {
+      "file": "android-keepassdx-list-dark.png",
+      "source": "https://f-droid.org/repo/com.kunzisoft.keepass.libre/en-US/phoneScreenshots/screen4.png",
+      "licence": "GPL-3.0-or-later (the app's licence; from its F-Droid listing, KeePassDX Passkey Vault)",
+      "platform": "android",
+      "theme": "dark",
+      "categories": [
+        "lists-feeds"
+      ],
+      "long": false,
+      "notes": "System bars cropped off by hand (66 px top, 50 px bottom): the source device's size matches a different phone in the device table.",
+      "sha256": "4f75010f695ea6a114c79faee1950894538538f83273b4bec636fb3a9d87701c"
+    },
+    {
+      "file": "android-loop-habits-light.png",
+      "source": "https://f-droid.org/repo/org.isoron.uhabits/en-US/phoneScreenshots/1.png",
+      "licence": "GPL-3.0-only (the app's licence; from its F-Droid listing, Loop Habit Tracker)",
+      "platform": "android",
+      "theme": "light",
+      "categories": [
+        "lists-feeds"
+      ],
+      "long": false,
+      "sha256": "afd34de4ad19b7e310a811ce5e39ce0a32a73568602cb23ab9819052f53db7cb"
+    },
+    {
+      "file": "android-messages-chat-light.png",
+      "source": "own capture: Pixel 8 emulator (Android 16, API 36), demo-mode status bar",
+      "licence": "Screenshot of Google's Messages app; internal evaluation only, not redistributed",
+      "platform": "android",
+      "theme": "light",
+      "categories": [
+        "chat"
+      ],
+      "long": false,
+      "insets": {
+        "top": 50.3,
+        "bottom": 24
+      },
+      "notes": "Incoming messages sent with adb emu sms send; the emulator has no emoji font, so one message's emoji shows as a box.",
+      "sha256": "e9336407b223238b79c5fa2a68f9db18792f8ba31a3e140e065be478b5dc2ecd"
+    },
+    {
+      "file": "android-newpipe-feed-dark.png",
+      "source": "https://f-droid.org/repo/org.schabi.newpipe/en-US/phoneScreenshots/00.png",
+      "licence": "GPL-3.0-or-later (the app's licence; from its F-Droid listing, NewPipe)",
+      "platform": "android",
+      "theme": "dark",
+      "categories": [
+        "lists-feeds"
+      ],
+      "long": false,
+      "sha256": "7a7f08b05ffedba78466113bbdb82b335d6396ed060bdd90f380de487ec2ed7b"
+    },
+    {
+      "file": "android-settings-dark.png",
+      "source": "own capture: Pixel 8 emulator (Android 16, API 36), demo-mode status bar",
+      "licence": "Screenshot of Android Settings (AOSP, Apache-2.0); internal evaluation only, not redistributed",
+      "platform": "android",
+      "theme": "dark",
+      "categories": [
+        "settings"
+      ],
+      "long": false,
+      "insets": {
+        "top": 50.3,
+        "bottom": 24
+      },
+      "sha256": "7891dfc6748c0e272f90396041622a11c74e5bd6f4f3abde63011151c12801e4"
+    },
+    {
+      "file": "android-settings-long-light.png",
+      "source": "own capture: Pixel 8 emulator (Android 16, API 36), demo-mode status bar",
+      "licence": "Screenshot of Android Settings (AOSP, Apache-2.0); internal evaluation only, not redistributed",
+      "platform": "android",
+      "theme": "light",
+      "categories": [
+        "settings"
+      ],
+      "long": true,
+      "notes": "A long screen: the emulator's display was set to 1080 x 4200 (adb shell wm size), so the app laid out the whole screen; not stitched.",
+      "sha256": "90b5b4098b54fc5b30c86dd009f3d6742b3d4c96a975caea84062cca3c08a9f8"
+    },
+    {
+      "file": "android-tusky-login-dark.png",
+      "source": "https://f-droid.org/repo/com.keylesspalace.tusky/en-US/phoneScreenshots/00_login.png",
+      "licence": "GPL-3.0-only (the app's licence; from its F-Droid listing, Tusky)",
+      "platform": "android",
+      "theme": "dark",
+      "categories": [
+        "onboarding",
+        "forms"
+      ],
+      "long": false,
+      "sha256": "d2026b81e34e705522833d496b195b5fc4dd357d2625de61b485c753876243b9"
+    },
+    {
+      "file": "android-tusky-timeline-dark.png",
+      "source": "https://f-droid.org/repo/com.keylesspalace.tusky/en-US/phoneScreenshots/01_timeline.png",
+      "licence": "GPL-3.0-only (the app's licence; from its F-Droid listing, Tusky)",
+      "platform": "android",
+      "theme": "dark",
+      "categories": [
+        "lists-feeds"
+      ],
+      "long": false,
+      "sha256": "968a05dc0ef3d0f4a51cf3460979bb02f9644742a270051bd6c9cdc616ab3c7e"
+    },
+    {
+      "file": "ios-contacts-light.png",
+      "source": "own capture: iPhone 17e Simulator, iOS 26.4, status bar pinned to 9:41 (simctl status_bar)",
+      "licence": "Screenshot of Apple's Contacts app; internal evaluation only, not redistributed",
+      "platform": "ios",
+      "theme": "light",
+      "categories": [
+        "lists-feeds"
+      ],
+      "long": false,
+      "insets": {
+        "top": 47,
+        "bottom": 34
+      },
+      "sha256": "af6b287035b00b317d6b7a34a25ef4f1eaf6b5de2c40b35acdfdae0503f95301"
+    },
+    {
+      "file": "ios-files-recents-light.png",
+      "source": "own capture: iPhone 17e Simulator, iOS 26.4, status bar pinned to 9:41 (simctl status_bar)",
+      "licence": "Screenshot of Apple's Files app; internal evaluation only, not redistributed",
+      "platform": "ios",
+      "theme": "light",
+      "categories": [
+        "tab-bars"
+      ],
+      "long": false,
+      "insets": {
+        "top": 47,
+        "bottom": 34
+      },
+      "sha256": "7d7dd453b5fcd79c3b4a1d37a6b3fda96552ff251224229dba0c9e567da0248d"
+    },
+    {
+      "file": "ios-health-welcome-dark.png",
+      "source": "own capture: iPhone 17e Simulator, iOS 26.4, status bar pinned to 9:41 (simctl status_bar)",
+      "licence": "Screenshot of Apple's Health app; internal evaluation only, not redistributed",
+      "platform": "ios",
+      "theme": "dark",
+      "categories": [
+        "onboarding"
+      ],
+      "long": false,
+      "insets": {
+        "top": 47,
+        "bottom": 34
+      },
+      "sha256": "8e6963dcd0a19af16ec7efe53ef8136e62cd68674007e69e990ff97618084da6"
+    },
+    {
+      "file": "ios-messages-compose-light.png",
+      "source": "own capture: iPhone 17e Simulator, iOS 26.4, status bar pinned to 9:41 (simctl status_bar)",
+      "licence": "Screenshot of Apple's Messages app; internal evaluation only, not redistributed",
+      "platform": "ios",
+      "theme": "light",
+      "categories": [
+        "forms"
+      ],
+      "long": false,
+      "insets": {
+        "top": 47,
+        "bottom": 34
+      },
+      "notes": "A New Message sheet opened with an sms: link; the keyboard area shows a first-run typing tip.",
+      "sha256": "334f538371712fe14471f02f2b0b634c0bdb84de4601b5161dad749ad0eda1bf"
+    },
+    {
+      "file": "ios-photos-light.png",
+      "source": "own capture: iPhone 17e Simulator, iOS 26.4, status bar pinned to 9:41 (simctl status_bar)",
+      "licence": "Screenshot of Apple's Photos app; internal evaluation only, not redistributed",
+      "platform": "ios",
+      "theme": "light",
+      "categories": [
+        "lists-feeds",
+        "tab-bars"
+      ],
+      "long": false,
+      "insets": {
+        "top": 47,
+        "bottom": 34
+      },
+      "sha256": "cdb072ea201457730a6ae5cca33afdd76b2e026dd1ce07703f7cf4112c716e5c"
+    },
+    {
+      "file": "ios-reminders-welcome-light.png",
+      "source": "own capture: iPhone 17e Simulator, iOS 26.4, status bar pinned to 9:41 (simctl status_bar)",
+      "licence": "Screenshot of Apple's Reminders app; internal evaluation only, not redistributed",
+      "platform": "ios",
+      "theme": "light",
+      "categories": [
+        "onboarding"
+      ],
+      "long": false,
+      "insets": {
+        "top": 47,
+        "bottom": 34
+      },
+      "sha256": "58869afcd883fbdb6170026c823ac168b37469452f7f4970703c80dcca8fbd51"
+    },
+    {
+      "file": "ios-settings-dark.png",
+      "source": "own capture: iPhone 17e Simulator, iOS 26.4, status bar pinned to 9:41 (simctl status_bar)",
+      "licence": "Screenshot of Apple's Settings app; internal evaluation only, not redistributed",
+      "platform": "ios",
+      "theme": "dark",
+      "categories": [
+        "settings"
+      ],
+      "long": false,
+      "insets": {
+        "top": 47,
+        "bottom": 34
+      },
+      "sha256": "fe4e96ddadceb645c57fdc8cf89b241a4e60fac7136514a9aae623ae0315d561"
+    },
+    {
+      "file": "ios-settings-light.png",
+      "source": "own capture: iPhone 17e Simulator, iOS 26.4, status bar pinned to 9:41 (simctl status_bar)",
+      "licence": "Screenshot of Apple's Settings app; internal evaluation only, not redistributed",
+      "platform": "ios",
+      "theme": "light",
+      "categories": [
+        "settings"
+      ],
+      "long": false,
+      "insets": {
+        "top": 47,
+        "bottom": 34
+      },
+      "sha256": "0b582c27c24b3e89b8d47eb8ccd1b1779914b68a22b27f8463b4616a766cd4fa"
+    },
+    {
+      "file": "ios-shortcuts-dark.png",
+      "source": "own capture: iPhone 17e Simulator, iOS 26.4, status bar pinned to 9:41 (simctl status_bar)",
+      "licence": "Screenshot of Apple's Shortcuts app; internal evaluation only, not redistributed",
+      "platform": "ios",
+      "theme": "dark",
+      "categories": [
+        "cards",
+        "tab-bars"
+      ],
+      "long": false,
+      "insets": {
+        "top": 47,
+        "bottom": 34
+      },
+      "sha256": "8df71d80012786234d99c0630cf6e4aa32701ad60cb8472b8db2cc12bbec6d2e"
+    }
+  ]
 }

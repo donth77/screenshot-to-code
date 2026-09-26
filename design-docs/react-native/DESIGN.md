@@ -563,7 +563,7 @@ It ends with ai-app-cloner's untrusted-input rule: screenshot text is content, n
   - A runtime test holds its import list to the runtime's module registry.
   - The screen facts give sizes in pt or dp relative to the screenshot's width, not "1 pt = N px": providers resize images before the model sees them.
 - **Device profiles** (`react_native/profiles.py`, `react_native/inputs.py`).
-  - Matching goes: exact pixel size, then a downscaled screenshot of a known shape (only when every device of that shape is on one platform), then a guess from the width with no crop.
+  - Matching goes: exact pixel size, then a scaled screenshot of a known shape (only when every device of that shape is on one platform, and at a plausible scale: a downscaled copy, or the same logical size at 2x or 3x), then a guess from the width with no crop.
   - `reactNativeProfile` in the request overrides the platform, width and insets.
   - The crop happens before uploaded-asset IDs, prompt building and `extract_assets`.
   - Updates take the screen from the history's first screenshot. Images attached to an update are references.
@@ -770,7 +770,7 @@ A Phase 4 go/no-go check decides whether it ships enabled.
   - The committed manifest records each screenshot's file, sha256, source, licence, platform, theme, categories (the list above) and `long` flag. It can also record the insets detection should find.
   - `python -m evals.react_native_set` checks the manifest against `evals_data/sets/react-native/inputs/` and fills in hashes with `--write-hashes`. It fails on bad fields, missing, changed or unlisted images, and insets that detection doesn't find.
   - With `--strict`, it also fails on coverage gaps: 25–30 images, both platforms, both themes, every category, and at least 3 long screenshots.
-  - The manifest is empty until screenshots are chosen.
+  - The manifest lists 30 screenshots: 16 own Simulator and emulator captures and 14 open-source apps' published screenshots (`EVALS.md` §5.1).
 - **Not built:** CLIP (optional; it pulls in torch).
 - **Known limits (untested):**
   - Long stitched screenshots are compared only over the rendered viewport, which is the content height the profile gives.

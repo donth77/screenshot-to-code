@@ -2,7 +2,23 @@
 
 Results for the React Native stack (PLAN.md 5.4 and 5.5). The metrics are described in DESIGN.md §14.1.
 
-**Status: interim.** A baseline and two prompt rounds ran on a 5-screenshot interim set (below). The full set (5.1: 25–30 screenshots) is still to choose, and every number here should be re-run on it.
+**Status: interim.** The full set is chosen (below) and passes `--strict`. The baseline and the two prompt rounds so far ran on a 5-screenshot interim set, and should be re-run on the full set.
+
+## The eval set (5.1)
+
+`react-native`: 30 screenshots, listed with their source and licence in `backend/evals/react_native_set.json`. The images live in the gitignored `evals_data/sets/react-native/inputs/`.
+
+- **Own captures (16).**
+  - 9 iPhone 17e Simulator screens (iOS 26.4, status bar pinned to 9:41): Settings (light and dark), Contacts, Files, Photos, Shortcuts, the Reminders and Health welcome screens, and a Messages compose sheet.
+  - 7 Pixel 8 emulator screens (Android 16, demo-mode status bar): Settings (dark), Clock, a Messages chat and the Create contact form, plus three long screens (Settings, the apps list, the contact form).
+  - The long screens were laid out on a 1080 x 4200 display (`adb shell wm size`), not stitched.
+  - Licence: Apple's and Google's app UIs, for internal evaluation only and not redistributed. Android Settings is AOSP (Apache-2.0).
+- **Open-source apps' published screenshots (14).** From their F-Droid listings under each app's licence: Tusky, Feeder, Catima, Breezy Weather, Loop Habit Tracker, NewPipe, Fossify Contacts and Notes, KeePassDX and Conversations (GPL-3.0 and LGPL-3.0).
+  - Marketing images (framed devices with captions) were left out.
+  - Four whose sizes collide with a different phone in the device table had their system bars cropped off by hand. The rest keep their bars and exercise the unknown-device path.
+- **Coverage:** 9 iOS and 21 Android; 17 light and 13 dark; every category; 3 long.
+- **Detection:** the platform is right for all 30. The 16 exact-device captures are cropped by the table's insets, which the manifest records and the checker verifies. Everything else is a guessed Android phone with no crop.
+- **Found while sourcing:** detection took 16:9 Android screenshots (1080 x 1920) for scaled iPhone SEs; fixed in `a33f3a4`.
 
 ## How to run
 
