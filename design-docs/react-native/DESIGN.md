@@ -569,6 +569,7 @@ It ends with ai-app-cloner's untrusted-input rule: screenshot text is content, n
   - Updates take the screen from the history's first screenshot. Images attached to an update are references.
 - **`screenshot_preview`.**
   - It returns `{status, runtime_errors, status_bar, viewport}` plus one screenshot. A render with errors is still an ok result; only a failed capture isn't.
+  - Since Phase 5 round 2 it also returns the input screenshot and the render side by side, labelled, at the screen's logical size, when the request's first image is this screen's screenshot (the render's size within 2 px). That's what fixed most of the oversizing (`EVALS.md`).
   - `capture_react_native` is an optional `ScreenshotBackend` method. The tool is offered only when the backend has it, Chromium launched and the runtime is built.
 - **Outputs.**
   - An eval output keeps its `<name>_<n>.html` name, but the file is now a preview page loading the runtime from the backend. It sits next to `.jsx`, `.png` (the cropped input's pixel size) and `.json` (status and runtime errors).
@@ -578,7 +579,7 @@ It ends with ai-app-cloner's untrusted-input rule: screenshot text is content, n
   - **Renders:** all five came back `ok`, with no fatal errors and no warnings, for $0.98.
   - **Tool loop:** a recorded create shows `create_file` → `screenshot_preview` → two edits → `screenshot_preview`.
   - **Injected crash:** the agent, starting from a generated screen with a crash, made the requested change, saw the crash (`Cannot read properties of undefined (reading 'map')`, line 70) in `runtime_errors`, fixed it and re-checked.
-- **Quality finding for Phase 5.** The outputs are scaled up about 1.3–1.6×. Contacts names use fontSize 26 (iOS uses 17) and rows are 56–66 pt tall (about 44 on iOS). The renders use the right profile, so the model oversizes. This is the first prompt item for Phase 5, to be measured with the eval metrics rather than guessed.
+- **Quality finding for Phase 5.** The outputs were scaled up about 1.3–1.6×. Contacts names used fontSize 26 (iOS uses 17) and rows were 56–66 pt tall (about 44 on iOS). The renders used the right profile, so the model oversized. Phase 5 round 2 (the side-by-side screenshot check) fixed most of it: SSIM rose from 0.681 to 0.724 on the interim set (`EVALS.md`).
 - **Not fixed (pre-existing).** `run_image_evals` reduces absolute `input_files` paths to file names and then looks in `evals_data/inputs/`. Eval sets work.
 
 ---
