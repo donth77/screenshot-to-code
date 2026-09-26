@@ -163,7 +163,8 @@ Companion to [`DESIGN.md`](DESIGN.md), which holds section references (§) and e
 - **5.5 on the full set:** round 3 (guide lines and a measuring step) is kept: +0.014 SSIM on the 24 comparable screens, within noise over all 30. Two earlier rounds ran on the five Phase 2 screenshots, where round 2, the side-by-side check, raised SSIM from 0.681 to 0.724.
 - **Round 4** crops the bars of Android phones that aren't in the device table, read off the screenshot: +0.028 SSIM on the nine screenshots it changes, 0.661 over all 30.
 - **Round 5**, extracted photos, ran on 24 of 30 screens before the API credits ran out: within noise overall, with clear gains where the screen has photos.
-- **Not done:** measuring the exact-colour hints (`01feca5`), and finishing round 5 (`EVALS.md`).
+- **Round 6**, the screenshot's exact flat colours in the prompt, is kept: 0.677 over all 30 (+0.016 on round 4), with dark backgrounds now matching exactly.
+- **Not done:** a clean measure of extracted photos with the colours (Gemini's quota cut round 6's extractions short) (`EVALS.md`).
 
 ## Phase 6: stretch (separate proposals, not estimated)
 

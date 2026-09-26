@@ -2,7 +2,7 @@
 
 Results for the React Native stack (PLAN.md 5.4 and 5.5). The metrics are described in DESIGN.md §14.1.
 
-**Status:** the full-set baseline (5.4) and two rounds on the full set are done: mean SSIM 0.644, then 0.661, across 30 screenshots, and every output renders cleanly and bundles for iOS and Android. Two earlier rounds ran on a 5-screenshot interim set (at the end).
+**Status:** the full-set baseline (5.4) and four rounds on the full set are done (one of them partial): mean SSIM from 0.644 to 0.677 across 30 screenshots, and every output renders cleanly and bundles for iOS and Android. Two earlier rounds ran on a 5-screenshot interim set (at the end).
 
 ## The eval set (5.1)
 
@@ -143,6 +143,7 @@ Mean SSIM by group (a screenshot can be in more than one category):
 | 3 | Guide lines every 50 pt across the comparison, a measuring step, and no space left for system bars | `5361a6a` | 0.653 | 0.102 | 30/30 | 0/30 | 30/30 | 1.9 | 65 s | $9.08 |
 | 4 | Unknown Android phones cropped at the bars their screenshots show (nine re-run, 21 carried over) | `467e596` | 0.661 | 0.097 | 30/30 | 0/30 | 30/30 | 2.0 | 70 s | $9.57 |
 | 5 (partial) | A Gemini key, so extract_assets crops photos out of the input; stopped at 24 of 30 when the API credits ran out | `734163e` | 0.644 on 24 (round 4: 0.656) | 0.089 | 24/24 | 0/24 | not checked | 2.1 | 73 s | $7.61 |
+| 6 | The screenshot's exact flat colours in the prompt; photos where Gemini's quota allowed | `c195f20` | **0.677** | **0.079** | 30/30 | 0/30 | 30/30 | 2.4 | 76 s | $10.57 |
 
 Rounds are compared screen by screen: the change in each screen's SSIM, averaged, with its standard error.
 
@@ -160,7 +161,12 @@ Rounds are compared screen by screen: the change in each screen's SSIM, averaged
 - **Round 5 (partial)** had a Gemini key, so the model could crop the photos out of the input with `extract_assets` instead of drawing them. It stopped at 24 of 30 screens when the Anthropic API credits ran out; Tusky's login also failed all three attempts on a streaming bug, fixed since in `78a943a`.
   - On the 24: 0.656 → 0.644 (−0.011 ± 0.028), within noise. Without one outlier (below) it's about +0.015.
   - The photos helped the screens that have them: Feeder in light mode +0.142, Photos +0.085, the long apps list +0.084, Shortcuts +0.081.
-  - The outlier: the Health welcome screen fell from 0.681 to 0.060 with a layout much like round 4's, because its background came out pure black where the input's sheet is `#1C1C1E`. SSIM compares brightness relative to its own level, so on a near-black screen a small shift counts as a large difference. That's much of why dark screens score lower, and what the next change targets: the prompt now lists the screenshot's exact flat colours (`01feca5`), not yet measured.
+  - The outlier: the Health welcome screen fell from 0.681 to 0.060 with a layout much like round 4's, because its background came out pure black where the input's sheet is `#1C1C1E`. SSIM compares brightness relative to its own level, so on a near-black screen a small shift counts as a large difference. That's much of why dark screens score lower, and what round 6 targets.
+- **Round 6** lists the screenshot's most common exact colours in the prompt, as hex values with their share of the screen (`01feca5`; up to six, near-duplicates left out). UI fills and text repeat one exact colour, where photos and gradients don't.
+  - It works as intended: dark backgrounds now match the input exactly (0.0 levels off on average; round 4: 6.2, with 7 of 12 more than 4 off), and light ones nearly (0.4; round 4: 2.1). The pixel difference fell by a fifth, 0.097 to 0.079, and the Health welcome screen is back to 0.702.
+  - Against round 4, over all 30: 0.662 → 0.677 (+0.016 ± 0.008; 18 better, 6 worse), the best so far. Dark screens +0.025 ± 0.011, light +0.009 ± 0.012.
+  - Gemini refused 16 extractions (13 over its quota, 3 over capacity), so many screens had no photos this round (NewPipe had 5 in round 5, none now). On the 21 without photos, colours alone moved SSIM +0.007 ± 0.009 against round 4: most of the SSIM gain is on dark screens, and the photos' full effect isn't in this round.
+  - The model checks more (2.4 screenshots, 6.9 LLM calls, one screen 9 and 19 while extractions kept failing): $0.35 a screen.
 
 ## Interim runs (5 screenshots)
 
