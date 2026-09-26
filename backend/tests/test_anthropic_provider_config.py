@@ -2,8 +2,22 @@ from agent.providers.anthropic.provider import (
     ADAPTIVE_THINKING_MODELS,
     _get_anthropic_api_model_name,
     _get_anthropic_effort,
+    serialize_anthropic_tools,
 )
+from agent.tools.types import CanonicalToolDefinition
 from llm import Llm
+
+
+def test_only_create_file_streams_its_input_eagerly() -> None:
+    # Eager streaming skips the API's JSON validation; only create_file's
+    # arguments are read mid-stream (the live preview).
+    tools = [
+        CanonicalToolDefinition(name=name, description=name, parameters={"type": "object", "properties": {}})
+        for name in ("create_file", "edit_file", "extract_assets", "screenshot_preview")
+    ]
+    serialized = {tool["name"]: tool for tool in serialize_anthropic_tools(tools)}
+    assert serialized["create_file"]["eager_input_streaming"] is True
+    assert all("eager_input_streaming" not in serialized[name] for name in ("edit_file", "extract_assets", "screenshot_preview"))
 
 
 def test_claude_opus_5_effort_variants_map_to_same_api_model() -> None:

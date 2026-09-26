@@ -185,6 +185,13 @@ def _convert_openai_messages_to_claude(
     return system_prompt, claude_messages
 
 
+# Only create_file's arguments are read while they stream (the preview shows
+# the file as it's written). Eager streaming skips the API's JSON validation,
+# and the SDK fails the whole turn on a malformed chunk ("expected value at
+# line 1 column 24" from extract_assets' list), so the other tools go without.
+EAGER_STREAMED_TOOLS = frozenset({"create_file"})
+
+
 def serialize_anthropic_tools(
     tools: List[CanonicalToolDefinition],
 ) -> List[Dict[str, Any]]:
@@ -192,7 +199,7 @@ def serialize_anthropic_tools(
         {
             "name": tool.name,
             "description": tool.description,
-            "eager_input_streaming": True,
+            **({"eager_input_streaming": True} if tool.name in EAGER_STREAMED_TOOLS else {}),
             "input_schema": copy.deepcopy(tool.parameters),
         }
         for tool in tools
