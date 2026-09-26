@@ -47,6 +47,9 @@ import HistoryDisplay from "./components/history/HistoryDisplay";
 import PreviewPane from "./components/preview/PreviewPane";
 import StartPane from "./components/start-pane/StartPane";
 import SettingsTab from "./components/settings/SettingsTab";
+import LibraryPane from "./components/library/LibraryPane";
+import { useProjectLibrary } from "./hooks/useProjectLibrary";
+import { fromSnapshot, ProjectSnapshot } from "./lib/library/snapshot";
 import DesignSystemsModal from "./components/settings/DesignSystemsModal";
 import { AiEditCommit, Commit } from "./components/commits/types";
 import { createCommit } from "./components/commits/utils";
@@ -129,6 +132,7 @@ function App() {
 
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [mobilePane, setMobilePane] = useState<"preview" | "chat">("preview");
   const [isDesignSystemsModalOpen, setIsDesignSystemsModalOpen] =
     useState(false);
@@ -267,6 +271,33 @@ function App() {
     setInputMode("image");
     setReferenceImages([]);
   };
+
+  // Open a project from the library. Opening is disabled while a generation
+  // runs, so there's no request to stop.
+  const restoreProject = (snapshot: ProjectSnapshot) => {
+    setUpdateInstruction("");
+    setUpdateImages([]);
+    disableInSelectAndEditMode();
+    resetExecutionConsoles();
+    const project = fromSnapshot(snapshot);
+    useProjectStore.setState(project);
+    setSettings((prev) => ({ ...prev, generatedCodeConfig: snapshot.stack }));
+    setAppState(
+      Object.keys(project.commits).length > 0
+        ? AppState.CODE_READY
+        : AppState.INITIAL
+    );
+    setIsLibraryOpen(false);
+    setIsSettingsOpen(false);
+    setIsHistoryOpen(false);
+    setMobilePane("preview");
+  };
+
+  const library = useProjectLibrary({
+    stack: settings.generatedCodeConfig,
+    onRestore: restoreProject,
+    onDeletedCurrent: reset,
+  });
 
   const regenerate = () => {
     if (head === null) {
@@ -878,6 +909,8 @@ function App() {
   const isCodingOrReady =
     appState === AppState.CODING || appState === AppState.CODE_READY;
   const showMobileChatPane = showContentPanel && mobilePane === "chat";
+  // Settings and the library take over the whole area right of the icon strip.
+  const isPageOpen = isSettingsOpen || isLibraryOpen;
 
   return (
     <div
@@ -900,39 +933,52 @@ function App() {
       >
         <IconStrip
           isHistoryOpen={isHistoryOpen}
-          isEditorOpen={!isHistoryOpen && !isSettingsOpen}
+          isEditorOpen={!isHistoryOpen && !isPageOpen}
           isSettingsOpen={isSettingsOpen}
+          isLibraryOpen={isLibraryOpen}
           showHistory={isCodingOrReady}
           showEditor={isCodingOrReady}
           onToggleHistory={() => {
             setIsHistoryOpen((prev) => !prev);
             setIsSettingsOpen(false);
+            setIsLibraryOpen(false);
             setMobilePane("chat");
           }}
           onToggleEditor={() => {
             setIsHistoryOpen(false);
             setIsSettingsOpen(false);
+            setIsLibraryOpen(false);
             setMobilePane("preview");
           }}
           onLogoClick={() => {
             setIsHistoryOpen(false);
             setIsSettingsOpen(false);
+            setIsLibraryOpen(false);
             setMobilePane("preview");
           }}
           onNewProject={() => {
             reset();
             setIsHistoryOpen(false);
             setIsSettingsOpen(false);
+            setIsLibraryOpen(false);
             setMobilePane("preview");
           }}
           onOpenSettings={() => {
             setIsSettingsOpen(true);
+            setIsLibraryOpen(false);
             setIsHistoryOpen(false);
+          }}
+          onOpenLibrary={() => {
+            if (!isLibraryOpen) void library.refreshProjects();
+            setIsLibraryOpen((prev) => !prev);
+            setIsSettingsOpen(false);
+            setIsHistoryOpen(false);
+            setMobilePane("preview");
           }}
         />
       </div>
 
-      {isCodingOrReady && !isSettingsOpen && (
+      {isCodingOrReady && !isPageOpen && (
         <div className="border-b border-gray-200 bg-white px-4 py-2 dark:border-zinc-800 dark:bg-zinc-950 lg:hidden">
           <div className="grid grid-cols-2 rounded-xl bg-gray-100 p-1 dark:bg-zinc-800">
             <button
@@ -963,7 +1009,7 @@ function App() {
       )}
 
       {/* Content panel - shows sidebar, history, or editor */}
-      {showContentPanel && !isSettingsOpen && (
+      {showContentPanel && !isPageOpen && (
         <div
           className={`border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 dark:text-white lg:fixed lg:inset-y-0 lg:left-16 lg:z-40 lg:flex lg:w-[calc(28rem-4rem)] lg:flex-col lg:border-b-0 lg:border-r ${
             showMobileChatPane ? "block" : "hidden lg:flex"
@@ -1020,14 +1066,28 @@ function App() {
 
       <main
         className={`${
-          isSettingsOpen
+          isPageOpen
             ? "flex flex-1 min-h-0 flex-col lg:h-full lg:pl-16"
             : showContentPanel
               ? "flex flex-1 min-h-0 flex-col lg:h-full lg:pl-[28rem]"
               : "lg:pl-16"
-        } ${isCodingOrReady && !isSettingsOpen && mobilePane === "chat" ? "hidden lg:flex" : ""}`}
+        } ${isCodingOrReady && !isPageOpen && mobilePane === "chat" ? "hidden lg:flex" : ""}`}
       >
-        {isSettingsOpen ? (
+        {isLibraryOpen ? (
+          <LibraryPane
+            available={library.available}
+            projects={library.projects}
+            currentProjectId={library.currentProjectId}
+            isGenerating={appState === AppState.CODING}
+            onOpen={(id) => {
+              // The open project is already loaded; just go back to it.
+              if (id === library.currentProjectId) setIsLibraryOpen(false);
+              else void library.openProject(id);
+            }}
+            onRename={(id, name) => void library.renameProject(id, name)}
+            onDelete={(id) => void library.deleteProject(id)}
+          />
+        ) : isSettingsOpen ? (
           <SettingsTab
             settings={settings}
             setSettings={setSettings}

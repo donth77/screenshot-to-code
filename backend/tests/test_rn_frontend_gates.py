@@ -421,3 +421,92 @@ async def test_a_selected_element_is_edited_by_its_test_id(session: Session) -> 
         ".querySelector('[data-testid=\"greeting\"]')?.textContent === 'Hello, Grace'",
         timeout=GENERATION_TIMEOUT_S * 1000,
     )
+
+
+# The open project as the library saved it in IndexedDB (null until saved).
+READ_SAVED_PROJECT = """
+async () => {
+  const id = localStorage.getItem("library:lastProjectId");
+  if (!id) return null;
+  const db = await new Promise((resolve, reject) => {
+    const request = indexedDB.open("screenshot-to-code-library");
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+  const read = (store) => new Promise((resolve, reject) => {
+    const request = db.transaction(store).objectStore(store).get(id);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+  const [summary, snapshot] = [await read("summaries"), await read("snapshots")];
+  db.close();
+  if (!snapshot) return null;
+  const head = snapshot.commits[snapshot.head];
+  const variant = head.variants[head.selectedVariantIndex];
+  return { summary, stack: snapshot.stack, versions: Object.keys(snapshot.commits).length, status: variant.status, code: variant.code };
+}
+"""
+GREETING_IS_GRACE = (
+    "document.querySelector('[data-testid=\"rn-preview-frame\"]')?.contentDocument"
+    "?.querySelector('[data-testid=\"greeting\"]')?.textContent === 'Hello, Grace'"
+)
+
+
+async def test_the_library_keeps_the_project_across_a_reload(session: Session) -> None:
+    """Projects are saved in the browser: a reload reopens the one that was
+    open, and the library lists, renames, opens and deletes them. (Runs after
+    the edit above, so the project has two versions.)"""
+    page = session.page
+
+    # Autosave has caught up with the finished edit. (wait_for_function
+    # doesn't await a promise, so poll.)
+    deadline = time.monotonic() + 15
+    while True:
+        saved = await page.evaluate(READ_SAVED_PROJECT)
+        if saved and saved["versions"] == 2 and saved["status"] == "complete" and "Hello, Grace" in saved["code"]:
+            break
+        assert time.monotonic() < deadline, f"the edit wasn't saved: {saved and (saved['versions'], saved['status'])}"
+        await asyncio.sleep(0.25)
+    assert saved["stack"] == "react_native"
+    assert saved["summary"]["name"].startswith("Screenshot, ")
+    assert saved["summary"]["thumbnail"].startswith("data:image/jpeg;base64,")
+
+    # A reload reopens it.
+    await page.reload()
+    await page.wait_for_function(GREETING_IS_GRACE, timeout=30000)
+    assert await page.get_by_test_id("rn-preview-status").get_attribute("data-status") == "ok"
+
+    # The library lists it; rename it.
+    await page.get_by_test_id("open-library").click()
+    item = page.get_by_test_id("library-item")
+    await item.wait_for()
+    assert await item.count() == 1
+    text = await item.inner_text()
+    assert "React Native (Expo)" in text and "2 versions" in text
+    await page.get_by_test_id("library-name").click()
+    await page.get_by_test_id("library-rename-input").fill("Settings screen")
+    await page.get_by_test_id("library-rename-input").press("Enter")
+    await page.get_by_test_id("library-name").filter(has_text="Settings screen").wait_for()
+
+    # A new project leaves it in the library, and a reload no longer reopens it.
+    await page.get_by_title("Start a new project").click()
+    await page.get_by_test_id("upload-input").wait_for(state="attached")
+    assert await page.evaluate("localStorage.getItem('library:lastProjectId')") is None
+    await page.reload()
+    await page.get_by_test_id("upload-input").wait_for(state="attached")
+
+    # Open it from the library.
+    await page.get_by_test_id("open-library").click()
+    await page.get_by_test_id("library-open").click()
+    await page.wait_for_function(GREETING_IS_GRACE, timeout=30000)
+    assert await page.get_by_test_id("library-pane").count() == 0
+
+    # Delete it: the app starts a new project and the library is empty.
+    await page.get_by_test_id("open-library").click()
+    await page.get_by_test_id("library-delete").click()
+    await page.get_by_test_id("library-confirm-delete").click()
+    await page.get_by_text("No saved projects yet.").wait_for()
+    assert await page.get_by_test_id("library-item").count() == 0
+    assert await page.evaluate(READ_SAVED_PROJECT) is None
+    await page.get_by_test_id("open-library").click()
+    await page.get_by_test_id("upload-input").wait_for(state="attached")

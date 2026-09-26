@@ -1,9 +1,10 @@
-import { LuClock, LuCode, LuSettings, LuPlus } from "react-icons/lu";
+import { LuClock, LuCode, LuLibrary, LuSettings, LuPlus } from "react-icons/lu";
 
 interface IconStripProps {
   isHistoryOpen: boolean;
   isEditorOpen: boolean;
   isSettingsOpen: boolean;
+  isLibraryOpen: boolean;
   showHistory: boolean;
   showEditor: boolean;
   onToggleHistory: () => void;
@@ -11,12 +12,14 @@ interface IconStripProps {
   onLogoClick: () => void;
   onNewProject: () => void;
   onOpenSettings: () => void;
+  onOpenLibrary: () => void;
 }
 
 function IconStrip({
   isHistoryOpen,
   isEditorOpen,
   isSettingsOpen,
+  isLibraryOpen,
   showHistory,
   showEditor,
   onToggleHistory,
@@ -24,6 +27,7 @@ function IconStrip({
   onLogoClick,
   onNewProject,
   onOpenSettings,
+  onOpenLibrary,
 }: IconStripProps) {
   return (
     <div className="flex w-full items-center justify-between border-b border-gray-200 bg-gray-50 px-2 py-2 dark:border-zinc-800 dark:bg-zinc-900 lg:h-full lg:w-16 lg:flex-col lg:items-center lg:gap-y-3 lg:border-b-0 lg:border-r lg:px-0 lg:py-4">
@@ -79,6 +83,21 @@ function IconStrip({
         >
           <LuPlus className="w-[18px] h-[18px]" />
           <span className="hidden text-[10px] leading-none lg:block font-medium">New</span>
+        </button>
+
+        {/* Library */}
+        <button
+          onClick={onOpenLibrary}
+          className={`flex items-center justify-center rounded-lg p-2 transition-colors lg:flex-col lg:gap-1 lg:px-2 lg:py-1.5 ${
+            isLibraryOpen
+              ? "text-gray-900 dark:text-white"
+              : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+          }`}
+          title="Library: your saved projects"
+          data-testid="open-library"
+        >
+          <LuLibrary className="w-[18px] h-[18px]" />
+          <span className="hidden text-[10px] leading-none lg:block">Library</span>
         </button>
       </div>
 
