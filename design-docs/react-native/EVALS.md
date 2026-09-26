@@ -16,7 +16,7 @@ Results for the React Native stack (PLAN.md 5.4 and 5.5). The metrics are descri
 - **Open-source apps' published screenshots (14).** From their F-Droid listings under each app's licence: Tusky, Feeder, Catima, Breezy Weather, Loop Habit Tracker, NewPipe, Fossify Contacts and Notes, KeePassDX and Conversations (GPL-3.0 and LGPL-3.0).
   - Marketing images (framed devices with captions) were left out.
   - Four whose sizes collide with a different phone in the device table had their system bars cropped off by hand. The rest keep their bars and exercise the unknown-device path.
-- **Coverage:** 9 iOS and 21 Android; 17 light and 13 dark; every category; 3 long.
+- **Coverage:** 9 iOS and 21 Android; 18 light and 12 dark; every category (lists and feeds 10, forms 5, tab bars 5, settings 5, cards 4, onboarding 3, chat 2); 3 long.
 - **Detection:** the platform is right for all 30. The 16 exact-device captures are cropped by the table's insets, which the manifest records and the checker verifies. Everything else is a guessed Android phone with no crop.
 - **Found while sourcing:** detection took 16:9 Android screenshots (1080 x 1920) for scaled iPhone SEs; fixed in `a33f3a4`.
 
