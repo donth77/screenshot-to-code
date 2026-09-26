@@ -100,6 +100,8 @@ class AgentToolRuntime:
                 tool_call.arguments,
                 file_state=self.file_state,
                 profile=self.react_native_profile,
+                # The request's screenshot, when it has one; compared only if it's this screen's size.
+                reference_url=self.input_images[0] if self.input_images else None,
             )
         if tool_call.name == "screenshot_preview":
             return await run_screenshot_preview(

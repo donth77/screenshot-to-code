@@ -1,7 +1,11 @@
 import base64
-from typing import Any, Dict, Mapping
+import io
+from typing import Any, Dict, Mapping, Optional
+
+from PIL import Image, ImageDraw, ImageFont
 
 from preview_screenshot import capture_preview_screenshot, capture_react_native_preview
+from react_native.profiles import decode_image
 
 from agent.state import AgentFileState
 from agent.tools.types import ToolExecutionResult, ToolMultimodalPart
@@ -107,16 +111,54 @@ _REACT_NATIVE_STATUS = {
 }
 
 
+_COMPARISON_LABEL_PX = 30
+_COMPARISON_GAP_PX = 12
+# The cropped input and the render differ by at most a pixel of rounding.
+_COMPARISON_SIZE_TOLERANCE_PX = 2
+
+
+def side_by_side(reference_url: Optional[str], render_png: bytes, profile: Mapping[str, Any]) -> Optional[bytes]:
+    """The input screenshot and the render next to each other at the screen's
+    logical size, labelled, or None when the reference isn't this screen's
+    screenshot (a different size: an image attached as a reference, say).
+
+    The model's first look at the input was earlier in the conversation, at
+    whatever scale its provider chose; side by side, sizes compare directly.
+    """
+    reference = decode_image(reference_url) if reference_url else None
+    if reference is None:
+        return None
+    render = Image.open(io.BytesIO(render_png))
+    if (
+        abs(reference.width - render.width) > _COMPARISON_SIZE_TOLERANCE_PX
+        or abs(reference.height - render.height) > _COMPARISON_SIZE_TOLERANCE_PX
+    ):
+        return None
+    size = (round(float(profile["width"])), round(float(profile["height"])))
+    canvas = Image.new("RGB", (size[0] * 2 + _COMPARISON_GAP_PX, size[1] + _COMPARISON_LABEL_PX), "#6B6B6B")
+    draw = ImageDraw.Draw(canvas)
+    font = ImageFont.load_default(size=18)
+    for index, (label, image) in enumerate((("Input screenshot", reference), ("Your render", render))):
+        x = index * (size[0] + _COMPARISON_GAP_PX)
+        draw.text((x + 8, 5), label, fill="#FFFFFF", font=font)
+        canvas.paste(image.convert("RGB").resize(size, Image.Resampling.LANCZOS), (x, _COMPARISON_LABEL_PX))
+    buffer = io.BytesIO()
+    canvas.save(buffer, "PNG")
+    return buffer.getvalue()
+
+
 async def run_react_native_screenshot_preview(
     _args: Dict[str, Any],
     *,
     file_state: AgentFileState,
     profile: Mapping[str, Any],
+    reference_url: Optional[str] = None,
 ) -> ToolExecutionResult:
     """Render App.jsx on the target phone; return the screenshot and what went wrong.
 
     Reporting runtime errors is the point of the call, so a render that has
-    them is still ok; only a failed capture is not.
+    them is still ok; only a failed capture is not. With the input screenshot
+    as ``reference_url``, the two are also returned side by side.
     """
     if not file_state.content:
         return ToolExecutionResult(
@@ -152,12 +194,20 @@ async def run_react_native_screenshot_preview(
                 "status": render.status,
             }
         )
+    comparison = side_by_side(reference_url, render.png, profile) if render.png else None
+    if comparison:
+        multimodal_parts.append(ToolMultimodalPart(display_name="comparison.png", mime_type="image/png", data=comparison))
     status_text = _REACT_NATIVE_STATUS.get(render.status, f"Status: {render.status}.")
     screenshot_text = (
         f" A screenshot of the {profile['width']} x {profile['height']} {unit} screen is attached."
         if render.png
         else " No screenshot could be taken."
     )
+    if comparison:
+        screenshot_text += (
+            " So is the input screenshot next to your render, both at the same scale:"
+            " each element should be the same size and in the same place in both."
+        )
     details: Dict[str, Any] = {
         "status": render.status,
         "runtime_errors": render.runtime_errors,
@@ -165,6 +215,8 @@ async def run_react_native_screenshot_preview(
         "viewport": viewport,
         "screenshots": screenshots,
     }
+    if comparison:
+        details["comparison"] = {"image_part_index": len(multimodal_parts) - 1, "left": "input screenshot", "right": "render"}
     summary: Dict[str, Any] = {
         "status": render.status,
         "runtime_errors": render.runtime_errors,
