@@ -5,8 +5,14 @@
 //
 // DESIGN.md §7: scale = pixel width / logical width; the status bar and home
 // indicator (the safe-area insets) are cropped off the input; the preview
-// renders the remaining content area at the same scale.
+// renders the remaining content area at the same scale. A phone that isn't in
+// the table has no known insets; on Android they're read off the screenshot's
+// bars (systemBars.ts).
 import { DeviceProfile } from "./previewHtml";
+import { roundHalfEven } from "./roundHalfEven";
+import { detectSystemBars } from "./systemBars";
+
+export { roundHalfEven };
 
 export type Platform = "ios" | "android";
 export type DeviceMatch = "exact" | "scaled" | "guessed" | "default" | "override";
@@ -56,18 +62,17 @@ export interface ReactNativeTarget {
   overrides: DeviceOverrides;
 }
 
+// A screenshot's pixel size and, once its pixels are read, their luminance
+// (for reading the bars of an Android phone that isn't in the table).
+export interface ScreenshotPixels {
+  width: number;
+  height: number;
+  luminance?: Uint8Array;
+}
+
 // A downscaled screenshot keeps its shape: aspect ratios this close match.
 const ASPECT_TOLERANCE = 0.004;
 const IOS_LOGICAL_WIDTHS = [375, 390, 393, 402, 414, 428, 430, 440];
-
-// Python's round(): halves go to the even neighbour.
-export function roundHalfEven(value: number): number {
-  const floor = Math.floor(value);
-  const diff = value - floor;
-  if (diff > 0.5) return floor + 1;
-  if (diff < 0.5) return floor;
-  return floor % 2 === 0 ? floor : floor + 1;
-}
 
 export function cropTopPx(device: ReactNativeDevice): number {
   return roundHalfEven(device.insetTop * device.scale);
@@ -231,6 +236,26 @@ export function applyOverrides(
   return Object.keys(changes).length ? { ...device, ...changes, match: "override" } : device;
 }
 
+// A phone that isn't in the table gets the insets of the bars its Android
+// screenshot shows, where the user hasn't set them.
+export function withSystemBars(
+  device: ReactNativeDevice,
+  screenshot: ScreenshotPixels,
+  overrides: Record<string, unknown>
+): ReactNativeDevice {
+  if (device.name !== null || device.platform !== "android" || !screenshot.luminance) return device;
+  const bars = detectSystemBars(screenshot.luminance, screenshot.width, screenshot.height, device.scale);
+  const changes: Partial<ReactNativeDevice> = {};
+  // To a tenth of a pt / dp, as the crop overlay sets them.
+  if (bars.topPx && numberIn(overrides.insetTop, 0, 200) === null) {
+    changes.insetTop = roundHalfEven((bars.topPx / device.scale) * 10) / 10;
+  }
+  if (bars.bottomPx && numberIn(overrides.insetBottom, 0, 200) === null) {
+    changes.insetBottom = roundHalfEven((bars.bottomPx / device.scale) * 10) / 10;
+  }
+  return Object.keys(changes).length ? { ...device, ...changes } : device;
+}
+
 // resolveDevice keeps the detected phone's name, as the backend does (it
 // never uses the name). For display: once the user sets the width, name the
 // table phone that matches what they chose, or none.
@@ -268,10 +293,11 @@ export function insetFromOffset(
 }
 
 // What the backend decides for a request (react_native/inputs.py): the
-// screenshot's size when there is one, the platform's default phone otherwise.
+// screenshot's size (and bars) when there is one, the platform's default
+// phone otherwise.
 export function resolveDevice(
   table: DeviceTable,
-  size: { width: number; height: number } | null,
+  size: ScreenshotPixels | null,
   overrides: DeviceOverrides = {}
 ): ReactNativeDevice {
   const raw = overrides as Record<string, unknown>;
@@ -280,5 +306,5 @@ export function resolveDevice(
     return applyOverrides(defaultDevice(table, platform), raw, table);
   }
   const hint = isPlatform(raw.platform) ? raw.platform : undefined;
-  return applyOverrides(detectDevice(size.width, size.height, table, hint), raw, table);
+  return withSystemBars(applyOverrides(detectDevice(size.width, size.height, table, hint), raw, table), size, raw);
 }

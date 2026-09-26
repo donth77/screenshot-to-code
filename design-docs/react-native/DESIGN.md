@@ -372,6 +372,12 @@ Fallbacks:
 
 - An unknown iOS device uses logical width 390; an unknown Android device uses 412 dp.
 - The platform guess: exact table hits first, then aspect and pixel-density heuristics.
+- **An unknown Android phone's insets are read off its screenshot** (Phase 5; `detect_system_bars` in `react_native/profiles.py`, ported to `frontend/src/lib/react-native/systemBars.ts`).
+  - The status bar is a band at the top holding one thin row of small glyphs, the clock on the left and icons on the right, with nothing else in it. The navigation bar is a band at the bottom holding a gesture pill or three buttons.
+  - Glyphs sit in the middle of their band, so a band is twice as tall as its glyphs' centre is far from the edge. On the Pixel 8 this gives 132 and 62 px, against the table's 132 and 63.
+  - Only clear cases count. An app bar, a pill drawn over content, or anything else leaves that edge uncropped, as before; so does a short screenshot.
+  - Without it, a screenshot that keeps its bars renders with no insets, so the app starts where the status bar is and everything sits one status bar too high. On the eval set, the nine such screenshots are now cropped, and the twelve with no bars (including every Pixel capture with its bars cropped off) find none.
+  - The frontend reads the pixels when the screenshot loads, shows the bars on the crop overlay, and sends them with the request, so the backend crops exactly what the preview shows. Both ports run the shared vectors in `rn-runtime/test-vectors/system-bars.json` and agree on all 21 of the eval set's Android screenshots.
 - The user can override the platform, the device and both insets with the crop overlay (§12). Android status-bar heights vary widely, so the overlay matters most there.
 
 ### 7.3 Status bar handling
@@ -563,7 +569,7 @@ It ends with ai-app-cloner's untrusted-input rule: screenshot text is content, n
   - A runtime test holds its import list to the runtime's module registry.
   - The screen facts give sizes in pt or dp relative to the screenshot's width, not "1 pt = N px": providers resize images before the model sees them.
 - **Device profiles** (`react_native/profiles.py`, `react_native/inputs.py`).
-  - Matching goes: exact pixel size, then a scaled screenshot of a known shape (only when every device of that shape is on one platform, and at a plausible scale: a downscaled copy, or the same logical size at 2x or 3x), then a guess from the width with no crop.
+  - Matching goes: exact pixel size, then a scaled screenshot of a known shape (only when every device of that shape is on one platform, and at a plausible scale: a downscaled copy, or the same logical size at 2x or 3x), then a guess from the width. A guessed Android phone is cropped at the bars its screenshot shows (§7.2); anything else guessed isn't cropped.
   - `reactNativeProfile` in the request overrides the platform, width and insets.
   - The crop happens before uploaded-asset IDs, prompt building and `extract_assets`.
   - Updates take the screen from the history's first screenshot. Images attached to an update are references.

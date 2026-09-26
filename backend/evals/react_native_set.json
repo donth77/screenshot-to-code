@@ -12,6 +12,10 @@
         "lists-feeds"
       ],
       "long": true,
+      "insets": {
+        "top": 50.4,
+        "bottom": 23.7
+      },
       "notes": "A long screen: the emulator's display was set to 1080 x 4200 (adb shell wm size), so the app laid out the whole screen; not stitched.",
       "sha256": "3a86736a73741e170d2b4f22fb5b4e275326dc573aa4bee2fde6a8de39cbf515"
     },
@@ -25,6 +29,10 @@
         "cards"
       ],
       "long": false,
+      "insets": {
+        "top": 0,
+        "bottom": 47.7
+      },
       "sha256": "5840cd903d9c12d89b510ec22d59d56b60b069052f39638a6100dd2d032f6dd7"
     },
     {
@@ -37,6 +45,10 @@
         "cards"
       ],
       "long": false,
+      "insets": {
+        "top": 0,
+        "bottom": 47.7
+      },
       "sha256": "d76bce81e65fd326dc5dcecff96ff5abedbb0116c6502b5354f3d7bd4aae1cbe"
     },
     {
@@ -49,6 +61,10 @@
         "forms"
       ],
       "long": false,
+      "insets": {
+        "top": 28.2,
+        "bottom": 24
+      },
       "sha256": "43d338d4b95dfc9961bb9569eeafcdcce87c1bbeb8b768fcc804e4616a2e96a8"
     },
     {
@@ -61,6 +77,10 @@
         "cards"
       ],
       "long": false,
+      "insets": {
+        "top": 28.2,
+        "bottom": 24
+      },
       "sha256": "ba3fd57aa30d7ad5d041b5f9ec82cca1a2af4854ab84c75dcaefb734564e52c3"
     },
     {
@@ -106,6 +126,10 @@
         "forms"
       ],
       "long": true,
+      "insets": {
+        "top": 50.4,
+        "bottom": 23.7
+      },
       "notes": "A long screen: the emulator's display was set to 1080 x 4200 (adb shell wm size), so the app laid out the whole screen; not stitched.",
       "sha256": "0e2c4f06d167ba658b4ce38966bda2b008420dfcfa1cedbfdbc7bf6a7efcc015"
     },
@@ -119,6 +143,10 @@
         "chat"
       ],
       "long": false,
+      "insets": {
+        "top": 0,
+        "bottom": 0
+      },
       "notes": "System bars cropped off by hand (94 px top, 0 px bottom): the source device's size matches a different phone in the device table.",
       "sha256": "2b9481710314f97507c3d3816e6ce34afea8b7b2e393a1f7b7addc615fbfec39"
     },
@@ -132,6 +160,10 @@
         "lists-feeds"
       ],
       "long": false,
+      "insets": {
+        "top": 0,
+        "bottom": 0
+      },
       "notes": "The listing's image is a device mockup: cropped by hand to the screen (1080 x 2340 at 60, 65), then its system bars (140 px top, 69 px bottom), because the screen's size matches a different phone in the device table (an iPhone mini).",
       "sha256": "3343ed61f4091c3887e3589e0f7ae6147725f4acb75566a8e7a73b793e4cbe6b"
     },
@@ -145,6 +177,10 @@
         "lists-feeds"
       ],
       "long": false,
+      "insets": {
+        "top": 0,
+        "bottom": 0
+      },
       "notes": "The listing's image is a device mockup: cropped by hand to the screen (1080 x 2340 at 60, 65), then its system bars (140 px top, 69 px bottom), because the screen's size matches a different phone in the device table (an iPhone mini).",
       "sha256": "34f4ff17d786d0d0edb8165c25bbef70b0c00f6d0c8507c79528d128e2e5de3e"
     },
@@ -159,6 +195,10 @@
         "lists-feeds"
       ],
       "long": false,
+      "insets": {
+        "top": 0,
+        "bottom": 0
+      },
       "notes": "System bars cropped off by hand (124 px top, 100 px bottom): the source device's size matches a different phone in the device table.",
       "sha256": "4a652c35167a735fc4a228576dccc6c97d08387ff103c55db0c8b55240988541"
     },
@@ -172,6 +212,10 @@
         "settings"
       ],
       "long": false,
+      "insets": {
+        "top": 0,
+        "bottom": 0
+      },
       "notes": "System bars cropped off by hand (124 px top, 70 px bottom): the source device's size matches a different phone in the device table.",
       "sha256": "d152bec6c572954a2a82892d893c3aa25ae512a2d771a9d1133d3cd5b2bed2a7"
     },
@@ -185,6 +229,10 @@
         "lists-feeds"
       ],
       "long": false,
+      "insets": {
+        "top": 0,
+        "bottom": 0
+      },
       "notes": "System bars cropped off by hand (66 px top, 50 px bottom): the source device's size matches a different phone in the device table.",
       "sha256": "4f75010f695ea6a114c79faee1950894538538f83273b4bec636fb3a9d87701c"
     },
@@ -198,6 +246,10 @@
         "lists-feeds"
       ],
       "long": false,
+      "insets": {
+        "top": 23.7,
+        "bottom": 48.1
+      },
       "sha256": "afd34de4ad19b7e310a811ce5e39ce0a32a73568602cb23ab9819052f53db7cb"
     },
     {
@@ -227,6 +279,10 @@
         "lists-feeds"
       ],
       "long": false,
+      "insets": {
+        "top": 27.1,
+        "bottom": 54.9
+      },
       "sha256": "7a7f08b05ffedba78466113bbdb82b335d6396ed060bdd90f380de487ec2ed7b"
     },
     {
@@ -255,6 +311,10 @@
         "settings"
       ],
       "long": true,
+      "insets": {
+        "top": 50.4,
+        "bottom": 0
+      },
       "notes": "A long screen: the emulator's display was set to 1080 x 4200 (adb shell wm size), so the app laid out the whole screen; not stitched.",
       "sha256": "90b5b4098b54fc5b30c86dd009f3d6742b3d4c96a975caea84062cca3c08a9f8"
     },
@@ -269,6 +329,10 @@
         "forms"
       ],
       "long": false,
+      "insets": {
+        "top": 0,
+        "bottom": 0
+      },
       "notes": "The listing's image is a device mockup: cropped by hand to the screen (1080 x 2400 at 56, 57), then its system bars (118 px top, 63 px bottom). The screen is the table's Pixel 8 size, but its status bar is shorter (118 px, not 132), so the Pixel 8's insets would cut into the app.",
       "sha256": "73c50bc2c58f18662861f4235eb7ae6e93120e36a579df7d1ddb90e4713a3fa5"
     },
@@ -282,6 +346,10 @@
         "lists-feeds"
       ],
       "long": false,
+      "insets": {
+        "top": 0,
+        "bottom": 0
+      },
       "notes": "The listing's image is a device mockup: cropped by hand to the screen (1080 x 2400 at 56, 57), then its system bars (118 px top, 63 px bottom). The screen is the table's Pixel 8 size, but its status bar is shorter (118 px, not 132), so the Pixel 8's insets would cut into the app.",
       "sha256": "972d45a99aa3e9ba0d2d6dda13f8557e7fbb7829eeb3a8e62f995e5d87b6c39b"
     },

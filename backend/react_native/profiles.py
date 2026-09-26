@@ -5,15 +5,18 @@ runtime's dist/). DESIGN.md §7 has the maths: scale = pixel width / logical
 width; the status bar and home indicator (the safe-area insets) are cropped
 off before the model or the asset extractor sees the screenshot; and the
 preview renders the remaining content area at the same scale, so a preview
-screenshot has the cropped input's pixel size.
+screenshot has the cropped input's pixel size. A phone that isn't in the
+table has no known insets; on Android they're read off the screenshot's bars
+(detect_system_bars).
 """
 
 import base64
 import io
 import re
 from dataclasses import dataclass, replace
-from typing import Any, Literal, Mapping, Optional, cast
+from typing import Any, Literal, Mapping, Optional, Sequence, cast
 
+import numpy as np
 from PIL import Image
 
 from react_native.runtime_files import load_runtime
@@ -209,6 +212,145 @@ def infer_status_bar_style(strip: Image.Image) -> Optional[StatusBarStyle]:
     return "light" if glyph_level > background else "dark"
 
 
+# ------------------------------------------------------------------ system bars
+
+# An Android screenshot shows its phone's bars. The status bar is a band at the
+# top holding one thin row of small glyphs, the clock on the left and icons on
+# the right; the navigation bar is a band at the bottom holding a gesture pill
+# or three buttons. Glyphs sit in the middle of their band, so a band is twice
+# as tall as its glyphs' centre is far from the edge. Only clear cases count:
+# a pill drawn over content, or anything else, leaves that edge uncropped.
+# frontend/src/lib/react-native/systemBars.ts is the TypeScript port; both run
+# rn-runtime/test-vectors/system-bars.json.
+_BAR_SEARCH_DP = 64  # how far in from each edge to look
+_BAR_MIN_INK = 2  # glyph pixels (differing by _GLYPH_CONTRAST) a row needs
+_BAR_MIN_CONTENT_DP = 100
+
+
+@dataclass(frozen=True)
+class SystemBars:
+    top_px: int
+    bottom_px: int
+
+
+def _luminance(image: Image.Image) -> np.ndarray:
+    # Pillow's RGB to L: (19595 R + 38470 G + 7471 B + 32768) >> 16.
+    return np.asarray(image.convert("RGB").convert("L"), dtype=np.int16)
+
+
+def _background(rows: np.ndarray) -> int:
+    """The most common luminance (the lowest, on a tie)."""
+    return int(np.bincount(rows.ravel(), minlength=256).argmax())
+
+
+def _glyph_band(inked: Sequence[bool], order: Sequence[int], max_gap: int) -> Optional[tuple[int, int]]:
+    """The first run of inked rows in `order`, bridging gaps of up to max_gap rows."""
+    first: Optional[int] = None
+    last = 0
+    gap = 0
+    for row in order:
+        if inked[row]:
+            if first is None:
+                first = row
+            last, gap = row, 0
+        elif first is not None:
+            gap += 1
+            if gap > max_gap:
+                break
+    return None if first is None else (first, last)
+
+
+def _status_bar_px(rows: np.ndarray, dp: float) -> int:
+    """The status bar's height in a screenshot's top rows, or 0."""
+    count, width = int(rows.shape[0]), int(rows.shape[1])
+    ink = np.abs(rows - _background(rows[: max(1, round(2 * dp))])) > _GLYPH_CONTRAST
+    inked = (ink.sum(axis=1) >= _BAR_MIN_INK).tolist()
+    band = _glyph_band(inked, range(count), round(1.5 * dp))
+    if band is None:
+        return 0
+    first, last = band
+    height = first + last + 1
+    left = ink[first : last + 1, : round(0.4 * width)].sum(axis=1)
+    right = ink[first : last + 1, round(0.6 * width) :].sum(axis=1)
+    if (
+        round(2 * dp) <= first <= round(20 * dp)
+        and round(6 * dp) <= last - first + 1 <= round(20 * dp)
+        and round(20 * dp) <= height <= min(count, round(56 * dp))
+        and not any(inked[last + 1 : height - round(dp)])
+        and bool((left >= _BAR_MIN_INK).any())
+        and bool((right >= _BAR_MIN_INK).any())
+    ):
+        return height
+    return 0
+
+
+def _navigation_bar_px(rows: np.ndarray, dp: float) -> int:
+    """The navigation bar's height in a screenshot's bottom rows, or 0."""
+    count, width = int(rows.shape[0]), int(rows.shape[1])
+    ink = np.abs(rows - _background(rows[count - max(1, round(2 * dp)) :])) > _GLYPH_CONTRAST
+    inked = (ink.sum(axis=1) >= _BAR_MIN_INK).tolist()
+    band = _glyph_band(inked, range(count - 1, -1, -1), round(1.5 * dp))
+    if band is None:
+        return 0
+    last, first = band  # found scanning up, so the bottom row comes first
+    columns = np.flatnonzero(ink[first : last + 1].any(axis=0))
+    low, high = int(columns[0]), int(columns[-1])
+    tall = last - first + 1
+
+    def inked_between(start: float, end: float) -> bool:
+        return bool(((columns >= start * width) & (columns < end * width)).any())
+
+    pill = (
+        round(2 * dp) <= tall <= round(8 * dp)
+        and abs((low + high) / 2 - width / 2) <= 0.05 * width
+        and 0.15 * width <= high - low <= 0.5 * width
+    )
+    buttons = (
+        round(8 * dp) <= tall <= round(24 * dp)
+        and inked_between(0.15, 0.35)
+        and inked_between(0.4, 0.6)
+        and inked_between(0.65, 0.85)
+        and low >= 0.1 * width
+        and high < 0.9 * width
+    )
+    height = 2 * count - first - last - 1
+    if (
+        (pill or buttons)
+        and count - 1 - last >= round(3 * dp)
+        and round(16 * dp) <= height <= min(count, round(56 * dp))
+        and not any(inked[count - height + round(dp) : first])
+    ):
+        return height
+    return 0
+
+
+def detect_system_bars(image: Image.Image, scale: float) -> SystemBars:
+    """An Android screenshot's status and navigation bars, in pixels; 0 where
+    there's no clear bar. `scale` is pixels per dp."""
+    count = min(image.height // 2, round(_BAR_SEARCH_DP * scale))
+    if count < 1:
+        return SystemBars(0, 0)
+    top = _status_bar_px(_luminance(image.crop((0, 0, image.width, count))), scale)
+    bottom = _navigation_bar_px(_luminance(image.crop((0, image.height - count, image.width, image.height))), scale)
+    if image.height - top - bottom < round(_BAR_MIN_CONTENT_DP * scale):
+        return SystemBars(0, 0)
+    return SystemBars(top, bottom)
+
+
+def with_system_bars(device: DeviceProfile, image: Image.Image, overrides: Mapping[str, Any]) -> DeviceProfile:
+    """A phone that isn't in the table gets the insets of the bars its Android
+    screenshot shows, where the user hasn't set them."""
+    if device.name is not None or device.platform != "android":
+        return device
+    bars = detect_system_bars(image, device.scale)
+    changes: dict[str, Any] = {}
+    for key, field, pixels in (("insetTop", "inset_top", bars.top_px), ("insetBottom", "inset_bottom", bars.bottom_px)):
+        if pixels and _number(overrides.get(key), 0, 200) is None:
+            # To a tenth of a dp, as the crop overlay sets them.
+            changes[field] = round(pixels / device.scale * 10) / 10
+    return replace(device, **changes) if changes else device
+
+
 def decode_image(data_url: str) -> Optional[Image.Image]:
     match = _DATA_URL.match(data_url)
     if not match:
@@ -237,9 +379,10 @@ def read_screenshot(
     overrides: Optional[Mapping[str, Any]] = None,
 ) -> tuple[Image.Image, ReactNativeScreen]:
     """Detect the device, crop the screenshot to its content, and read the status bar."""
-    platform = (overrides or {}).get("platform")
+    overrides = overrides or {}
+    platform = overrides.get("platform")
     device = detect_device(image.width, image.height, table, platform if platform in ("ios", "android") else None)
-    device = apply_overrides(device, overrides or {}, table)
+    device = with_system_bars(apply_overrides(device, overrides, table), image, overrides)
     style = None
     if device.crop_top_px > 0:
         style = infer_status_bar_style(image.crop((0, 0, image.width, device.crop_top_px)))

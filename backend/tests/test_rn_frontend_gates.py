@@ -510,3 +510,38 @@ async def test_the_library_keeps_the_project_across_a_reload(session: Session) -
     assert await page.evaluate(READ_SAVED_PROJECT) is None
     await page.get_by_test_id("open-library").click()
     await page.get_by_test_id("upload-input").wait_for(state="attached")
+
+
+async def test_an_unknown_android_phone_is_cropped_at_its_bars(browser: Browser, vite_url: str, dirs: dict[str, Path]) -> None:
+    """A screenshot from a phone that isn't in the device table: the frontend
+    reads its status and navigation bars from the pixels, shows them on the
+    crop overlay and sends them, so the backend crops what the preview shows."""
+    from tests.test_rn_system_bars import scene
+
+    screenshot = dirs["inputs"] / "unknown-android.png"
+    scene("status bar and three buttons").save(screenshot)  # 1080 x 2280: bars of 122 and 132 px
+    context = await browser.new_context(viewport={"width": 1400, "height": 1000})
+    try:
+        page = await context.new_page()
+        socket = GenerateCodeSocket(page)
+        await page.goto(vite_url)
+        await page.evaluate("(settings) => localStorage.setItem('setting', JSON.stringify(settings))", SETTINGS)
+        await page.reload()
+        await page.get_by_test_id("upload-input").set_input_files(str(screenshot))
+        summary = page.get_by_test_id("rn-device-summary")
+        await summary.wait_for()
+        text = await summary.inner_text()
+        assert "Android phone (size guessed)" in text and "412 × 773 dp content" in text
+        assert await page.get_by_test_id("rn-crop-handle-top").get_attribute("aria-valuetext") == "Status bar 46.5 dp"
+        assert await page.get_by_test_id("rn-crop-handle-bottom").get_attribute("aria-valuetext") == "Navigation bar 50.4 dp"
+
+        await page.get_by_test_id("upload-generate").click()
+        await socket.wait_closed(1)
+        assert socket.sent[0]["reactNativeProfile"] == {"insetTop": 46.5, "insetBottom": 50.4}
+        viewports = socket.screenshot_viewports()
+        assert viewports and all(viewport["height"] == 773 for viewport in viewports)
+        frame = page.get_by_test_id("rn-preview-frame")
+        await frame.wait_for()
+        assert [await frame.evaluate("(f) => f.style.width"), await frame.evaluate("(f) => f.style.height")] == ["412px", "773px"]
+    finally:
+        await context.close()

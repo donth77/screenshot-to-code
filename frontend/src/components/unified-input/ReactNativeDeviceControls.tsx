@@ -1,9 +1,10 @@
 import { PointerEvent as ReactPointerEvent, useEffect, useMemo, useRef, useState } from "react";
-import { imageSize, useDeviceTable } from "../../lib/react-native/appRuntime";
+import { readScreenshot, useDeviceTable } from "../../lib/react-native/appRuntime";
 import {
   DeviceOverrides,
   Platform,
   ReactNativeDevice,
+  ScreenshotPixels,
   contentHeight,
   cropBottomPx,
   cropTopPx,
@@ -86,14 +87,14 @@ function CropHandle({
 // sees the screenshot.
 function ReactNativeDeviceControls({ screenshotUrl, overrides, onChange }: Props) {
   const { value: table, error } = useDeviceTable();
-  const [size, setSize] = useState<{ width: number; height: number } | null>(null);
+  const [size, setSize] = useState<ScreenshotPixels | null>(null);
   const cropRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setSize(null);
     if (!screenshotUrl) return;
     let cancelled = false;
-    imageSize(screenshotUrl).then(
+    readScreenshot(screenshotUrl).then(
       (loaded) => !cancelled && setSize(loaded),
       () => {
         /* App.tsx reports an unreadable screenshot on generate */
